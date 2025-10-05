@@ -36,8 +36,7 @@ array<Miscellaneous> miscArray(numCars);
 // stores the number of where to log the value
 uint32 currentLogIndex = 0;
 
-// variable to store the current time
-// TODO: fix time desync or create a better time logging system
+// variable to store the start time
 uint startTime = 0;
 
 void ResizeArrays(uint numberGhosts, uint runLength) {
@@ -190,13 +189,13 @@ void Update(float dt) {
         validCars++;
 
         // end loop if already found numCars valid cars
-        if (validCars >= numCars) {
+        if (validCars > numCars) {
             break;
         } 
 
         // only continue logging if the array is not complete
         if (miscArray[carIdx].isArrayComplete) {
-            print(miscArray[carIdx].id + " is complete " + carIdx);
+            // print(miscArray[carIdx].id + " is complete " + carIdx);
             continue;
         }
 
@@ -227,40 +226,64 @@ void Update(float dt) {
 
     // -------------------------------------------------------------------------
     // calculate the gaps
-    Point thisPosition = ghostPoints[0][currentLogIndex];
+    Point thisPoint;
+
+    thisPoint.y = cars[0].AsyncState.Position.y;
+    thisPoint.x = cars[0].AsyncState.Position.x;
+    thisPoint.z = cars[0].AsyncState.Position.z;
+
+    // gets time stamp
+    thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
     // set the gaps
-    SetGaps(thisPosition, miscArray, ghostPoints);
+    SetGaps(thisPoint, miscArray, ghostPoints);
 
     // -------------------------------------------------------------------------
     // housekeeping
+
+    // gets the current id
+    uint miscId;
+    // is the id found?
+    bool found;
 
     // check if any ghosts are finished
     // look through all IDs in miscArray, if the ID is not in cars, the car must have finished
     // i = 1 TO PREVENT THE PLAYER'S LIST FROM BEING COMPLETED
     // TODO: FIX ERROR WHERE AS SOON AS FOUND IS FALSE THE CODE GETS BRICKED
     for (int i = 0; i < miscArray.Length; i++) {
+        // if array is complete we already know that they are finished
+        if (miscArray[i].isArrayComplete) {
+            continue;
+        }
+
         // gets the current id
-        uint miscId = miscArray[i].id;
+        miscId = miscArray[i].id;
         // is the id found?
-        bool found = false;
+        found = false;
 
         // iterate cars
         for (int j = 0; j < cars.Length; j++) {
+            found = false;
+
             // does the ID match?
             if (GetEntityId(cars[j]) == miscId) {
+                // DEBUG PRINT
+                // print("FOUND " + GetEntityId(cars[j]) + " " + miscId);
+
                 // yes, found break
                 found = true;
                 // BREAK EQUIVALENT
-                j = cars.Length;
+                break;
             }
         }
 
         // if not found, must be compete so set the isArrayComplete to true
-        // they will also not be found on frame zero so if frame zero do nothing
-        if (!found && currentLogIndex != 0) {
+
+        // IF ARRAY SIZE < CURRENTLOGINDEX, THE ARRAY HAS STOPPED TRACKING
+        // THEREFORE, FINISHED
+        if (!found && miscArray[i].arraySize < currentLogIndex) {
             // DEBUG PRINT
-            print(miscId + " is finished!");
+            // print(miscId + " has finished!");
             miscArray[i].isArrayComplete = true;
         }
     }
@@ -281,13 +304,15 @@ void Render() {
 
     // creates window
     if (UI::Begin("Live Splits")) {
-        UI::InputInt("a", currentLogIndex);
-        UI::InputInt("size", miscArray[0].arraySize);
-        UI::InputInt("time", GetApp().TimeSinceInitMs - startTime);
+        UI::InputInt("LOG", currentLogIndex);
+        UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
 
         for (int i = 0; i < numCars; i++) {
             UI::PushID(i);
+            // UI::InputInt("SIZE", miscArray[i].arraySize);
+            UI::InputInt("ID", miscArray[i].id);
             UI::InputFloat("GAP", miscArray[i].gap / 1000.0);
+            UI::Checkbox("COMPLETE", miscArray[i].isArrayComplete);
             UI::PopID();
         }
 
