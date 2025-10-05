@@ -1,0 +1,4 @@
+store the position and time of the car each "resolution" frames
+do this for both the car and ghosts
+
+find the position in the ghost array that is closest and display the time difference taking into account the distance 

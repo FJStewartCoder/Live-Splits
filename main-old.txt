@@ -1,0 +1,152 @@
+class Point {
+    // stores the x, y, z coordinates
+    double x, y, z;
+    // stores the timeStamp of these coordinates
+    // used to calculate the split
+    double timeStamp;
+
+    string Get() {
+        return "x = " + x + ", y = " + y + ", z = " + z + ", time = " + timeStamp;
+    }
+}
+
+// map id
+string lastMap;
+string currentMap;
+
+// 2d array of ghost points
+// first array is always the current player
+// 2nd and 3rd array are always the player's ghost if it exists
+
+// good for 23 minutes of gameplay at 360 fps (more than enough headroom)
+// STATIC SIZE (CHANGEABLE IN SETTINGS)
+uint32 arraySize = 500000;
+array<array<Point>> ghostPoints;
+
+// stores the number of where to log the value
+uint32 currentLogNumber = 0;
+
+void ResizeArrays(uint numberGhosts, uint runLength) {
+    // resize the main array
+    ghostPoints.Resize(numberGhosts);
+
+    // resize each subarray
+    for (uint i = 0; i < numberGhosts; i++) {
+        ghostPoints[i].Resize(runLength);
+    }
+}
+
+void Main() {
+    Point newPoint;
+    newPoint.x = 1;
+    newPoint.y = 2;
+    newPoint.z = 3;
+    newPoint.timeStamp = 4;
+
+    ResizeArrays(3, arraySize);
+    // allows for dynamic allocation (kind of)
+    // this would take up too much processing so don't do it
+    ghostPoints[9].InsertLast(newPoint);
+
+    print(ghostPoints[9][0].Get());
+}
+
+void Update(float dt) {
+    ISceneVis@ scene = GetApp().GameScene;
+    // gets the track
+    CGameCtnChallenge@ track = GetApp().RootMap;
+
+    // ensures the player is in a race
+    if (scene is null) {
+        return;
+    }
+
+    // get all of the cars and ghosts
+    // ONLY DO THIS IF SCENE IS NOT NULL
+    CSceneVehicleVis@[] cars = VehicleState::GetAllVis(scene);
+    CSceneVehicleVisState@ thisCar = VehicleState::ViewingPlayerState();
+
+    // ----------------------------------------------------------------------
+
+    // ensures the track exists
+    if (track is null) {
+        // not the current map should be nothing
+        currentMap = "";
+    }
+    else {
+        // otherwise update the map
+        lastMap = currentMap;
+        currentMap = track.EdChallengeId;
+    }
+
+    // only set certain values upon switching track to reduce processing
+    if (lastMap != currentMap) {
+        print("Track is now track id: " + currentMap);
+
+        // reset the current log number to 0
+        currentLogNumber = 0;
+
+        // TODO: resize ghost arrays and load values into the array (if they exist in storage)
+        // TODO: calculate size of arrays based on number of ghosts and making use of author time for length then * by frame_rate then divide by how many frames between logging but keep a maximum length to prevent errors (e.g max 100,000,000 points)
+
+        // 60fps * bronze time
+        arraySize = track.TMObjective_BronzeTime * 60;
+        // TODO: change from 3 to a better value
+        // TODO: MAKE THIS WORK AGAIN
+        // currently times out
+        ResizeArrays(3, arraySize);
+    }
+
+    // -------------------------------------------------------------------------
+
+    // if the currently viewing car is null (the player has finished)
+    // return
+    if (thisCar is null) {
+        // print("Player has finished");
+        return;
+    }
+    
+    // check if the first vehicle (you) have a race start time of this specific value which shows when you are at the start
+    if (cars[0].AsyncState.RaceStartTime == 4294967295) {
+        currentLogNumber = 0;
+        
+        // debug message
+        // print("reset");
+
+        // DONT NEED TO CONTINUE IF AT START
+        return;
+    }
+
+    // -------------------------------------------------------------------------
+
+    // if the currentLogNumber is greater than the size of the array allocation can not occur so return
+    if (currentLogNumber >= arraySize) {
+        print("No more array size");
+        return;
+    }
+
+    // set ghost points
+    ghostPoints[0][currentLogNumber].x = cars[0].AsyncState.Position.x;
+    ghostPoints[0][currentLogNumber].y = cars[0].AsyncState.Position.y;
+    ghostPoints[0][currentLogNumber].z = cars[0].AsyncState.Position.z;
+    
+
+    // increment currentLogNumber
+    currentLogNumber++;
+}
+    
+
+void Render() {
+    ISceneVis@ scene = GetApp().GameScene;
+
+    // ensures the player is in a race
+    if (scene is null) {
+        return;
+    }
+
+    // creates window
+    if (UI::Begin("Live Splits")) {
+        UI::InputInt("a", currentLogNumber);
+    }
+    UI::End();
+}
