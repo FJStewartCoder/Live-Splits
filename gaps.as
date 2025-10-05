@@ -4,16 +4,18 @@ float GetDist(Point p1, Point p2) {
 }
 
 // TODO: improve gap algorithm
-// COULD SEARCH EVERY N LOGS AND TAKE THE MINIMUM
-// THEN SEARCH N - 1 EACH SIDE AND FIND THE MIN THERE
-// (LIKELY FASTER OVERALL BECAUSE LESS ITEMS OVERALL SEARCHED)
-
 // TODO: only check points after the previous selection (improves efficiency)
 // TODO: add a maximum forward search distance or improve searching algorithm (better frame rate)
 
+// intervals between distance checks (reduces overall number of checks)
+// increasing this will improve efficiency but decrease accuracy
+// ACCURACY refers to how accurate the selection of closest point is
+// however, greater can help to filter out brief periods of crossing over the track
 uint checkInterval = 30;
+// must be less than checkInterval
+uint checkIntervalTwo = 8;
 
-int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int maxCheckIdx, int interval) {
+int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int maxCheckIdx, uint interval) {
     // dont allow min idx less than 0
     if (minCheckIdx < 0) {
         minCheckIdx = 0;
@@ -61,8 +63,6 @@ void SetGaps(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Po
 
         // -----------------------------------------------------------------------------------
         // check checkInterval - 1 indexes either side of the current min to refine the min
-
-        int checkIntervalTwo = 8;
 
         // check start for the second time
         int checkStart = minIdx - checkInterval;
