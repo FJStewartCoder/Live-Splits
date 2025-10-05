@@ -166,58 +166,56 @@ void Update(float dt) {
     // -------------------------------------------------------------------------
     // adding points scripts
 
-    // used to get the number of cars in the misc array that is valid
-    uint validCars = 0;
-
     // iterate all cars and accept the first ones that appear that are less than numCars
-    for (int car = 0; car < cars.Length; car++) {
-        // get the index of the current car in the misc array
-        // this lines up with the points array (ensures that when cars finish the points of another car are not added to the array)
-        uint currentId = GetEntityId(cars[car]);
-        int carIdx = IndexFromId(currentId, numCars, miscArray);
+    for (int car = 0; car < miscArray.Length; car++) {
+        // only continue logging if the array is not complete
+        if (miscArray[car].isArrayComplete) {
+            // print(miscArray[carIdx].id + " is complete " + carIdx);
+            continue;
+        }
+    
+        // gets id from misc array
+        uint currentId = miscArray[car].id;
 
-        // FOR DEBUG
-        // print(currentId);
-        // print(carIdx);
-
-        // if carIdx is not in miscArray then skip
-        if (carIdx == -1) {
+        // not a valid id
+        if (currentId == 0) {
             continue;
         }
 
-        // increment valid cars
-        validCars++;
+        // gets current car based on entity ID with native functions
+        CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
 
-        // end loop if already found numCars valid cars
-        if (validCars > numCars) {
-            break;
-        } 
+        // if is null, must have finished or is gone
+        if (currentCar is null) {
+            // if current log index is greater than the size, the array must have stopped tracking so must have finished
+            if (miscArray[car].arraySize < currentLogIndex) {
+                print(currentId + " has finished");
+                miscArray[car].isArrayComplete = true;
+            }
 
-        // only continue logging if the array is not complete
-        if (miscArray[carIdx].isArrayComplete) {
-            // print(miscArray[carIdx].id + " is complete " + carIdx);
+            // if null must continue
             continue;
         }
 
         Point currentPoint;
 
         // get all of the car's data and put in a point
-        currentPoint.y = cars[car].AsyncState.Position.y;
-        currentPoint.x = cars[car].AsyncState.Position.x;
-        currentPoint.z = cars[car].AsyncState.Position.z;
+        currentPoint.y = currentCar.AsyncState.Position.y;
+        currentPoint.x = currentCar.AsyncState.Position.x;
+        currentPoint.z = currentCar.AsyncState.Position.z;
 
         // gets time stamp
         currentPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
         // reassign a point if there is space for it else insert at the end the new point
-        if (currentLogIndex >= miscArray[carIdx].arraySize) {
+        if (currentLogIndex >= miscArray[car].arraySize) {
             // set last point
-            ghostPoints[carIdx].InsertLast(currentPoint);
+            ghostPoints[car].InsertLast(currentPoint);
             // increment array size here
-            miscArray[carIdx].arraySize++;
+            miscArray[car].arraySize++;
         }
         else {
-            ghostPoints[carIdx][currentLogIndex] = currentPoint;
+            ghostPoints[car][currentLogIndex] = currentPoint;
         }
 
         // debug print
@@ -241,53 +239,6 @@ void Update(float dt) {
     // -------------------------------------------------------------------------
     // housekeeping
 
-    // gets the current id
-    uint miscId;
-    // is the id found?
-    bool found;
-
-    // check if any ghosts are finished
-    // look through all IDs in miscArray, if the ID is not in cars, the car must have finished
-    // i = 1 TO PREVENT THE PLAYER'S LIST FROM BEING COMPLETED
-    // TODO: FIX ERROR WHERE AS SOON AS FOUND IS FALSE THE CODE GETS BRICKED
-    for (int i = 0; i < miscArray.Length; i++) {
-        // if array is complete we already know that they are finished
-        if (miscArray[i].isArrayComplete) {
-            continue;
-        }
-
-        // gets the current id
-        miscId = miscArray[i].id;
-        // is the id found?
-        found = false;
-
-        // iterate cars
-        for (int j = 0; j < cars.Length; j++) {
-            found = false;
-
-            // does the ID match?
-            if (GetEntityId(cars[j]) == miscId) {
-                // DEBUG PRINT
-                // print("FOUND " + GetEntityId(cars[j]) + " " + miscId);
-
-                // yes, found break
-                found = true;
-                // BREAK EQUIVALENT
-                break;
-            }
-        }
-
-        // if not found, must be compete so set the isArrayComplete to true
-
-        // IF ARRAY SIZE < CURRENTLOGINDEX, THE ARRAY HAS STOPPED TRACKING
-        // THEREFORE, FINISHED
-        if (!found && miscArray[i].arraySize < currentLogIndex) {
-            // DEBUG PRINT
-            // print(miscId + " has finished!");
-            miscArray[i].isArrayComplete = true;
-        }
-    }
-
     // increment currentLogIndex
     currentLogIndex++;
 }
@@ -304,8 +255,9 @@ void Render() {
 
     // creates window
     if (UI::Begin("Live Splits")) {
-        UI::InputInt("LOG", currentLogIndex);
-        UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
+        // ONLY FOR DEBUGGING
+        // UI::InputInt("LOG", currentLogIndex);
+        // UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
 
         for (int i = 0; i < numCars; i++) {
             UI::PushID(i);
