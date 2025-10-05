@@ -4,8 +4,44 @@ float GetDist(Point p1, Point p2) {
 }
 
 // TODO: improve gap algorithm
+// COULD SEARCH EVERY N LOGS AND TAKE THE MINIMUM
+// THEN SEARCH N - 1 EACH SIDE AND FIND THE MIN THERE
+// (LIKELY FASTER OVERALL BECAUSE LESS ITEMS OVERALL SEARCHED)
+
 // TODO: only check points after the previous selection (improves efficiency)
 // TODO: add a maximum forward search distance or improve searching algorithm (better frame rate)
+
+uint checkInterval = 30;
+
+int GetMinDistIndex(Point currentPoint, Point[] points, int minCheckIdx, int maxCheckIdx, int interval) {
+    // dont allow min idx less than 0
+    if (minCheckIdx < 0) {
+        minCheckIdx = 0;
+    }
+
+    // dont let max greater than length
+    if (maxCheckIdx > points.Length) {
+        maxCheckIdx = points.Length;
+    }
+
+    float curDist = 0;
+    float minDist = 0;
+    float minIdx = minCheckIdx;
+
+    for (int p = minCheckIdx; p < maxCheckIdx; p += interval) {
+        curDist = GetDist(points[p], currentPoint);
+        // print(curDist);
+
+        // if the current distance is less or at the start of loop
+        if (curDist < minDist || p == minCheckIdx) {
+            minDist = curDist;
+            minIdx = p;
+        }
+    }
+
+    // returns the minIdx
+    return minIdx;
+}
 
 // need the misc array, current position and array of points
 void SetGaps(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Point>> ghostPoints) {
@@ -21,27 +57,70 @@ void SetGaps(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Po
             continue;
         }
 
-        float minDist = 0;
-        float curDist = 0;
-        // index of the shortest distance
-        int minIdx = 0;
+        int minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], 0, miscArray[i].arraySize, checkInterval);
 
-        // iterate all points in current points array
-        for (int p = 0; p < miscArray[i].arraySize; p++) {
+        // -----------------------------------------------------------------------------------
+        // check checkInterval - 1 indexes either side of the current min to refine the min
+        
+        // declare refined variables
+        float refinedMinDist = 0;
+        // index of the shortest distance
+        int refinedMinIdx = 0;
+        // current distance
+        int curDist;
+
+        // -----------------------------------------------------------------
+        // check end
+        uint checkEnd;
+
+        if (miscArray[i].arraySize < minIdx + checkInterval) {
+            checkEnd = miscArray[i].arraySize;
+        }
+        else {
+            checkEnd = minIdx + checkInterval;
+        }
+
+        // -----------------------------------------------------------------
+        // check start
+        uint checkStart;
+
+        if (0 > minIdx - checkInterval) {
+            checkStart = 0;
+        }
+        else {
+            checkStart = minIdx - checkInterval;
+        }
+
+        // ------------------------------------------------------------------
+
+        // iterate upper side
+        for (int p = minIdx; p < checkEnd; p++) {
             curDist = GetDist(ghostPoints[i][p], currentPoint);
             // print(curDist);
 
-            if (curDist < minDist || p == 0) {
-                minDist = curDist;
+            // if the current distance is less or at the start of loop
+            if (curDist < refinedMinDist || p == minIdx) {
+                refinedMinDist = curDist;
                 minIdx = p;
+            }
+        }
+
+        // iterate lower side
+        for (int p = checkStart; p < minIdx; p++) {
+            curDist = GetDist(ghostPoints[i][p], currentPoint);
+            // print(curDist);
+
+            // if the current distance is less or at the start of loop
+            if (curDist < refinedMinDist || p == checkStart) {
+                refinedMinDist = curDist;
+                refinedMinIdx = p;
             }
         }
 
         // FOR DEBUG
         // print(i);
 
-        // TODO: FIX SOME INDEX OUT OF RANGE ERROR HERE
         // set the gap based on the timestamps
-        miscArray[i].gap = currentPoint.timeStamp - ghostPoints[i][minIdx].timeStamp;
+        miscArray[i].gap = currentPoint.timeStamp - ghostPoints[i][refinedMinIdx].timeStamp;
     }
 }

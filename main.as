@@ -74,11 +74,6 @@ void ResetAllVars() {
 // TODO: fix issue where misc array is not updated after setting a record for the first time
 // TODO: fix issue where setting a new record will not update the misc array (update misc array if new record is set)
 // TODO: fix issue where all cars are not added to misc array when switching track
-// TODO: update script so the current player is not included in the ghost logs
-// this is because we only need the current position to compare against each log
-
-// TODO: FIX ERROR WHERE WHEN CURRENTLOGNUMBER EXCEEDS THE CURRENT ARRAYSIZE AND YOU RESET,
-// THE OTHER GHOSTS GETS COUNTED AS FINISHED AND THE CODE IS BRICKED
 
 void Main() {
     // assign array size on load
