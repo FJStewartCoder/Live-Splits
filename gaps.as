@@ -15,6 +15,10 @@ uint checkInterval = 30;
 // must be less than checkInterval
 uint checkIntervalTwo = 8;
 
+// show gap even if not array complete (for long maps)
+// WILL NOT SHOW GAP IF YOU ARE AHEAD
+bool overrideShow = false;
+
 int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int maxCheckIdx, uint interval) {
     // dont allow min idx less than 0
     if (minCheckIdx < 0) {
@@ -55,7 +59,8 @@ void SetGaps(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Po
         }
 
         // if array not complete don't calculate gap
-        if (!miscArray[i].isArrayComplete) {
+        // unless overridden
+        if (!miscArray[i].isArrayComplete && !overrideShow) {
             continue;
         }
 

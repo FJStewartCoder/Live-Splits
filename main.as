@@ -73,7 +73,6 @@ void ResetAllVars() {
 
 // TODO: fix issue where misc array is not updated after setting a record for the first time
 // TODO: fix issue where setting a new record will not update the misc array (update misc array if new record is set)
-// TODO: fix issue where all cars are not added to misc array when switching track
 
 void Main() {
     // assign array size on load
@@ -137,12 +136,6 @@ void Update(float dt) {
         return;
     }
 
-    // check for greater than a hard limit
-    if (currentLogIndex >= arrayMaxSize) {
-        // print("Max array size hit");
-        return;
-    }
-
     // ----------------------------------------------------------------------------
     // pre-log housekeeping and checks
 
@@ -155,8 +148,11 @@ void Update(float dt) {
         return;
     }
 
-    // make misc array (only does this if not already set)
-    MakeMiscArray(cars, numCars, miscArray);
+    // cars must be greater than one to ensure the cars are included
+    if (cars.Length > 1) {
+        // make misc array (only does this if not already set)
+        MakeMiscArray(cars, numCars, miscArray);
+    } 
 
     // -------------------------------------------------------------------------
     // adding points scripts
@@ -166,6 +162,15 @@ void Update(float dt) {
         // only continue logging if the array is not complete
         if (miscArray[car].isArrayComplete) {
             // print(miscArray[carIdx].id + " is complete " + carIdx);
+            continue;
+        }
+
+        // check for size greater or equal to the hard limit
+        if (currentLogIndex >= arrayMaxSize) {
+            // print("Max array size hit");
+
+            // if at limit the array must be complete
+            miscArray[car].isArrayComplete = true;
             continue;
         }
     
@@ -182,8 +187,9 @@ void Update(float dt) {
 
         // if is null, must have finished or is gone
         if (currentCar is null) {
-            // if current log index is greater than the size, the array must have stopped tracking so must have finished
-            if (miscArray[car].arraySize < currentLogIndex) {
+            // if current log index is greater than the size + 2, the array must have stopped tracking so must have finished
+            // + 2 simply for safety
+            if (miscArray[car].arraySize + 2 < currentLogIndex) {
                 print(currentId + " has finished");
                 miscArray[car].isArrayComplete = true;
             }
@@ -255,6 +261,10 @@ void Render() {
         // UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
 
         for (int i = 0; i < numCars; i++) {
+            if (miscArray[i].id == 0) {
+                continue;
+            }
+
             UI::PushID(i);
             // UI::InputInt("SIZE", miscArray[i].arraySize);
             UI::InputInt("ID", miscArray[i].id);
