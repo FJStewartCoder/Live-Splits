@@ -75,7 +75,7 @@ int GetPb(CGameCtnChallenge@ map) {
 
 
 // taken from 
-// https://github.com/Phlarx/tm-ultimate-medals/blob/main/PersonalBest/NextPersonalBestMedal.as
+// https://github.com/ArEyeses79/tm-ultimate-medals-extended/blob/main/PreviousRun.as#L30
 uint GetCurrentTime() {
     uint score = 0;
 
@@ -301,6 +301,7 @@ void Update(float dt) {
     if (currentPb == uint(-1)){
         // get the current pb
         currentPb = GetPb(track);
+        print("Current PB: " + currentPb);
     }
 
     // new pb is whatever the last time was (it is trying to be the new pb)
@@ -318,7 +319,7 @@ void Update(float dt) {
         // to prevent continuously repeating set pb
         newPbSet = true;
 
-        print(currentPb + " " + newPb);
+        print("New PB Set: " + newPb);
     }
 
     // -------------------------------------------------------------------------
