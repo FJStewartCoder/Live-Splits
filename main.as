@@ -81,6 +81,7 @@ uint GetCurrentTime() {
 
     CGameCtnApp@ app = GetApp();
     CGamePlayground@ playground = cast<CGamePlayground>(app.CurrentPlayground);
+
     if (playground !is null && playground.GameTerminals.Length > 0) {
         CSmArenaRulesMode@ playgroundScript = cast<CSmArenaRulesMode>(app.PlaygroundScript);
         if (playgroundScript !is null) {
@@ -129,6 +130,7 @@ void ResetAllVars() {
 }
 
 // TODO: fix multilap (it will go completely wrong)
+// TODO: OPTIMISE
 
 void Main() {
     // assign array size on load
@@ -327,38 +329,4 @@ void Update(float dt) {
 
     // increment currentLogIndex
     currentLogIndex++;
-}
-    
-
-// TODO: reduce number of times per seconds rendering of gap
-void Render() {
-    ISceneVis@ scene = GetApp().GameScene;
-
-    // ensures the player is in a race
-    if (scene is null) {
-        return;
-    }
-
-    // creates window
-    if (UI::Begin("Live Splits")) {
-        // ONLY FOR DEBUGGING
-        // UI::InputInt("LOG", currentLogIndex);
-        // UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
-
-        for (int i = 0; i < numCars; i++) {
-            if (miscArray[i].id == 0) {
-                continue;
-            }
-
-            UI::PushID(i);
-            // UI::InputInt("SIZE", miscArray[i].arraySize);
-            UI::InputInt("ID", miscArray[i].id);
-            UI::InputFloat("GAP", miscArray[i].gap / 1000.0);
-            UI::Checkbox("COMPLETE", miscArray[i].isArrayComplete);
-            UI::PopID();
-        }
-
-        // UI::InputFloat3("Position", vec3(ghostPoints[0][currentLogIndex].y, ghostPoints[0][currentLogIndex].x, ghostPoints[0][currentLogIndex].z));
-    }
-    UI::End();
 }
