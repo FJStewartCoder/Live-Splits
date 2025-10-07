@@ -39,6 +39,11 @@ uint32 currentLogIndex = 0;
 // variable to store the start time
 uint startTime = 0;
 
+// current and last pb
+bool newPbSet = false;
+uint currentPb = uint(-1);
+
+
 void ResizeArrays(uint numberGhosts, uint runLength) {
     // resize the main array
     ghostPoints.Resize(numberGhosts);
@@ -49,6 +54,52 @@ void ResizeArrays(uint numberGhosts, uint runLength) {
     }
 }
 
+// taken from 
+// https://github.com/Phlarx/tm-ultimate-medals/blob/main/PersonalBest/NextPersonalBestMedal.as
+// WON'T WORK UNTIL REAL BUILD BECAUSE LEADERBOARDS DISABLED
+int GetPb(CGameCtnChallenge@ map) {
+    int score = -1;
+
+    auto app = GetApp();
+    auto network = cast<CTrackManiaNetwork>(app.Network);
+
+    if(network.ClientManiaAppPlayground !is null) {
+        auto scoreMgr = network.ClientManiaAppPlayground.ScoreMgr;
+        // from: OpenplanetNext\Extract\Titles\Trackmania\Scripts\Libs\Nadeo\TMNext\TrackMania\Menu\Constants.Script.txt
+        // ScopeType can be: "Season", "PersonalBest"
+        score = scoreMgr.Map_GetRecord_v2(0x100, map.MapInfo.MapUid, "PersonalBest", "", "TimeAttack", "");
+    }
+
+    return score;
+}
+
+
+// taken from 
+// https://github.com/Phlarx/tm-ultimate-medals/blob/main/PersonalBest/NextPersonalBestMedal.as
+uint GetCurrentTime() {
+    uint score = 0;
+
+    CGameCtnApp@ app = GetApp();
+    CGamePlayground@ playground = cast<CGamePlayground>(app.CurrentPlayground);
+    if (playground !is null && playground.GameTerminals.Length > 0) {
+        CSmArenaRulesMode@ playgroundScript = cast<CSmArenaRulesMode>(app.PlaygroundScript);
+        if (playgroundScript !is null) {
+            CSmPlayer@ player = cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer);
+            if (player !is null) {
+                CGameGhostScript@ ghost = playgroundScript.Ghost_RetrieveFromPlayer(cast<CSmScriptPlayer>(player.ScriptAPI));
+                if (ghost !is null) {
+                    score = uint(-1);
+                    if (ghost.Result.Time > 0 && ghost.Result.Time < uint(-1)) {
+                        score = ghost.Result.Time;
+                    }
+                }
+            }
+        }
+    }
+
+    return score;
+}
+
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
     // reset the current log number to 0
@@ -56,6 +107,9 @@ void ResetRaceVars() {
 
     // reset current time
     startTime = GetApp().TimeSinceInitMs;
+
+    // when restarting the race allow newPbSetting
+    newPbSet = false;
 
     // reset currentFrameNumber just so always starts at 0
 }
@@ -69,10 +123,12 @@ void ResetAllVars() {
 
     // reset the misc array
     ResetMiscArray(numCars, miscArray);
+
+    // reset last pb if changing track
+    currentPb = uint(-1);
 }
 
-// TODO: fix issue where misc array is not updated after setting a record for the first time
-// TODO: fix issue where setting a new record will not update the misc array (update misc array if new record is set)
+// TODO: fix multilap (it will go completely wrong)
 
 void Main() {
     // assign array size on load
@@ -126,11 +182,11 @@ void Update(float dt) {
 
     // check if the first vehicle (you) have a race start time of this specific value which shows when you are at the start
     if (cars[0].AsyncState.RaceStartTime == 4294967295) {
-        // reset all vars related to the current race
-        ResetRaceVars();
-        
         // debug message
         // print("reset");
+
+        // reset all vars related to the current race
+        ResetRaceVars();
 
         // DONT NEED TO CONTINUE IF AT START
         return;
@@ -149,10 +205,11 @@ void Update(float dt) {
     }
 
     // cars must be greater than one to ensure the cars are included
-    if (cars.Length > 1) {
+    // only do this once the race has started (if newPbSet is true the race must be at the end)
+    if (cars.Length > 1 && !newPbSet) {
         // make misc array (only does this if not already set)
         MakeMiscArray(cars, numCars, miscArray);
-    } 
+    }
 
     // -------------------------------------------------------------------------
     // adding points scripts
@@ -236,6 +293,33 @@ void Update(float dt) {
 
     // set the gaps
     SetGaps(thisPoint, miscArray, ghostPoints);
+
+    // ------------------------------------------------------------------------
+    // evaluate pbs in order to correctly reset the arrays
+
+    // if the current pb is unset, set the current pb
+    if (currentPb == uint(-1)){
+        // get the current pb
+        currentPb = GetPb(track);
+    }
+
+    // new pb is whatever the last time was (it is trying to be the new pb)
+    uint newPb = GetCurrentTime();
+
+    // if newPb is less than or equal to old pb and new pb is not 0 or uint(-1) and newPbSet is false
+    // both of last two can both regularly occur
+    if (newPb <= currentPb && newPb != 0 && newPb != uint(-1) && !newPbSet) {
+        // reset all of the arrays
+        ResetAllVars();
+
+        // set the current pb to the new pb
+        currentPb = newPb;
+
+        // to prevent continuously repeating set pb
+        newPbSet = true;
+
+        print(currentPb + " " + newPb);
+    }
 
     // -------------------------------------------------------------------------
     // housekeeping
