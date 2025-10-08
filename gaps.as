@@ -11,16 +11,15 @@ float GetDist(Point p1, Point p2) {
 // increasing this will improve efficiency but decrease accuracy
 // ACCURACY refers to how accurate the selection of closest point is
 // however, greater can help to filter out brief periods of crossing over the track
-uint checkInterval = 30;
-// must be less than checkInterval
-uint checkIntervalTwo = 8;
+array<uint> checkIntervals = {30, 8, 1};
 
 // how far either side of the last index will we search
 uint searchRadius = 500;
+array<uint> checkIntervalsEst = {20, 4, 1};
 
 // show gap even if not array complete (for long maps)
 // WILL NOT SHOW GAP IF YOU ARE AHEAD
-bool overrideShow = false;
+bool overrideShow = true;
 
 int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int maxCheckIdx, uint interval) {
     // dont allow min idx less than 0
@@ -96,32 +95,25 @@ namespace SetGaps {
             if (!miscArray[i].isArrayComplete && !overrideShow) {
                 continue;
             }
-
-            int minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], 0, miscArray[i].arraySize, checkInterval);
-
-            // -----------------------------------------------------------------------------------
-            // check checkInterval - 1 indexes either side of the current min to refine the min
-
-            // check start for the second time
-            int checkStart = minIdx - checkInterval;
-            // check end for the second time
-            int checkEnd = minIdx + checkInterval;
-
-            // refine min index (EASIER TO INCLUDE THE CURRENT MIN AS WELL TO SAVE ON VARIABLES)
-            // (AND THE PREVIOUS MIN IDX GUESS COULD HAVE BEEN THE SMALLEST)
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervalTwo);
             
-            // -----------------------------------------------------------------------------------
-            // check checkInterval - 1 indexes either side of the current min to refine the min
+            // ------------------------------------------------------------------------------------
+            // get min index
 
-            // check start
-            checkStart = minIdx - checkIntervalTwo;
-            // check end
-            checkEnd = minIdx + checkIntervalTwo;
+            // define some variables to start
+            int minIdx = 0;
+            int checkStart = 0;
+            int checkEnd = miscArray[i].arraySize;
 
-            // refine min index (EASIER TO INCLUDE THE CURRENT MIN AS WELL TO SAVE ON VARIABLES)
-            // (AND THE PREVIOUS MIN IDX GUESS COULD HAVE BEEN THE SMALLEST)
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, 1);
+            // iterate all intervals in checkIntervals
+            for (int interval = 0; interval < checkIntervals.Length; interval++) {
+                // gets the min idx from the start to the end in intervals of interval
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervals[interval]);
+
+                // set the check start and check end for the next loop using the current interval
+                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+                checkStart = minIdx - checkIntervals[interval];
+                checkEnd = minIdx + checkIntervals[interval];
+            }
             
             // -----------------------------------------------------------------------------------
 
@@ -147,31 +139,26 @@ namespace SetGaps {
             if (!miscArray[i].isArrayComplete && !overrideShow) {
                 continue;
             }
+            
+            // ------------------------------------------------------------------------------------
+            // get min index
 
+            // define some variables to start
+            int minIdx = 0;
             // get the start and end of our estimated search
             int checkStart = miscArray[i].lastIdx - searchRadius;
             int checkEnd = miscArray[i].lastIdx + searchRadius;
 
-            // get the min idx by iterating this range
-            int minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkInterval);
-            
-            // -----------------------------------------------------------------------------------
-            // second iteration of getting min idx
+            // iterate all intervals in checkIntervals
+            for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
+                // gets the min idx from the start to the end in intervals of interval
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervalsEst[interval]);
 
-            // set check start and end based around the check interval
-            checkStart = minIdx - checkInterval;
-            checkEnd = minIdx + checkInterval;
-
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervalTwo);
-
-            // -----------------------------------------------------------------------------------
-            // final iteration of getting min idx
-
-            // set check start and end based around the check interval
-            checkStart = minIdx - checkIntervalTwo;
-            checkEnd = minIdx + checkIntervalTwo;
-
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, 1);
+                // set the check start and check end for the next loop using the current interval
+                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+                checkStart = minIdx - checkIntervalsEst[interval];
+                checkEnd = minIdx + checkIntervalsEst[interval];
+            }
 
             // -----------------------------------------------------------------------------------
 

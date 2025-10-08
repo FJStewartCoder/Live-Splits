@@ -311,7 +311,7 @@ void Update(float dt) {
         thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
         // set the gaps
-        SetGaps::Estimation(thisPoint, miscArray, ghostPoints);
+        SetGaps::ModifiedLinear(thisPoint, miscArray, ghostPoints);
     }
 
     // ------------------------------------------------------------------------
@@ -321,7 +321,10 @@ void Update(float dt) {
     if (currentPb == uint(-1)){
         // get the current pb
         currentPb = GetPb(track);
-        print("Current PB: " + currentPb);
+
+        if (currentPb != uint(-1)) {
+            print("Current PB: " + currentPb);
+        }
     }
 
     // new pb is whatever the last time was (it is trying to be the new pb)
