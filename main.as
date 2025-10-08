@@ -112,6 +112,16 @@ void ResetRaceVars() {
     // when restarting the race allow newPbSetting
     newPbSet = false;
 
+    // iterate miscArray and set last idx to 0
+    for (int i = 0; i < numCars; i++) {
+        if (miscArray[i].id == 0) {
+            break;
+        }
+
+        // reset the last idx
+        miscArray[i].lastIdx = 0;
+    }
+
     // reset currentFrameNumber just so always starts at 0
 }
 
@@ -130,7 +140,7 @@ void ResetAllVars() {
 }
 
 // TODO: fix multilap (it will go completely wrong)
-// TODO: OPTIMISE
+// TODO: FIX VERY SLOW TO CLOSE MAP
 
 void Main() {
     // assign array size on load
@@ -301,7 +311,7 @@ void Update(float dt) {
         thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
         // set the gaps
-        SetGaps(thisPoint, miscArray, ghostPoints);
+        SetGaps::Estimation(thisPoint, miscArray, ghostPoints);
     }
 
     // ------------------------------------------------------------------------

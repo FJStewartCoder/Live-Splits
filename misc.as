@@ -5,6 +5,9 @@ class Miscellaneous {
     uint id;
     // as milliseconds
     int gap;
+
+    // index of the previous gap
+    uint lastIdx;
 }
 
 
@@ -39,6 +42,9 @@ void ResetMiscArray(uint8 numCars, array<Miscellaneous> @miscArray) {
         miscArray[i].isArrayComplete = false;
         miscArray[i].id = 0;
         miscArray[i].gap = 0;
+
+        // reset last index
+        miscArray[i].lastIdx = 0;
     }
 }
 
