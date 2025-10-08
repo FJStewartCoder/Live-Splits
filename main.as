@@ -19,11 +19,7 @@ string currentMap;
 // 2d array of ghost points
 // first array is always the current player
 // 2nd and 3rd array are always the player's ghost if it exists
-
-// hard limit on the array size
-uint32 arrayMaxSize = 1000000;  // 1,000,000
-uint8 numCars = 3;
-array<array<Point>> ghostPoints(numCars, array<Point>(0));
+array<array<Point>> ghostPoints(currentSettings.numCars, array<Point>(0));
 
 // optimisation setting
 RotatingCounter framesBetweenLog(1);
@@ -31,7 +27,7 @@ RotatingCounter framesBetweenGap(6);
 
 // arraySize is not in here
 // create a miscellaneous array for each ghost
-array<Miscellaneous> miscArray(numCars);
+array<Miscellaneous> miscArray(currentSettings.numCars);
 
 // stores the number of where to log the value
 uint32 currentLogIndex = 0;
@@ -113,7 +109,7 @@ void ResetRaceVars() {
     newPbSet = false;
 
     // iterate miscArray and set last idx to 0
-    for (int i = 0; i < numCars; i++) {
+    for (int i = 0; i < currentSettings.numCars; i++) {
         if (miscArray[i].id == 0) {
             break;
         }
@@ -130,10 +126,10 @@ void ResetAllVars() {
     ResetRaceVars();
 
     // empty the arrays
-    ResizeArrays(numCars, 0);
+    ResizeArrays(currentSettings.numCars, 0);
 
     // reset the misc array
-    ResetMiscArray(numCars, miscArray);
+    ResetMiscArray(currentSettings.numCars, miscArray);
 
     // reset last pb if changing track
     currentPb = uint(-1);
@@ -141,6 +137,7 @@ void ResetAllVars() {
 
 // TODO: fix multilap (it will go completely wrong)
 // TODO: FIX VERY SLOW TO CLOSE MAP
+// TODO: FIX RESET MISC ARRAY GOING OUT OF RANGE IF CHANGING SETTINGS
 
 void Main() {
     // assign array size on load
@@ -158,7 +155,7 @@ void LogPoints(ISceneVis@ scene) {
         }
 
         // check for size greater or equal to the hard limit
-        if (currentLogIndex >= arrayMaxSize) {
+        if (currentLogIndex >= currentSettings.arrayMaxSize) {
             // print("Max array size hit");
 
             // if at limit the array must be complete
@@ -276,15 +273,18 @@ void Update(float dt) {
     // ----------------------------------------------------------------------------
     // pre-log housekeeping and checks
 
+    RotatingCounter@ fbLog = currentSettings.framesBetweenLog;
+    RotatingCounter@ fbGap = currentSettings.framesBetweenGap;
+
     // increment all rotating counters
-    framesBetweenLog.Increment();
-    framesBetweenGap.Increment();
+    fbLog.Increment();
+    fbGap.Increment();
 
     // cars must be greater than one to ensure the cars are included
     // only do this once the race has started (if newPbSet is true the race must be at the end)
     if (cars.Length > 1 && !newPbSet) {
         // make misc array (only does this if not already set)
-        MakeMiscArray(cars, numCars, miscArray);
+        MakeMiscArray(cars, currentSettings.numCars, miscArray);
     }
 
     // -------------------------------------------------------------------------
@@ -292,7 +292,7 @@ void Update(float dt) {
 
     // only log frames if frame number is 0
     // unless you are at the start
-    if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
+    if (fbLog.GetValue() || currentLogIndex == 0) {
         LogPoints(scene);
     }
 
@@ -300,9 +300,11 @@ void Update(float dt) {
     // calculate the gaps
 
     // only calculate if the frames between gap requirement is met
-    if (framesBetweenGap.GetValue()) {
+    if (fbGap.GetValue()) {
+        // define a point
         Point thisPoint;
 
+        // get the point data
         thisPoint.y = cars[0].AsyncState.Position.y;
         thisPoint.x = cars[0].AsyncState.Position.x;
         thisPoint.z = cars[0].AsyncState.Position.z;
@@ -310,8 +312,23 @@ void Update(float dt) {
         // gets time stamp
         thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
-        // set the gaps
-        SetGaps::ModifiedLinear(thisPoint, miscArray, ghostPoints);
+        // set the based on the chosen algorithm
+        switch (currentSettings.gapAlg) {
+            case GapAlgorithm::Linear:
+                // set the gaps using the linear algorithm
+                SetGaps::Linear(thisPoint, miscArray, ghostPoints);
+                break;
+
+            case GapAlgorithm::ModifiedLinear:
+                // set the gaps using the modified linear algorithm 
+                SetGaps::ModifiedLinear(thisPoint, miscArray, ghostPoints);
+                break;
+
+            case GapAlgorithm::Estimation:
+                // set the gaps using the estimation algorithm
+                SetGaps::Estimation(thisPoint, miscArray, ghostPoints);
+                break;
+        }   
     }
 
     // ------------------------------------------------------------------------

@@ -15,7 +15,7 @@ void Render() {
     // gets the number of valid cars
     int validCars;
 
-    for (validCars = 0; validCars < numCars; validCars++) {
+    for (validCars = 0; validCars < currentSettings.numCars; validCars++) {
         if (miscArray[validCars].id == 0) {
             break;
         }

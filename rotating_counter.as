@@ -5,7 +5,7 @@ class RotatingCounter {
     private uint currentCount;
 
     // updates the current count then resets it to 0
-    void UpdateRotatingCount(uint count) {
+    void SetCount(uint count) {
         rotationCount = count;
         currentCount = 0;
     }

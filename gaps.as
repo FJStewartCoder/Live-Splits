@@ -5,20 +5,6 @@ float GetDist(Point p1, Point p2) {
 
 // TODO: improve gap algorithm
 
-// intervals between distance checks (reduces overall number of checks)
-// increasing this will improve efficiency but decrease accuracy
-// ACCURACY refers to how accurate the selection of closest point is
-// however, greater can help to filter out brief periods of crossing over the track
-array<uint> checkIntervals = {30, 8, 1};
-
-// how far either side of the last index will we search
-uint searchRadius = 500;
-array<uint> checkIntervalsEst = {20, 4, 1};
-
-// show gap even if not array complete (for long maps)
-// WILL NOT SHOW GAP IF YOU ARE AHEAD
-bool overrideShow = true;
-
 int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int maxCheckIdx, uint interval) {
     // dont allow min idx less than 0
     if (minCheckIdx < 0) {
@@ -49,6 +35,12 @@ int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int m
     return minIdx;
 }
 
+// used to specify in main which algorithm to use
+enum GapAlgorithm {
+    Linear,
+    ModifiedLinear,
+    Estimation
+};
 
 namespace SetGaps {
     // need the misc array, current position and array of points
@@ -62,7 +54,7 @@ namespace SetGaps {
 
             // if array not complete don't calculate gap
             // unless overridden
-            if (!miscArray[i].isArrayComplete && !overrideShow) {
+            if (!miscArray[i].isArrayComplete && !currentSettings.getGapOverride) {
                 continue;
             }
 
@@ -90,7 +82,7 @@ namespace SetGaps {
 
             // if array not complete don't calculate gap
             // unless overridden
-            if (!miscArray[i].isArrayComplete && !overrideShow) {
+            if (!miscArray[i].isArrayComplete && !currentSettings.getGapOverride) {
                 continue;
             }
             
@@ -102,15 +94,19 @@ namespace SetGaps {
             int checkStart = 0;
             int checkEnd = miscArray[i].arraySize;
 
+            // get the intervals array
+            array<uint> intervals = currentSettings.checkIntervals;
+
+
             // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < checkIntervals.Length; interval++) {
+            for (int interval = 0; interval < intervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, intervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervals[interval];
-                checkEnd = minIdx + checkIntervals[interval];
+                checkStart = minIdx - intervals[interval];
+                checkEnd = minIdx + intervals[interval];
             }
             
             // -----------------------------------------------------------------------------------
@@ -134,7 +130,7 @@ namespace SetGaps {
 
             // if array not complete don't calculate gap
             // unless overridden
-            if (!miscArray[i].isArrayComplete && !overrideShow) {
+            if (!miscArray[i].isArrayComplete && !currentSettings.getGapOverride) {
                 continue;
             }
             
@@ -144,18 +140,21 @@ namespace SetGaps {
             // define some variables to start
             int minIdx = 0;
             // get the start and end of our estimated search
-            int checkStart = miscArray[i].lastIdx - searchRadius;
-            int checkEnd = miscArray[i].lastIdx + searchRadius;
+            int checkStart = miscArray[i].lastIdx - currentSettings.searchRadius;
+            int checkEnd = miscArray[i].lastIdx + currentSettings.searchRadius;
+
+            // get the intervals array
+            array<uint> intervals = currentSettings.checkIntervalsEst;
 
             // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
+            for (int interval = 0; interval < intervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervalsEst[interval]);
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, intervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervalsEst[interval];
-                checkEnd = minIdx + checkIntervalsEst[interval];
+                checkStart = minIdx - intervals[interval];
+                checkEnd = minIdx + intervals[interval];
             }
 
             // -----------------------------------------------------------------------------------
