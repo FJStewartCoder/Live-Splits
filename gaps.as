@@ -4,8 +4,6 @@ float GetDist(Point p1, Point p2) {
 }
 
 // TODO: improve gap algorithm
-// TODO: only check points after the previous selection (improves efficiency)
-// TODO: add a maximum forward search distance or improve searching algorithm (better frame rate)
 
 // intervals between distance checks (reduces overall number of checks)
 // increasing this will improve efficiency but decrease accuracy
