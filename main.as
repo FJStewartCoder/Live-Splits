@@ -26,8 +26,8 @@ uint8 numCars = 3;
 array<array<Point>> ghostPoints(numCars, array<Point>(0));
 
 // optimisation setting
-uint8 framesBetweenLog = 1;
-uint8 currentFrameNumber = 0;
+RotatingCounter framesBetweenLog(1);
+RotatingCounter framesBetweenGap(6);
 
 // arraySize is not in here
 // create a miscellaneous array for each ghost
@@ -137,85 +137,8 @@ void Main() {
     // ResizeArrays(numCars, arraySize);
 }
 
-void Update(float dt) {
-    ISceneVis@ scene = GetApp().GameScene;
-    // gets the track
-    CGameCtnChallenge@ track = GetApp().RootMap;
-
-    // ensures the player is in a race
-    if (scene is null) {
-        return;
-    }
-
-    // get all of the cars and ghosts
-    // ONLY DO THIS IF SCENE IS NOT NULL
-    CSceneVehicleVis@[] cars = VehicleState::GetAllVis(scene);
-    CSceneVehicleVisState@ thisCar = VehicleState::ViewingPlayerState();
-
-    // ----------------------------------------------------------------------
-
-    // ensures the track exists
-    if (track is null) {
-        // not the current map should be nothing
-        currentMap = "";
-    }
-    else {
-        // otherwise update the map
-        lastMap = currentMap;
-        currentMap = track.EdChallengeId;
-    }
-
-    // only set certain values upon switching track to reduce processing
-    if (lastMap != currentMap) {
-        print("Track is now track id: " + currentMap);
-
-        ResetAllVars();
-    }
-
-    // -------------------------------------------------------------------------
-    // checks to ensure we can proceed
-
-    // if the currently viewing car is null (the player has finished)
-    // return
-    if (thisCar is null) {
-        // print("Player has finished");
-        return;
-    }
-
-    // check if the first vehicle (you) have a race start time of this specific value which shows when you are at the start
-    if (cars[0].AsyncState.RaceStartTime == 4294967295) {
-        // debug message
-        // print("reset");
-
-        // reset all vars related to the current race
-        ResetRaceVars();
-
-        // DONT NEED TO CONTINUE IF AT START
-        return;
-    }
-
-    // ----------------------------------------------------------------------------
-    // pre-log housekeeping and checks
-
-    // increment frame number then always set bound as frames framesBetweenLog
-    currentFrameNumber = (currentFrameNumber + 1) % framesBetweenLog;
-
-    // only log frames if frame number is 0
-    // unless you are at the start
-    if (currentFrameNumber != 0 && currentLogIndex != 0) {
-        return;
-    }
-
-    // cars must be greater than one to ensure the cars are included
-    // only do this once the race has started (if newPbSet is true the race must be at the end)
-    if (cars.Length > 1 && !newPbSet) {
-        // make misc array (only does this if not already set)
-        MakeMiscArray(cars, numCars, miscArray);
-    }
-
-    // -------------------------------------------------------------------------
-    // adding points scripts
-
+// function to log the points
+void LogPoints(ISceneVis@ scene) {
     // iterate all cars and accept the first ones that appear that are less than numCars
     for (int car = 0; car < miscArray.Length; car++) {
         // only continue logging if the array is not complete
@@ -281,20 +204,105 @@ void Update(float dt) {
         // debug print
         // print(car + " " + currentPoint.Get());
     }
+}
+
+void Update(float dt) {
+    ISceneVis@ scene = GetApp().GameScene;
+    // gets the track
+    CGameCtnChallenge@ track = GetApp().RootMap;
+
+    // ensures the player is in a race
+    if (scene is null) {
+        return;
+    }
+
+    // get all of the cars and ghosts
+    // ONLY DO THIS IF SCENE IS NOT NULL
+    CSceneVehicleVis@[] cars = VehicleState::GetAllVis(scene);
+    CSceneVehicleVisState@ thisCar = VehicleState::ViewingPlayerState();
+
+    // ----------------------------------------------------------------------
+
+    // ensures the track exists
+    if (track is null) {
+        // not the current map should be nothing
+        currentMap = "";
+    }
+    else {
+        // otherwise update the map
+        lastMap = currentMap;
+        currentMap = track.EdChallengeId;
+    }
+
+    // only set certain values upon switching track to reduce processing
+    if (lastMap != currentMap) {
+        print("Track is now track id: " + currentMap);
+
+        ResetAllVars();
+    }
+
+    // -------------------------------------------------------------------------
+    // checks to ensure we can proceed
+
+    // if the currently viewing car is null (the player has finished)
+    // return
+    if (thisCar is null) {
+        // print("Player has finished");
+        return;
+    }
+
+    // check if the first vehicle (you) have a race start time of this specific value which shows when you are at the start
+    if (cars[0].AsyncState.RaceStartTime == 4294967295) {
+        // debug message
+        // print("reset");
+
+        // reset all vars related to the current race
+        ResetRaceVars();
+
+        // DONT NEED TO CONTINUE IF AT START
+        return;
+    }
+
+    // ----------------------------------------------------------------------------
+    // pre-log housekeeping and checks
+
+    // increment all rotating counters
+    framesBetweenLog.Increment();
+    framesBetweenGap.Increment();
+
+    // cars must be greater than one to ensure the cars are included
+    // only do this once the race has started (if newPbSet is true the race must be at the end)
+    if (cars.Length > 1 && !newPbSet) {
+        // make misc array (only does this if not already set)
+        MakeMiscArray(cars, numCars, miscArray);
+    }
+
+    // -------------------------------------------------------------------------
+    // adding points scripts
+
+    // only log frames if frame number is 0
+    // unless you are at the start
+    if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
+        LogPoints(scene);
+    }
 
     // -------------------------------------------------------------------------
     // calculate the gaps
-    Point thisPoint;
 
-    thisPoint.y = cars[0].AsyncState.Position.y;
-    thisPoint.x = cars[0].AsyncState.Position.x;
-    thisPoint.z = cars[0].AsyncState.Position.z;
+    // only calculate if the frames between gap requirement is met
+    if (framesBetweenGap.GetValue()) {
+        Point thisPoint;
 
-    // gets time stamp
-    thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
+        thisPoint.y = cars[0].AsyncState.Position.y;
+        thisPoint.x = cars[0].AsyncState.Position.x;
+        thisPoint.z = cars[0].AsyncState.Position.z;
 
-    // set the gaps
-    SetGaps(thisPoint, miscArray, ghostPoints);
+        // gets time stamp
+        thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
+
+        // set the gaps
+        SetGaps(thisPoint, miscArray, ghostPoints);
+    }
 
     // ------------------------------------------------------------------------
     // evaluate pbs in order to correctly reset the arrays

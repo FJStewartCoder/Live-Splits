@@ -4,6 +4,12 @@ class RotatingCounter {
     // current count
     private uint currentCount;
 
+    // updates the current count then resets it to 0
+    void UpdateRotatingCount(uint count) {
+        rotationCount = count;
+        currentCount = 0;
+    }
+
     // increments then mod by rotation count
     void Increment(uint count = 1) {
         currentCount = (currentCount + count) % rotationCount;

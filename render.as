@@ -44,7 +44,6 @@ void Render() {
 
     // creates window
     if (UI::Begin("Live Splits", flags)) {
-
         // ONLY FOR DEBUGGING
         // UI::InputInt("LOG", currentLogIndex);
         // UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
