@@ -3,9 +3,6 @@ int TEXT_SPACING = 10;
 int FRAME_PADDING = 10;
 
 
-// TODO: FIX GAME CRASH WHEN LEAVE TRACK
-
-
 // TODO: reduce number of times per seconds rendering of gap
 void Render() {
     ISceneVis@ scene = GetApp().GameScene;
@@ -18,7 +15,7 @@ void Render() {
     // gets the number of valid cars
     int validCars;
 
-    for (validCars = 1; validCars < numCars + 1; validCars++) {
+    for (validCars = 0; validCars < numCars; validCars++) {
         if (miscArray[validCars].id == 0) {
             break;
         }
@@ -52,7 +49,7 @@ void Render() {
         // UI::InputInt("LOG", currentLogIndex);
         // UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
 
-        for (int i = 0; i < validCars - 1; i++) {
+        for (int i = 0; i < validCars; i++) {
             float curGap = miscArray[i].gap / 1000.0;
             // includes "+" if greater than 0
             string curGapString = ((curGap > 0)? "+" : "") + tostring(curGap);
