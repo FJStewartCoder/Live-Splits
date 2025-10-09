@@ -4,16 +4,20 @@ class RotatingCounter {
     // current count
     private uint currentCount;
 
+    // --------------------------------------
+
+    // gets the current rotation count (private so needs a function to get)
+    uint GetCount() {
+        return rotationCount;
+    }
+
     // updates the current count then resets it to 0
     void SetCount(uint count) {
         rotationCount = count;
         currentCount = 0;
     }
 
-    // increments then mod by rotation count
-    void Increment(uint count = 1) {
-        currentCount = (currentCount + count) % rotationCount;
-    }
+    // --------------------------------------
 
     // gets the value
     bool GetValue() {
@@ -24,6 +28,15 @@ class RotatingCounter {
     void Reset() {
         currentCount = 0;
     }
+
+    // --------------------------------------
+
+    // increments then mod by rotation count
+    void Increment(uint count = 1) {
+        currentCount = (currentCount + count) % rotationCount;
+    }
+
+    // --------------------------------------
 
     RotatingCounter(uint count) {
         rotationCount = count;

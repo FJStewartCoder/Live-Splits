@@ -28,7 +28,6 @@ void SetConfig() {
             print("Setting: Very Fast");
     
             searchRadius = 1000;
-            checkIntervalsEst = {20, 3, 1};
 
             // 5 minutes at frame rate ( /4 because thats how many frames between a log)
             arrayMaxSize = expectedFrameRate * 60 * 5 / 4;
@@ -53,8 +52,6 @@ void SetConfig() {
             // prints setting name
             print("Setting: Fast");
 
-            checkIntervals = {30, 6, 1};
-
             // 10 minutes at frame rate ( /2 because thats how many frames between a log)
             arrayMaxSize = expectedFrameRate * 60 * 10 / 2;
             numCars = 4;
@@ -74,8 +71,6 @@ void SetConfig() {
             // prints setting name
             print("Setting: Default");
 
-            checkIntervals = {30, 6, 1};
-
             // 20 minutes
             arrayMaxSize = expectedFrameRate * 60 * 20;
             numCars = 5;
@@ -93,8 +88,6 @@ void SetConfig() {
         case 3:
             // prints setting name
             print("Setting: High");
-
-            checkIntervals = {30, 6, 1};
 
             arrayMaxSize = expectedFrameRate * 60 * 45;
             numCars = 7;
