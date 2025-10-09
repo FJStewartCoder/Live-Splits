@@ -105,7 +105,7 @@ void ResetRaceVars() {
     newPbSet = false;
 
     // iterate miscArray and set last idx to 0
-    for (int i = 0; i < numCars; i++) {
+    for (int i = 0; i < miscArray.Length; i++) {
         if (miscArray[i].id == 0) {
             break;
         }
@@ -131,12 +131,14 @@ void ResetAllVars() {
     currentPb = uint(-1);
 
     // optimise for the current track
-    SetGaps::Optimise(expectedFrameRate, 4);
+    SetGaps::Optimise(expectedFrameRate, 10);
+
+    // this will update the size of the window
+    updateWindowSize = true;
 }
 
 // TODO: fix multilap (it will go completely wrong)
 // TODO: FIX VERY SLOW TO CLOSE MAP
-// TODO: FIX RESET MISC ARRAY GOING OUT OF RANGE IF CHANGING SETTINGS
 
 void Main() {
     // assign array size on load

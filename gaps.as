@@ -48,8 +48,13 @@ namespace SetGaps {
     // increasing this will improve efficiency but decrease accuracy
     // ACCURACY refers to how accurate the selection of closest point is
     // however, greater can help to filter out brief periods of crossing over the track
-    // one universal array for this
     array<uint> checkIntervals = {30, 8, 1};
+
+    // check intervals for estimation algorithm
+    array<uint> checkIntervalsEst = {4, 2, 1};
+
+    // how far either side of the last index will we search
+    uint searchRadius = 500;
 
     // function to optimise the intervals arrays based on the frame rate and logs per second
     // resolution defines how many checks per second should be done
@@ -62,14 +67,17 @@ namespace SetGaps {
         int gapBetweenChecks = (logsPerSecond / resolution) + 1;
         // based on the formula x/n + 2n (logs / checkInterval + 2 * checkInterval), which tells how many logs will be taken in total, we can calculate the optimal check interval for the smallest number of checks
         // THE BELOW FORMULA (DEFIINED IN OPTIMISATIONS.txt) is the least number of checks possible
-        int optimalSecondGap = Math::Sqrt(gapBetweenChecks / 2);
-
-        print(logsPerSecond + " " + gapBetweenChecks);
+        // +1 just in case
+        int optimalSecondGap = Math::Sqrt(gapBetweenChecks / 2) + 1;
         
         // sets the checkIntervals
         checkIntervals = {gapBetweenChecks, optimalSecondGap, 1};
 
-        print(checkIntervals[0] + " " + checkIntervals[1]);
+        // TODO: OPTIMISE CHECKINTERVALSEST
+
+        // set search radius for estimation to some number of seconds
+        // currently searchs 2 seconds either side
+        searchRadius = logsPerSecond * searchRangeSeconds;
     }
 
     // need the misc array, current position and array of points
@@ -123,19 +131,15 @@ namespace SetGaps {
             int checkStart = 0;
             int checkEnd = miscArray[i].arraySize;
 
-            // get the intervals array
-            array<uint> intervals = checkIntervals;
-
-
             // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < intervals.Length; interval++) {
+            for (int interval = 0; interval < checkIntervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, intervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - intervals[interval];
-                checkEnd = minIdx + intervals[interval];
+                checkStart = minIdx - checkIntervals[interval];
+                checkEnd = minIdx + checkIntervals[interval];
             }
             
             // -----------------------------------------------------------------------------------
@@ -172,18 +176,15 @@ namespace SetGaps {
             int checkStart = miscArray[i].lastIdx - searchRadius;
             int checkEnd = miscArray[i].lastIdx + searchRadius;
 
-            // get the intervals array
-            array<uint> intervals = checkIntervals;
-
             // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < intervals.Length; interval++) {
+            for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, intervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervalsEst[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - intervals[interval];
-                checkEnd = minIdx + intervals[interval];
+                checkStart = minIdx - checkIntervalsEst[interval];
+                checkEnd = minIdx + checkIntervalsEst[interval];
             }
 
             // -----------------------------------------------------------------------------------

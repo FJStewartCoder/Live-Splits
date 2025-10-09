@@ -1,14 +1,13 @@
 // ---------------------------------------------------------
 // gap settings
 
-// how far either side of the last index will we search
-[Setting hidden]
-uint searchRadius = 500;
-
 // show gap even if not array complete (for long maps)
 // WILL NOT SHOW GAP IF YOU ARE AHEAD
 [Setting hidden]
 bool getGapOverride = false;
+
+[Setting hidden]
+uint searchRangeSeconds = 1;
 
 // ---------------------------------------------------------
 // main settings
@@ -34,5 +33,17 @@ GapAlgorithm gapAlg = GapAlgorithm::ModifiedLinear;
 
 [Setting hidden]
 bool isEnabled = true;
+
+// --------------------------------------------------------
+// UI settings
+
+[Setting name="Font Size" category="UI"]
+int FONT_SIZE = 100;
+
+[Setting name="Text Spacing" category="UI"]
+int TEXT_SPACING = 10;
+
+[Setting name="Frame Padding" category="UI"]
+int FRAME_PADDING = 10;
 
 // --------------------------------------------------------

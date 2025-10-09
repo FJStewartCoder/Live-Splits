@@ -26,15 +26,13 @@ void SetConfig() {
         case 0:
             // prints setting name
             print("Setting: Very Fast");
-    
-            searchRadius = 1000;
 
-            // 5 minutes at frame rate ( /4 because thats how many frames between a log)
-            arrayMaxSize = expectedFrameRate * 60 * 5 / 4;
+            // 5 minutes at frame rate
+            arrayMaxSize = expectedFrameRate * 60 * 5;
             numCars = 3;
 
             // sets new counts
-            framesBetweenLog.SetCount(4);
+            framesBetweenLog.SetCount(1);
             // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
             framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 4, 0)));
 

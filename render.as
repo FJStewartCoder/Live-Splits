@@ -1,9 +1,5 @@
-int FONT_SIZE = 100;
-int TEXT_SPACING = 10;
-int FRAME_PADDING = 10;
+bool updateWindowSize = false;
 
-
-// TODO: reduce number of times per seconds rendering of gap
 void Render() {
     // if the plugin is off don't do anything
     if (!isEnabled) {
@@ -29,11 +25,16 @@ void Render() {
     // --------------------------------------------------------
     // styling
 
-    int height = (FONT_SIZE * validCars) + (TEXT_SPACING * (validCars - 1)) + (FRAME_PADDING * 2);
+    if (updateWindowSize) {
+        int height = (FONT_SIZE * validCars) + (TEXT_SPACING * (validCars - 1)) + (FRAME_PADDING * 2);
+        int width = FONT_SIZE * 6;
 
-    // set window height
-    // TODO: fix error where window is not dynamically resized when changing number of cars
-    UI::SetNextWindowSize(300, height);
+        // set window height
+        // UI::Cond:Always always updates the height
+        UI::SetNextWindowSize(width, height, UI::Cond::Always);
+
+        updateWindowSize = false;
+    }
 
     // set font size
     UI::PushFontSize(FONT_SIZE);

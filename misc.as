@@ -14,25 +14,6 @@ class Miscellaneous {
 bool isMiscArraySet = false;
 
 
-// gets the ID in the misc array of the car based on the id
-// return -1 if not found
-// TODO: UNCOMMENT IF EVERY NEEDED
-/* 
-int IndexFromId(MwId carId, uint8 numCars, array<Miscellaneous> @miscArray) {
-    // iterate all availible cars
-    for (uint8 i = 0; i < numCars; i++) {
-        // return index if id matches
-        if (carId == miscArray[i].id) {
-            return i;
-        }
-    }
-
-    // return -1 if not in the array
-    return -1;
-} 
-*/
-
-
 // reset the misc array to blank values
 void ResetMiscArray(uint8 numCars, array<Miscellaneous> @miscArray) {
     // resize the array to size of numCars to prevent out of bounds
