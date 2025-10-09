@@ -48,33 +48,28 @@ namespace SetGaps {
     // increasing this will improve efficiency but decrease accuracy
     // ACCURACY refers to how accurate the selection of closest point is
     // however, greater can help to filter out brief periods of crossing over the track
+    // one universal array for this
     array<uint> checkIntervals = {30, 8, 1};
 
-    // intervals in which the ESTIMATION algorithm will check
-    array<uint> checkIntervalsEst = {20, 4, 1};
+    // function to optimise the intervals arrays based on the frame rate and logs per second
+    // resolution defines how many checks per second should be done
+    void Optimise(uint frameRate, uint resolution) {
+        // get the number of logs per seconds and use it to get more accurate and optimised results
 
-    // function to optimise the intervals arrays based on the track length (for maximum accuracy)
-    void Optimise(uint trackTime, uint frameRate) {
-        // estimate the number of logs required basde on track time, frame rate and number of frames between logs
-        // use this data to get the optimal number of check intervals for minimal search but maximum accuracy
+        // +1 in case truncates
+        int logsPerSecond = (frameRate / framesBetweenLog.GetCount()) + 1;
+        // defines how many points are between each check (logs per second / resolution) e.g 100 per second, res = 2. So, check each 50 logs
+        int gapBetweenChecks = (logsPerSecond / resolution) + 1;
+        // based on the formula x/n + 2n (logs / checkInterval + 2 * checkInterval), which tells how many logs will be taken in total, we can calculate the optimal check interval for the smallest number of checks
+        // THE BELOW FORMULA (DEFIINED IN OPTIMISATIONS.txt) is the least number of checks possible
+        int optimalSecondGap = Math::Sqrt(gapBetweenChecks / 2);
 
-        // based on algorithm used, optimise differently
-        if (gapAlg == GapAlgorithm::ModifiedLinear) {
-            // will automatically truncate down
-            // +1 for safety
-            // this will get the number of seconds that the track will last for
-            int trackTimeEstimate = (trackTime / 1000) + 1;
+        print(logsPerSecond + " " + gapBetweenChecks);
+        
+        // sets the checkIntervals
+        checkIntervals = {gapBetweenChecks, optimalSecondGap, 1};
 
-            // gets the number of logs as trackTimeEstimate * frameRate = number of total logs
-            // divide by how many frames between the logs to get true amount
-            int estimatedNumLogs = ((trackTimeEstimate * frameRate) / framesBetweenLog.GetCount()) + 1;
-
-            // set the check intervals based on this
-            checkIntervals = {frameRate, }
-        }
-        else if (gapAlg == GapAlgorithm::Estimation) {
-
-        }
+        print(checkIntervals[0] + " " + checkIntervals[1]);
     }
 
     // need the misc array, current position and array of points
@@ -178,7 +173,7 @@ namespace SetGaps {
             int checkEnd = miscArray[i].lastIdx + searchRadius;
 
             // get the intervals array
-            array<uint> intervals = checkIntervalsEst;
+            array<uint> intervals = checkIntervals;
 
             // iterate all intervals in checkIntervals
             for (int interval = 0; interval < intervals.Length; interval++) {

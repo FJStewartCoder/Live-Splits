@@ -129,6 +129,9 @@ void ResetAllVars() {
 
     // reset last pb if changing track
     currentPb = uint(-1);
+
+    // optimise for the current track
+    SetGaps::Optimise(expectedFrameRate, 4);
 }
 
 // TODO: fix multilap (it will go completely wrong)

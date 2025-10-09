@@ -1,0 +1,24 @@
+numLogs = x = 1000
+checkInterval = n
+minChecks = z
+
+1000/n + 2n = 0
+2(n^2 + 500) / n = 0
+2(n^2 + 500) = 0n = 0
+n^2 + 500 = 0
+n^2 = -500
+n = sqrt(-500) = 20i
+n basically = sqrt(numLogs / 2)
+
+1000 / sqrt(n) + 2 * sqrt(n)
+
+overall
+x / sqrt(x/2) + 2 * sqrt(x/2) = x / (sqrt(x) / sqrt(2)) + sqrt(2x)
+(sqrt(2) * x) / sqrt(x) + sqrt(2x) = (sqrt(2) * sqrt(x)) + sqrt(2x)
+sqrt(2x) + sqrt(2x) = 2 * sqrt(2x)
+
+sqrt(4) * sqrt(9) = sqrt(36)
+
+TO CONCLUDE
+2 * sqrt(2x) is the formula to get the minimum number of checks for any number of numLogs
+the check interval for this is sqrt(numLogs / 2)
