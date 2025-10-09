@@ -115,6 +115,7 @@ void ResetRaceVars() {
     }
 
     // reset currentFrameNumber just so always starts at 0
+    framesBetweenLog.Reset();
 }
 
 // function to reset all variables
@@ -132,9 +133,6 @@ void ResetAllVars() {
 
     // optimise for the current track
     SetGaps::Optimise(expectedFrameRate, 10);
-
-    // this will update the size of the window
-    updateWindowSize = true;
 }
 
 // TODO: fix multilap (it will go completely wrong)
@@ -291,6 +289,8 @@ void Update(float dt) {
     if (cars.Length > 1 && !newPbSet) {
         // make misc array (only does this if not already set)
         MakeMiscArray(cars, numCars, miscArray);
+        // updates the size of the window only once
+        updateWindowSize = true;
     }
 
     // -------------------------------------------------------------------------
