@@ -19,15 +19,11 @@ string currentMap;
 // 2d array of ghost points
 // first array is always the current player
 // 2nd and 3rd array are always the player's ghost if it exists
-array<array<Point>> ghostPoints(currentSettings.numCars, array<Point>(0));
-
-// optimisation setting
-RotatingCounter framesBetweenLog(1);
-RotatingCounter framesBetweenGap(6);
+array<array<Point>> ghostPoints(numCars, array<Point>(0));
 
 // arraySize is not in here
 // create a miscellaneous array for each ghost
-array<Miscellaneous> miscArray(currentSettings.numCars);
+array<Miscellaneous> miscArray(numCars);
 
 // stores the number of where to log the value
 uint32 currentLogIndex = 0;
@@ -109,7 +105,7 @@ void ResetRaceVars() {
     newPbSet = false;
 
     // iterate miscArray and set last idx to 0
-    for (int i = 0; i < currentSettings.numCars; i++) {
+    for (int i = 0; i < numCars; i++) {
         if (miscArray[i].id == 0) {
             break;
         }
@@ -126,10 +122,10 @@ void ResetAllVars() {
     ResetRaceVars();
 
     // empty the arrays
-    ResizeArrays(currentSettings.numCars, 0);
+    ResizeArrays(numCars, 0);
 
     // reset the misc array
-    ResetMiscArray(currentSettings.numCars, miscArray);
+    ResetMiscArray(numCars, miscArray);
 
     // reset last pb if changing track
     currentPb = uint(-1);
@@ -142,6 +138,9 @@ void ResetAllVars() {
 void Main() {
     // assign array size on load
     // ResizeArrays(numCars, arraySize);
+
+    // upon loading sets the current config
+    SetConfig();
 }
 
 // function to log the points
@@ -155,7 +154,7 @@ void LogPoints(ISceneVis@ scene) {
         }
 
         // check for size greater or equal to the hard limit
-        if (currentLogIndex >= currentSettings.arrayMaxSize) {
+        if (currentLogIndex >= arrayMaxSize) {
             // print("Max array size hit");
 
             // if at limit the array must be complete
@@ -214,6 +213,11 @@ void LogPoints(ISceneVis@ scene) {
 }
 
 void Update(float dt) {
+    // if the plugin is off don't do anything
+    if (!isEnabled) {
+        return;
+    }
+
     ISceneVis@ scene = GetApp().GameScene;
     // gets the track
     CGameCtnChallenge@ track = GetApp().RootMap;
@@ -273,18 +277,15 @@ void Update(float dt) {
     // ----------------------------------------------------------------------------
     // pre-log housekeeping and checks
 
-    RotatingCounter@ fbLog = currentSettings.framesBetweenLog;
-    RotatingCounter@ fbGap = currentSettings.framesBetweenGap;
-
     // increment all rotating counters
-    fbLog.Increment();
-    fbGap.Increment();
+    framesBetweenLog.Increment();
+    framesBetweenGap.Increment();
 
     // cars must be greater than one to ensure the cars are included
     // only do this once the race has started (if newPbSet is true the race must be at the end)
     if (cars.Length > 1 && !newPbSet) {
         // make misc array (only does this if not already set)
-        MakeMiscArray(cars, currentSettings.numCars, miscArray);
+        MakeMiscArray(cars, numCars, miscArray);
     }
 
     // -------------------------------------------------------------------------
@@ -292,7 +293,7 @@ void Update(float dt) {
 
     // only log frames if frame number is 0
     // unless you are at the start
-    if (fbLog.GetValue() || currentLogIndex == 0) {
+    if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
         LogPoints(scene);
     }
 
@@ -300,7 +301,7 @@ void Update(float dt) {
     // calculate the gaps
 
     // only calculate if the frames between gap requirement is met
-    if (fbGap.GetValue()) {
+    if (framesBetweenGap.GetValue()) {
         // define a point
         Point thisPoint;
 
@@ -313,7 +314,7 @@ void Update(float dt) {
         thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
         // set the based on the chosen algorithm
-        switch (currentSettings.gapAlg) {
+        switch (gapAlg) {
             case GapAlgorithm::Linear:
                 // set the gaps using the linear algorithm
                 SetGaps::Linear(thisPoint, miscArray, ghostPoints);

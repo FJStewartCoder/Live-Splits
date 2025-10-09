@@ -2,5 +2,5 @@
 
 [SettingsTab name="Advanced"]
 void AdvancedSettings() {
-    UI::Text("Hello");
+    UI::Text("Not implemented yet.");
 }

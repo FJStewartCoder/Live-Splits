@@ -35,6 +35,9 @@ int IndexFromId(MwId carId, uint8 numCars, array<Miscellaneous> @miscArray) {
 
 // reset the misc array to blank values
 void ResetMiscArray(uint8 numCars, array<Miscellaneous> @miscArray) {
+    // resize the array to size of numCars to prevent out of bounds
+    miscArray.Resize(numCars);
+
     isMiscArraySet = false;
 
     for (uint8 i = 0; i < numCars; i++) {

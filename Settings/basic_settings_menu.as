@@ -3,107 +3,138 @@ array<string> performanceOptions = {
     "Fast",
     "Default",
     "High",
-    "Very High"
+    "Very High",
+    "Custom"  // does nothing
 };
 
-uint performanceChoice;
+// having as a setting will save when reload
+[Setting hidden]
+uint performanceChoice = 2;
+
+// used to calculate each setting's performance degree
+[Setting hidden]
+uint expectedFrameRate = 60;
 
 
 // sets the current settings config
 void SetConfig() {
     switch (performanceChoice) {
         // very fast
-        // SUITABLE FOR 1 HOUR AT 60 FPS
-        // UPDATES 4 TIMES PER SECONDS AT 60 FPS
-        // RANGE OF SEARCH OF 2000
-        // JUST OVER 100 CHECKS PER GAP
+        // AIM FOR 5 MINUTES OF LOG AT FRAME RATE
+        // LOG EVERY 2 FRAMES
+        // SHOW GAP 3 TIMES PER SECOND
         case 0:
-            currentSettings.searchRadius = 1000;
-            currentSettings.checkIntervalsEst = {20, 3, 1};
+            // prints setting name
+            print("Setting: Very Fast");
+    
+            searchRadius = 1000;
+            checkIntervalsEst = {20, 3, 1};
 
-            currentSettings.arrayMaxSize = 50000;  // 50_000
-            currentSettings.numCars = 3;
+            // 5 minutes at frame rate ( /4 because thats how many frames between a log)
+            arrayMaxSize = expectedFrameRate * 60 * 5 / 4;
+            numCars = 3;
 
             // sets new counts
-            currentSettings.framesBetweenLog.SetCount(4);
-            currentSettings.framesBetweenGap.SetCount(15);
+            framesBetweenLog.SetCount(4);
+            // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
+            framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 4, 0)));
 
-            currentSettings.gapAlg = GapAlgorithm::Estimation;
+            // estimation is the absolute fastest availible
+            gapAlg = GapAlgorithm::Estimation;
 
             break;
 
         // fast
-        // SUITABLE FOR 1 HOUR AT 120 FPS
-        // UPDATES 6 TIMES PER SECONDS AT 120 FPS
+        // SUITABLE FOR 10 MINUTES AT FRAME RATE
+        // UPDATES LOG EVERY 2 FRAMES
         // JUST OVER 100 CHECKS PER GAP
+        // 10 UPDATES PER SECOND
         case 1:
-            currentSettings.checkIntervals = {30, 6, 1};
+            // prints setting name
+            print("Setting: Fast");
 
-            currentSettings.arrayMaxSize = 200000;  // 200_000
-            currentSettings.numCars = 4;
+            checkIntervals = {30, 6, 1};
+
+            // 10 minutes at frame rate ( /2 because thats how many frames between a log)
+            arrayMaxSize = expectedFrameRate * 60 * 10 / 2;
+            numCars = 4;
 
             // sets new counts
-            currentSettings.framesBetweenLog.SetCount(2);
-            currentSettings.framesBetweenGap.SetCount(20);
+            framesBetweenLog.SetCount(2);
+            // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
+            framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 10, 0)));
 
-            currentSettings.gapAlg = GapAlgorithm::ModifiedLinear;
+            gapAlg = GapAlgorithm::ModifiedLinear;
 
             break;
 
         // default
-        // SUITABLE FOR 1 HOUR AT 120 FPS
-        // UPDATES 10 TIMES PER SECONDS AT 120 FPS
+        // 20 MINUTES AT FRAME RATE
         case 2:
-            currentSettings.checkIntervals = {40, 8, 1};
+            // prints setting name
+            print("Setting: Default");
 
-            currentSettings.arrayMaxSize = 400000;  // 400_000
-            currentSettings.numCars = 5;
+            checkIntervals = {30, 6, 1};
+
+            // 20 minutes
+            arrayMaxSize = expectedFrameRate * 60 * 20;
+            numCars = 5;
 
             // sets new counts
-            currentSettings.framesBetweenLog.SetCount(1);
-            currentSettings.framesBetweenGap.SetCount(12);
+            framesBetweenLog.SetCount(1);
+            framesBetweenGap.SetCount(12);
 
-            currentSettings.gapAlg = GapAlgorithm::ModifiedLinear;
+            gapAlg = GapAlgorithm::ModifiedLinear;
 
             break;
 
         // high
-        // SUITABLE FOR 1 HOUR AT 240 FPS
-        // UPDATES 20 TIMES PER SECONDS AT 240 FPS
+        // SUITABLE FOR 45 MINUTES HOUR AT FRAME RATE
         case 3:
-            currentSettings.checkIntervals = {40, 8, 1};
+            // prints setting name
+            print("Setting: High");
 
-            currentSettings.arrayMaxSize = 800000;  // 800_000
-            currentSettings.numCars = 7;
+            checkIntervals = {30, 6, 1};
+
+            arrayMaxSize = expectedFrameRate * 60 * 45;
+            numCars = 7;
 
             // sets new counts
-            currentSettings.framesBetweenLog.SetCount(1);
-            currentSettings.framesBetweenGap.SetCount(12);
+            framesBetweenLog.SetCount(1);
+            framesBetweenGap.SetCount(8);
 
-            currentSettings.gapAlg = GapAlgorithm::ModifiedLinear;
+            gapAlg = GapAlgorithm::ModifiedLinear;
 
             break;
 
         // very high
-        // SUITABLE FOR 2 HOUR AT 240 FPS
-        // UPDATES 30 TIMES PER SECONDS AT 240 FPS
+        // SUITABLE FOR 2 HOUR AT FRAME RATE
         case 4:
-            currentSettings.arrayMaxSize = 1600000;  // 1_600_000
-            currentSettings.numCars = 10;
+            // prints setting name
+            print("Setting: Very High");
+
+            arrayMaxSize = expectedFrameRate * 60 * 120;
+            numCars = 10;
 
             // sets new counts
-            currentSettings.framesBetweenLog.SetCount(1);
-            currentSettings.framesBetweenGap.SetCount(8);
+            framesBetweenLog.SetCount(1);
+            framesBetweenGap.SetCount(4);
 
-            currentSettings.gapAlg = GapAlgorithm::Linear;
+            gapAlg = GapAlgorithm::Linear;
 
             break;
         
         // none
         default:
+            // prints setting name
+            print("Setting: Other");
+
             // invalid so do nothing
             break;
     }
+
+    // resets everything to prevent issues
+    ResetAllVars();
 }
 
 
@@ -114,7 +145,20 @@ void SetConfig() {
 [SettingsTab name="Basic"]
 void BasicSettings() {
     // create a checkbox to say if the plugin is enabled
-    UI::Checkbox("Enable Plugin", false);
+    isEnabled = UI::Checkbox("Enable Plugin", isEnabled);
+
+    // gets expectedFrameRate
+    expectedFrameRate = UI::InputInt("Frame Rate", expectedFrameRate, 5);
+
+    // max frame rate is 100
+    if (expectedFrameRate > 500) {
+        expectedFrameRate = 500;
+    }
+
+    // min frame rate is 10
+    if (expectedFrameRate < 10) {
+        expectedFrameRate = 10;
+    }
     
     // creates a combo box
     if (UI::BeginCombo("Performance Option", performanceOptions[performanceChoice])) {
@@ -125,19 +169,20 @@ void BasicSettings() {
 
             // if clicked, set the new selected option
             if (UI::Selectable(performanceOptions[i], value)) {
-                // if it was not already selected, update all settings to the proper configuration
-                if (performanceChoice != i) {
-                    SetConfig();
-                    print("changed.");
-                }
-
+                // set the performance choice
                 performanceChoice = i;
+
+                // updatge the config
+                SetConfig();
+
+                // print changed 
+                print("changed.");
             }
         }
 
         UI::EndCombo();
     }
 
-    // checkbox for currentSettings.getGapOverride;
-    UI::Checkbox("Show Gap While Logging", false);
+    // checkbox for getGapOverride;
+    getGapOverride = UI::Checkbox("Show Gap While Logging", getGapOverride);
 }

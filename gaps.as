@@ -54,7 +54,7 @@ namespace SetGaps {
 
             // if array not complete don't calculate gap
             // unless overridden
-            if (!miscArray[i].isArrayComplete && !currentSettings.getGapOverride) {
+            if (!miscArray[i].isArrayComplete && !getGapOverride) {
                 continue;
             }
 
@@ -82,7 +82,7 @@ namespace SetGaps {
 
             // if array not complete don't calculate gap
             // unless overridden
-            if (!miscArray[i].isArrayComplete && !currentSettings.getGapOverride) {
+            if (!miscArray[i].isArrayComplete && !getGapOverride) {
                 continue;
             }
             
@@ -95,7 +95,7 @@ namespace SetGaps {
             int checkEnd = miscArray[i].arraySize;
 
             // get the intervals array
-            array<uint> intervals = currentSettings.checkIntervals;
+            array<uint> intervals = checkIntervals;
 
 
             // iterate all intervals in checkIntervals
@@ -130,7 +130,7 @@ namespace SetGaps {
 
             // if array not complete don't calculate gap
             // unless overridden
-            if (!miscArray[i].isArrayComplete && !currentSettings.getGapOverride) {
+            if (!miscArray[i].isArrayComplete && !getGapOverride) {
                 continue;
             }
             
@@ -140,11 +140,11 @@ namespace SetGaps {
             // define some variables to start
             int minIdx = 0;
             // get the start and end of our estimated search
-            int checkStart = miscArray[i].lastIdx - currentSettings.searchRadius;
-            int checkEnd = miscArray[i].lastIdx + currentSettings.searchRadius;
+            int checkStart = miscArray[i].lastIdx - searchRadius;
+            int checkEnd = miscArray[i].lastIdx + searchRadius;
 
             // get the intervals array
-            array<uint> intervals = currentSettings.checkIntervalsEst;
+            array<uint> intervals = checkIntervalsEst;
 
             // iterate all intervals in checkIntervals
             for (int interval = 0; interval < intervals.Length; interval++) {

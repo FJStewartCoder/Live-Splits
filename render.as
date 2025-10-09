@@ -5,6 +5,11 @@ int FRAME_PADDING = 10;
 
 // TODO: reduce number of times per seconds rendering of gap
 void Render() {
+    // if the plugin is off don't do anything
+    if (!isEnabled) {
+        return;
+    }
+
     ISceneVis@ scene = GetApp().GameScene;
 
     // ensures the player is in a race
@@ -15,7 +20,7 @@ void Render() {
     // gets the number of valid cars
     int validCars;
 
-    for (validCars = 0; validCars < currentSettings.numCars; validCars++) {
+    for (validCars = 0; validCars < numCars; validCars++) {
         if (miscArray[validCars].id == 0) {
             break;
         }
