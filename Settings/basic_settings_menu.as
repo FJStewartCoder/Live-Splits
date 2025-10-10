@@ -32,9 +32,9 @@ void SetConfig() {
             numCars = 3;
 
             // sets new counts
-            framesBetweenLog.SetCount(1);
+            SetLogValue(1);
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
-            framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 10, 0)));
+            SetGapValue(uint(Math::Round(expectedFrameRate / 10, 0)));
 
             // estimation is the absolute fastest availible
             SetGapAlg(GapAlgorithm::Estimation);
@@ -55,9 +55,9 @@ void SetConfig() {
             numCars = 4;
 
             // sets new counts
-            framesBetweenLog.SetCount(2);
+            SetLogValue(2);
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
-            framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 10, 0)));
+            SetGapValue(uint(Math::Round(expectedFrameRate / 10, 0)));
 
             SetGapAlg(GapAlgorithm::ModifiedLinear);
 
@@ -74,8 +74,8 @@ void SetConfig() {
             numCars = 5;
 
             // sets new counts
-            framesBetweenLog.SetCount(1);
-            framesBetweenGap.SetCount(12);
+            SetLogValue(1);
+            SetGapValue(12);
 
             SetGapAlg(GapAlgorithm::ModifiedLinear);
 
@@ -91,8 +91,8 @@ void SetConfig() {
             numCars = 7;
 
             // sets new counts
-            framesBetweenLog.SetCount(1);
-            framesBetweenGap.SetCount(8);
+            SetLogValue(1);
+            SetGapValue(8);
 
             SetGapAlg(GapAlgorithm::ModifiedLinear);
 
@@ -108,8 +108,8 @@ void SetConfig() {
             numCars = 10;
 
             // sets new counts
-            framesBetweenLog.SetCount(1);
-            framesBetweenGap.SetCount(4);
+            SetLogValue(1);
+            SetGapValue(4);
 
             SetGapAlg(GapAlgorithm::Linear);
 
