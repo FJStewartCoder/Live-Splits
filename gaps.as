@@ -42,6 +42,27 @@ enum GapAlgorithm {
     Estimation
 };
 
+// function to convert numerical value to enum GapAlgorithm
+GapAlgorithm intToEnum(int value) {
+    GapAlgorithm enumValue = GapAlgorithm::Linear;
+
+    switch (value) {
+        case 0:
+            enumValue = GapAlgorithm::Linear;
+            break;
+        case 1:
+            enumValue = GapAlgorithm::ModifiedLinear;
+            break;
+        case 2:
+            enumValue = GapAlgorithm::Estimation;
+            break;
+        default:
+            break;
+    }
+
+    return enumValue;
+}
+
 namespace SetGaps {
    // intervals in which the MODIFIED LINEAR algorithm will check
     // intervals between distance checks (reduces overall number of checks)

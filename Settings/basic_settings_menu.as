@@ -37,7 +37,7 @@ void SetConfig() {
             framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 4, 0)));
 
             // estimation is the absolute fastest availible
-            gapAlg = GapAlgorithm::Estimation;
+            SetGapAlg(GapAlgorithm::Estimation);
 
             break;
 
@@ -59,7 +59,7 @@ void SetConfig() {
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
             framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 10, 0)));
 
-            gapAlg = GapAlgorithm::ModifiedLinear;
+            SetGapAlg(GapAlgorithm::ModifiedLinear);
 
             break;
 
@@ -77,7 +77,7 @@ void SetConfig() {
             framesBetweenLog.SetCount(1);
             framesBetweenGap.SetCount(12);
 
-            gapAlg = GapAlgorithm::ModifiedLinear;
+            SetGapAlg(GapAlgorithm::ModifiedLinear);
 
             break;
 
@@ -94,7 +94,7 @@ void SetConfig() {
             framesBetweenLog.SetCount(1);
             framesBetweenGap.SetCount(8);
 
-            gapAlg = GapAlgorithm::ModifiedLinear;
+            SetGapAlg(GapAlgorithm::ModifiedLinear);
 
             break;
 
@@ -111,7 +111,7 @@ void SetConfig() {
             framesBetweenLog.SetCount(1);
             framesBetweenGap.SetCount(4);
 
-            gapAlg = GapAlgorithm::Linear;
+            SetGapAlg(GapAlgorithm::Linear);
 
             break;
         
@@ -133,7 +133,7 @@ void SetConfig() {
 // PERFORMANCE MODE
 // SHOW GAP WHILE LOGGING
 
-[SettingsTab name="Basic"]
+[SettingsTab name="Basic" order="0"]
 void BasicSettings() {
     // create a checkbox to say if the plugin is enabled
     isEnabled = UI::Checkbox("Enable Plugin", isEnabled);

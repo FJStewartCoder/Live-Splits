@@ -24,10 +24,6 @@ uint8 numCars = 3;
 RotatingCounter framesBetweenLog(1);
 RotatingCounter framesBetweenGap(10);
 
-// which algorithm to use for the gap
-[Setting hidden]
-GapAlgorithm gapAlg = GapAlgorithm::ModifiedLinear;
-
 // --------------------------------------------------------
 // other settings
 
@@ -47,3 +43,18 @@ int TEXT_SPACING = 10;
 int FRAME_PADDING = 10;
 
 // --------------------------------------------------------
+// specialised gapAlg scripts
+
+// which algorithm to use for the gap
+GapAlgorithm gapAlg;
+
+// the chosen algorthim as an int
+[Setting hidden]
+int algorithmChoice = 0;
+
+void SetGapAlg(GapAlgorithm newAlgorithm) {
+    // set both to new algorithm
+    gapAlg = newAlgorithm;
+    // automatically converted to int
+    algorithmChoice = newAlgorithm;
+}
