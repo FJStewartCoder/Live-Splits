@@ -21,8 +21,8 @@ void SetConfig() {
     switch (performanceChoice) {
         // very fast
         // AIM FOR 5 MINUTES OF LOG AT FRAME RATE
-        // LOG EVERY 2 FRAMES
-        // SHOW GAP 3 TIMES PER SECOND
+        // LOG EVERY 1 FRAMES
+        // SHOW GAP 4 TIMES PER SECOND
         case 0:
             // prints setting name
             print("Setting: Very Fast");
@@ -33,8 +33,8 @@ void SetConfig() {
 
             // sets new counts
             SetLogValue(1);
-            // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
-            SetGapValue(uint(Math::Round(expectedFrameRate / 10, 0)));
+            // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
+            SetGapValue(uint(Math::Round(expectedFrameRate / 4, 0)));
 
             // estimation is the absolute fastest availible
             SetGapAlg(GapAlgorithm::Estimation);
@@ -50,14 +50,14 @@ void SetConfig() {
             // prints setting name
             print("Setting: Fast");
 
-            // 10 minutes at frame rate ( /2 because thats how many frames between a log)
-            arrayMaxSize = expectedFrameRate * 60 * 10 / 2;
+            // 10 minutes at frame rate
+            arrayMaxSize = expectedFrameRate * 60 * 10;
             numCars = 4;
 
             // sets new counts
-            SetLogValue(2);
+            SetLogValue(1);
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
-            SetGapValue(uint(Math::Round(expectedFrameRate / 10, 0)));
+            SetGapValue(uint(Math::Round(expectedFrameRate / 8, 0)));
 
             SetGapAlg(GapAlgorithm::ModifiedLinear);
 
