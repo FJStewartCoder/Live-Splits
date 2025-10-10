@@ -144,6 +144,10 @@ void Main() {
 
     // upon loading sets the current config
     SetConfig();
+
+    // load values that need syncing
+    LoadAlg();
+    LoadCounters();
 }
 
 // function to log the points

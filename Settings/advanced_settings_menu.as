@@ -46,20 +46,23 @@ void AdvancedSettings() {
     // --------------------------------------------------------------------
     // framesBetweenLog
 
+
     int value = IntInput("Frames Between Logging Point", framesBetweenLog.GetCount(), 1, 500, 1);
-    framesBetweenLog.SetCount(value);
+    // set both the stored value and the actual value to the same number to preserve sync
+    framesBetweenLogValue = value;
+    framesBetweenLog.SetCount(framesBetweenLogValue);
 
     // --------------------------------------------------------------------
     // framesBetweenGap
 
     // reuses value
     value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
-    framesBetweenGap.SetCount(value);
+    // set both the stored value and the actual value to the same number to preserve sync
+    framesBetweenGapValue = value;
+    framesBetweenGap.SetCount(framesBetweenGapValue);
 
     // --------------------------------------------------------------------
     // gapAlg
-    
-    gapAlg = intToEnum(algorithmChoice);
 
     // create the combo box for the gap algorithm
     if (UI::BeginCombo("Gap Algorithm", algorithmChoices[algorithmChoice])) {

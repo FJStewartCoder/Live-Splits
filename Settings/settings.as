@@ -20,10 +20,6 @@ uint32 arrayMaxSize = 1000000;  // 1,000,000
 // max number of ghost cars 
 uint8 numCars = 3;
 
-// optimisation settings to change rate of variety of things
-RotatingCounter framesBetweenLog(1);
-RotatingCounter framesBetweenGap(10);
-
 // --------------------------------------------------------
 // other settings
 
@@ -57,4 +53,29 @@ void SetGapAlg(GapAlgorithm newAlgorithm) {
     gapAlg = newAlgorithm;
     // automatically converted to int
     algorithmChoice = newAlgorithm;
+}
+
+
+// function to load the desynced values
+void LoadAlg() {
+    gapAlg = intToEnum(algorithmChoice);
+}
+
+// --------------------------------------------------------
+// specialised method of setting these to prevent desync
+
+// hidden settings that store the value in the class
+[Setting hidden]
+uint framesBetweenLogValue = 1;
+[Setting hidden]
+uint framesBetweenGapValue = 1;
+
+// optimisation settings to change rate of variety of things
+RotatingCounter framesBetweenLog(1);
+RotatingCounter framesBetweenGap(1);
+
+// function to load the desynced values
+void LoadCounters() {
+    framesBetweenLog.SetCount(framesBetweenLogValue);
+    framesBetweenGap.SetCount(framesBetweenGapValue);
 }
