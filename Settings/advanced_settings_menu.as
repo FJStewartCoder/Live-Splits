@@ -49,8 +49,7 @@ void AdvancedSettings() {
 
     int value = IntInput("Frames Between Logging Point", framesBetweenLog.GetCount(), 1, 500, 1);
     // set both the stored value and the actual value to the same number to preserve sync
-    framesBetweenLogValue = value;
-    framesBetweenLog.SetCount(framesBetweenLogValue);
+    SetLogValue(value);
 
     // --------------------------------------------------------------------
     // framesBetweenGap
@@ -58,8 +57,7 @@ void AdvancedSettings() {
     // reuses value
     value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
     // set both the stored value and the actual value to the same number to preserve sync
-    framesBetweenGapValue = value;
-    framesBetweenGap.SetCount(framesBetweenGapValue);
+    SetGapValue(value);
 
     // --------------------------------------------------------------------
     // gapAlg

@@ -74,6 +74,18 @@ uint framesBetweenGapValue = 1;
 RotatingCounter framesBetweenLog(1);
 RotatingCounter framesBetweenGap(1);
 
+
+// two functions below to prevent the desync
+void SetLogValue(uint value) {
+    framesBetweenLog.SetCount(value);
+    framesBetweenLogValue = value;
+}
+
+void SetGapValue(uint value) {
+    framesBetweenGap.SetCount(value);
+    framesBetweenGapValue = value;
+}
+
 // function to load the desynced values
 void LoadCounters() {
     framesBetweenLog.SetCount(framesBetweenLogValue);

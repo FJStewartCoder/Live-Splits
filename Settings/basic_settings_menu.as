@@ -33,8 +33,8 @@ void SetConfig() {
 
             // sets new counts
             framesBetweenLog.SetCount(1);
-            // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
-            framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 4, 0)));
+            // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
+            framesBetweenGap.SetCount(uint(Math::Round(expectedFrameRate / 10, 0)));
 
             // estimation is the absolute fastest availible
             SetGapAlg(GapAlgorithm::Estimation);
