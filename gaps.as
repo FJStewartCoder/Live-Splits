@@ -64,7 +64,7 @@ GapAlgorithm intToEnum(int value) {
 }
 
 namespace SetGaps {
-   // intervals in which the MODIFIED LINEAR algorithm will check
+    // intervals in which the MODIFIED LINEAR algorithm will check
     // intervals between distance checks (reduces overall number of checks)
     // increasing this will improve efficiency but decrease accuracy
     // ACCURACY refers to how accurate the selection of closest point is
@@ -76,6 +76,22 @@ namespace SetGaps {
 
     // how far either side of the last index will we search
     uint searchRadius = 500;
+
+    // used to prevent 
+    float distThreshold = 50;
+
+    void PointsToGap(Miscellaneous @item, Point @p1, Point @p2) {
+        // no threshold
+        if (distThreshold == -1) {
+            item.gap = p1.timeStamp - p2.timeStamp;
+            return;
+        }
+
+        // only set gap if below threshold
+        if (GetDist(p1, p2) <= distThreshold) {
+            item.gap = p1.timeStamp - p2.timeStamp;
+        }
+    }
 
     // function to optimise the intervals arrays based on the frame rate and logs per second
     // resolution defines how many checks per second should be done
@@ -125,7 +141,7 @@ namespace SetGaps {
             // print(i);
 
             // set the gap based on the timestamps
-            miscArray[i].gap = currentPoint.timeStamp - ghostPoints[i][minIdx].timeStamp;
+            PointsToGap(miscArray[i], currentPoint, ghostPoints[i][minIdx]);
         }
     }
 
@@ -169,7 +185,7 @@ namespace SetGaps {
             // print(i);
 
             // set the gap based on the timestamps
-            miscArray[i].gap = currentPoint.timeStamp - ghostPoints[i][minIdx].timeStamp;
+            PointsToGap(miscArray[i], currentPoint, ghostPoints[i][minIdx]);
         }
     }
 
@@ -214,7 +230,7 @@ namespace SetGaps {
             // print(i);
 
             // set the gap based on the timestamps
-            miscArray[i].gap = currentPoint.timeStamp - ghostPoints[i][minIdx].timeStamp;
+            PointsToGap(miscArray[i], currentPoint, ghostPoints[i][minIdx]);
             // set the last index to the index we found the min value
             miscArray[i].lastIdx = minIdx;
         }
