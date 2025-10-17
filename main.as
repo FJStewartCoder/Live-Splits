@@ -387,7 +387,7 @@ void Update(float dt) {
     }
 
     // new pb is whatever the last time was (it is trying to be the new pb)
-    uint newPb = uint(-1);  // GetCurrentTime();
+    uint newPb = GetCurrentTime();
 
     // if newPb is less than or equal to old pb and new pb is not 0 or uint(-1) and newPbSet is false
     // both of last two can both regularly occur
