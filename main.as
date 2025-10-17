@@ -78,6 +78,11 @@ uint GetCurrentTime() {
     CGameCtnApp@ app = GetApp();
     CGamePlayground@ playground = cast<CGamePlayground>(app.CurrentPlayground);
 
+    // if not at end screen
+    if (playground.GameTerminals[0].UISequence_Current != CGamePlaygroundUIConfig::EUISequence::Finish) {
+        return uint(-1);
+    }
+
     if (!(playground !is null && playground.GameTerminals.Length > 0)) {
         return uint(-1);
     }
@@ -140,8 +145,11 @@ void ResetAllVars() {
     // reset the misc array
     ResetMiscArray(numCars, miscArray);
 
-    // reset last pb if changing track
-    currentPb = uint(-1);
+    // get current pb if entering new map
+    currentPb = currentPb = GetPb(GetApp().RootMap);
+    if (currentPb != uint(-1)) {
+        print("Current PB: " + currentPb);
+    }
 
     // optimise for the current track
     SetGaps::Optimise(expectedFrameRate, 10);
@@ -233,6 +241,26 @@ void LogPoints(ISceneVis@ scene) {
 
         // debug print
         // print(car + " " + currentPoint.Get());
+    }
+}
+
+void HandlePb() {
+    // new pb is whatever the last time was (it is trying to be the new pb)
+    uint newPb = GetCurrentTime();
+
+    // if newPb is less than or equal to old pb and new pb is not 0 or uint(-1) and newPbSet is false
+    // both of last two can both regularly occur
+    if (newPb <= currentPb && newPb != 0 && newPb != uint(-1) && !newPbSet) {
+        // reset all of the arrays
+        ResetAllVars();
+
+        // set the current pb to the new pb
+        currentPb = newPb;
+
+        // to prevent continuously repeating set pb
+        newPbSet = true;
+
+        print("New PB Set: " + newPb);
     }
 }
 
@@ -376,33 +404,7 @@ void Update(float dt) {
     // ------------------------------------------------------------------------
     // evaluate pbs in order to correctly reset the arrays
 
-    // if the current pb is unset, set the current pb
-    if (currentPb == uint(-1)){
-        // get the current pb
-        currentPb = GetPb(track);
-
-        if (currentPb != uint(-1)) {
-            print("Current PB: " + currentPb);
-        }
-    }
-
-    // new pb is whatever the last time was (it is trying to be the new pb)
-    uint newPb = GetCurrentTime();
-
-    // if newPb is less than or equal to old pb and new pb is not 0 or uint(-1) and newPbSet is false
-    // both of last two can both regularly occur
-    if (newPb <= currentPb && newPb != 0 && newPb != uint(-1) && !newPbSet) {
-        // reset all of the arrays
-        ResetAllVars();
-
-        // set the current pb to the new pb
-        currentPb = newPb;
-
-        // to prevent continuously repeating set pb
-        newPbSet = true;
-
-        print("New PB Set: " + newPb);
-    }
+    HandlePb();
 
     // -------------------------------------------------------------------------
     // housekeeping

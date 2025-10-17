@@ -110,5 +110,5 @@ void Render() {
     }
 
     Render::Normal();
-    Render::Debug();
+    // Render::Debug();
 }
