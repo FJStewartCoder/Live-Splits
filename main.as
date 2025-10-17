@@ -69,28 +69,34 @@ int GetPb(CGameCtnChallenge@ map) {
 }
 
 
-// taken from 
+// taken from / inspired by
 // https://github.com/ArEyeses79/tm-ultimate-medals-extended/blob/main/PreviousRun.as#L30
 uint GetCurrentTime() {
-    uint score = 0;
-
     CGameCtnApp@ app = GetApp();
     CGamePlayground@ playground = cast<CGamePlayground>(app.CurrentPlayground);
 
-    if (playground !is null && playground.GameTerminals.Length > 0) {
-        CSmArenaRulesMode@ playgroundScript = cast<CSmArenaRulesMode>(app.PlaygroundScript);
-        if (playgroundScript !is null) {
-            CSmPlayer@ player = cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer);
-            if (player !is null) {
-                CGameGhostScript@ ghost = playgroundScript.Ghost_RetrieveFromPlayer(cast<CSmScriptPlayer>(player.ScriptAPI));
-                if (ghost !is null) {
-                    score = uint(-1);
-                    if (ghost.Result.Time > 0 && ghost.Result.Time < uint(-1)) {
-                        score = ghost.Result.Time;
-                    }
-                }
-            }
-        }
+    if (!(playground !is null && playground.GameTerminals.Length > 0)) {
+        return uint(-1);
+    }
+
+    CSmArenaRulesMode@ playgroundScript = cast<CSmArenaRulesMode>(app.PlaygroundScript);
+    if (playgroundScript is null) {
+        return uint(-1);
+    }
+
+    CSmPlayer@ player = cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer);
+    if (player is null) {
+        return uint(-1);
+    }
+
+    CGameGhostScript@ ghost = playgroundScript.Ghost_RetrieveFromPlayer(cast<CSmScriptPlayer>(player.ScriptAPI));
+    if (ghost is null) {
+        return uint(-1);
+    }
+
+    score = uint(-1);
+    if (ghost.Result.Time > 0 && ghost.Result.Time < uint(-1)) {
+        score = ghost.Result.Time;
     }
 
     return score;
@@ -144,6 +150,7 @@ void ResetAllVars() {
 // TODO: still try to fix instability (even on powerful computer)
 
 // TODO: fix car finishing early bug as well
+// THIS IS CAUSED BY PAUSING THE GAME
 
 void Main() {
     // assign array size on load
