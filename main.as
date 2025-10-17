@@ -71,6 +71,9 @@ int GetPb(CGameCtnChallenge@ map) {
 
 // taken from / inspired by
 // https://github.com/ArEyeses79/tm-ultimate-medals-extended/blob/main/PreviousRun.as#L30
+
+// TODO: ORIGIN OF CRASH IS HERE
+
 uint GetCurrentTime() {
     CGameCtnApp@ app = GetApp();
     CGamePlayground@ playground = cast<CGamePlayground>(app.CurrentPlayground);
@@ -94,7 +97,7 @@ uint GetCurrentTime() {
         return uint(-1);
     }
 
-    score = uint(-1);
+    uint score = uint(-1);
     if (ghost.Result.Time > 0 && ghost.Result.Time < uint(-1)) {
         score = ghost.Result.Time;
     }
@@ -302,6 +305,11 @@ void Update(float dt) {
         return;
     }
 
+    // the only time this wiull be true is on the first loop so set start time to 0
+    if (startDataSet) {
+        startTime = GetApp().TimeSinceInitMs;
+    }
+
     // becomes false once we pass this stage
     startDataSet = false;
 
@@ -379,7 +387,7 @@ void Update(float dt) {
     }
 
     // new pb is whatever the last time was (it is trying to be the new pb)
-    uint newPb = GetCurrentTime();
+    uint newPb = uint(-1);  // GetCurrentTime();
 
     // if newPb is less than or equal to old pb and new pb is not 0 or uint(-1) and newPbSet is false
     // both of last two can both regularly occur
