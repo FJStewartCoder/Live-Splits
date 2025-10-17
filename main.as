@@ -143,6 +143,8 @@ void ResetAllVars() {
 // TODO: FIX VERY SLOW TO CLOSE MAP
 // TODO: still try to fix instability (even on powerful computer)
 
+// TODO: fix car finishing early bug as well
+
 void Main() {
     // assign array size on load
     // ResizeArrays(numCars, arraySize);
