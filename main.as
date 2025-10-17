@@ -35,6 +35,9 @@ uint startTime = 0;
 bool newPbSet = false;
 uint currentPb = uint(-1);
 
+// ensure data is only reset once every cycle
+bool startDataSet = false;
+
 
 void ResizeArrays(uint numberGhosts, uint runLength) {
     // resize the main array
@@ -136,7 +139,9 @@ void ResetAllVars() {
 }
 
 // TODO: fix multilap (it will go completely wrong)
+
 // TODO: FIX VERY SLOW TO CLOSE MAP
+// TODO: still try to fix instability (even on powerful computer)
 
 void Main() {
     // assign array size on load
@@ -271,15 +276,25 @@ void Update(float dt) {
 
     // check if the first vehicle (you) have a race start time of this specific value which shows when you are at the start
     if (cars[0].AsyncState.RaceStartTime == 4294967295) {
+        if (startDataSet) {
+            return;
+        }
+
         // debug message
-        // print("reset");
+        print("reset");
 
         // reset all vars related to the current race
         ResetRaceVars();
 
+        // the data is now set
+        startDataSet = true;
+
         // DONT NEED TO CONTINUE IF AT START
         return;
     }
+
+    // becomes false once we pass this stage
+    startDataSet = false;
 
     // ----------------------------------------------------------------------------
     // pre-log housekeeping and checks

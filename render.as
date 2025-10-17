@@ -76,12 +76,12 @@ namespace Render {
 
     void Debug() {
         // creates window
-        if (UI::Begin("Live Splits", flags)) {
+        if (UI::Begin("Debug Menu")) {
             // ONLY FOR DEBUGGING
             UI::InputInt("LOG", currentLogIndex);
             UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
 
-            for (int i = 0; i < numCars; i++) {
+            for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);
 
                 UI::InputInt("ID", miscArray[i].id);
@@ -110,4 +110,5 @@ void Render() {
     }
 
     Render::Normal();
+    Render::Debug();
 }
