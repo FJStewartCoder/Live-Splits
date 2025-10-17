@@ -157,9 +157,6 @@ void ResetAllVars() {
 
 // TODO: fix multilap (it will go completely wrong)
 
-// TODO: FIX VERY SLOW TO CLOSE MAP
-// TODO: still try to fix instability (even on powerful computer)
-
 // TODO: fix car finishing early bug as well
 // THIS IS CAUSED BY PAUSING THE GAME
 
