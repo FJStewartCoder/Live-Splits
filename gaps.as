@@ -78,7 +78,7 @@ namespace SetGaps {
     uint searchRadius = 500;
 
     // used to prevent 
-    float distThreshold = 50;
+    float distThreshold = -1;
 
     void PointsToGap(Miscellaneous @item, Point @p1, Point @p2) {
         // no threshold
