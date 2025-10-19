@@ -85,6 +85,13 @@ void ResetAllVars() {
 
 // TODO: fix multilap (it will go completely wrong)
 
+// TODO: rewrite misc array so that our car is included
+// In the gap getting bit, everything can be all in one loop
+
+// TODO: add setting for Optimise(resolution) resolution
+
+// TODO: fix estimation algorithm
+
 // TODO: fix car finishing early bug as well
 // THIS IS CAUSED BY PAUSING THE GAME
 
@@ -308,7 +315,6 @@ void Update(float dt) {
 
             // if there is no car use the previous gap
             if (currentCar is null) {
-                print(currentId + " is null");
                 curGap = miscArray[i].relGap;
             }
             // else calculate new gap
