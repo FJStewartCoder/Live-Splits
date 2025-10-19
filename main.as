@@ -16,10 +16,9 @@ class Point {
 string lastMap;
 string currentMap;
 
-// 2d array of ghost points
-// first array is always the current player
-// 2nd and 3rd array are always the player's ghost if it exists
-array<array<Point>> ghostPoints(numCars, array<Point>(0));
+// array of the main ghost's points
+array<Point> ghostPoints(0);
+bool arrayComplete = false;
 
 // arraySize is not in here
 // create a miscellaneous array for each ghost
@@ -31,83 +30,13 @@ uint32 currentLogIndex = 0;
 // variable to store the start time
 uint startTime = 0;
 
-// current and last pb
-bool newPbSet = false;
-uint currentPb = uint(-1);
-
 // ensure data is only reset once every cycle
 bool startDataSet = false;
 
 
-void ResizeArrays(uint numberGhosts, uint runLength) {
+void ResizeArrays(uint runLength) {
     // resize the main array
-    ghostPoints.Resize(numberGhosts);
-
-    // resize each subarray
-    for (uint i = 0; i < numberGhosts; i++) {
-        ghostPoints[i].Resize(runLength);
-    }
-}
-
-// taken from 
-// https://github.com/Phlarx/tm-ultimate-medals/blob/main/PersonalBest/NextPersonalBestMedal.as
-// WON'T WORK UNTIL REAL BUILD BECAUSE LEADERBOARDS DISABLED
-int GetPb(CGameCtnChallenge@ map) {
-    int score = -1;
-
-    auto app = GetApp();
-    auto network = cast<CTrackManiaNetwork>(app.Network);
-
-    if(network.ClientManiaAppPlayground !is null) {
-        auto scoreMgr = network.ClientManiaAppPlayground.ScoreMgr;
-        // from: OpenplanetNext\Extract\Titles\Trackmania\Scripts\Libs\Nadeo\TMNext\TrackMania\Menu\Constants.Script.txt
-        // ScopeType can be: "Season", "PersonalBest"
-        score = scoreMgr.Map_GetRecord_v2(0x100, map.MapInfo.MapUid, "PersonalBest", "", "TimeAttack", "");
-    }
-
-    return score;
-}
-
-
-// taken from / inspired by
-// https://github.com/ArEyeses79/tm-ultimate-medals-extended/blob/main/PreviousRun.as#L30
-
-// TODO: ORIGIN OF CRASH IS HERE
-
-uint GetCurrentTime() {
-    CGameCtnApp@ app = GetApp();
-    CGamePlayground@ playground = cast<CGamePlayground>(app.CurrentPlayground);
-
-    // if not at end screen
-    if (playground.GameTerminals[0].UISequence_Current != CGamePlaygroundUIConfig::EUISequence::Finish) {
-        return uint(-1);
-    }
-
-    if (!(playground !is null && playground.GameTerminals.Length > 0)) {
-        return uint(-1);
-    }
-
-    CSmArenaRulesMode@ playgroundScript = cast<CSmArenaRulesMode>(app.PlaygroundScript);
-    if (playgroundScript is null) {
-        return uint(-1);
-    }
-
-    CSmPlayer@ player = cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer);
-    if (player is null) {
-        return uint(-1);
-    }
-
-    CGameGhostScript@ ghost = playgroundScript.Ghost_RetrieveFromPlayer(cast<CSmScriptPlayer>(player.ScriptAPI));
-    if (ghost is null) {
-        return uint(-1);
-    }
-
-    uint score = uint(-1);
-    if (ghost.Result.Time > 0 && ghost.Result.Time < uint(-1)) {
-        score = ghost.Result.Time;
-    }
-
-    return score;
+    ghostPoints.Resize(runLength);
 }
 
 // reset only the vars relevant to the current race
@@ -118,9 +47,6 @@ void ResetRaceVars() {
     // reset current time
     startTime = GetApp().TimeSinceInitMs;
 
-    // when restarting the race allow newPbSetting
-    newPbSet = false;
-
     // iterate miscArray and set last idx to 0
     for (int i = 0; i < miscArray.Length; i++) {
         if (miscArray[i].id == 0) {
@@ -129,6 +55,10 @@ void ResetRaceVars() {
 
         // reset the last idx
         miscArray[i].lastIdx = 0;
+
+        // reset gaps
+        miscArray[i].gap = 0;
+        miscArray[i].relGap = 0;
     }
 
     // reset currentFrameNumber just so always starts at 0
@@ -140,16 +70,11 @@ void ResetAllVars() {
     ResetRaceVars();
 
     // empty the arrays
-    ResizeArrays(numCars, 0);
+    ResizeArrays(0);
+    arrayComplete = false;
 
     // reset the misc array
     ResetMiscArray(numCars, miscArray);
-
-    // get current pb if entering new map
-    currentPb = currentPb = GetPb(GetApp().RootMap);
-    if (currentPb != uint(-1)) {
-        print("Current PB: " + currentPb);
-    }
 
     // optimise for the current track
     SetGaps::Optimise(expectedFrameRate, 10);
@@ -161,9 +86,6 @@ void ResetAllVars() {
 // THIS IS CAUSED BY PAUSING THE GAME
 
 void Main() {
-    // assign array size on load
-    // ResizeArrays(numCars, arraySize);
-
     // upon loading sets the current config
     SetConfig();
 
@@ -172,93 +94,74 @@ void Main() {
     LoadCounters();
 }
 
-// function to log the points
-void LogPoints(ISceneVis@ scene) {
-    // iterate all cars and accept the first ones that appear that are less than numCars
-    for (int car = 0; car < miscArray.Length; car++) {
-        // only continue logging if the array is not complete
-        if (miscArray[car].isArrayComplete) {
-            // print(miscArray[carIdx].id + " is complete " + carIdx);
-            continue;
-        }
+Point MakePoint(CSceneVehicleVis@ car) {
+    Point newPoint;
 
-        // check for size greater or equal to the hard limit
-        if (currentLogIndex >= arrayMaxSize) {
-            // print("Max array size hit");
+    // get the point data
+    newPoint.y = car.AsyncState.Position.y;
+    newPoint.x = car.AsyncState.Position.x;
+    newPoint.z = car.AsyncState.Position.z;
 
-            // if at limit the array must be complete
-            miscArray[car].isArrayComplete = true;
-            continue;
-        }
-    
-        // gets id from misc array
-        uint currentId = miscArray[car].id;
+    // gets time stamp
+    newPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
 
-        // not a valid id
-        if (currentId == 0) {
-            continue;
-        }
-
-        // gets current car based on entity ID with native functions
-        CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
-
-        // if is null, must have finished or is gone
-        if (currentCar is null) {
-            // if current log index is greater than the size + 2, the array must have stopped tracking so must have finished
-            // + 2 simply for safety
-            if (miscArray[car].arraySize + 2 < currentLogIndex) {
-                print(currentId + " has finished");
-                miscArray[car].isArrayComplete = true;
-            }
-
-            // if null must continue
-            continue;
-        }
-
-        Point currentPoint;
-
-        // get all of the car's data and put in a point
-        currentPoint.y = currentCar.AsyncState.Position.y;
-        currentPoint.x = currentCar.AsyncState.Position.x;
-        currentPoint.z = currentCar.AsyncState.Position.z;
-
-        // gets time stamp
-        currentPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
-
-        // reassign a point if there is space for it else insert at the end the new point
-        if (currentLogIndex >= miscArray[car].arraySize) {
-            // set last point
-            ghostPoints[car].InsertLast(currentPoint);
-            // increment array size here
-            miscArray[car].arraySize++;
-        }
-        else {
-            ghostPoints[car][currentLogIndex] = currentPoint;
-        }
-
-        // debug print
-        // print(car + " " + currentPoint.Get());
-    }
+    return newPoint;
 }
 
-void HandlePb() {
-    // new pb is whatever the last time was (it is trying to be the new pb)
-    uint newPb = GetCurrentTime();
-
-    // if newPb is less than or equal to old pb and new pb is not 0 or uint(-1) and newPbSet is false
-    // both of last two can both regularly occur
-    if (newPb <= currentPb && newPb != 0 && newPb != uint(-1) && !newPbSet) {
-        // reset all of the arrays
-        ResetAllVars();
-
-        // set the current pb to the new pb
-        currentPb = newPb;
-
-        // to prevent continuously repeating set pb
-        newPbSet = true;
-
-        print("New PB Set: " + newPb);
+// function to log the points
+void LogPoints(ISceneVis@ scene) {
+    // only log points if not complete
+    if (arrayComplete) {
+        // print(miscArray[carIdx].id + " is complete " + carIdx);
+        return;
     }
+
+    // check for size greater or equal to the hard limit
+    if (currentLogIndex >= arrayMaxSize) {
+        // print("Max array size hit");
+
+        // if at limit the array must be complete
+        arrayComplete = true;
+        return;
+    }
+
+    // gets id from misc array
+    uint currentId = miscArray[0].id;
+
+    // not a valid id
+    if (currentId == 0) {
+        return;
+    }
+
+    // gets current car based on entity ID with native functions
+    CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
+
+    // if is null, must have finished or is gone
+    if (currentCar is null) {
+        // if current log index is greater than the size + 2, the array must have stopped tracking so must have finished
+        // + 2 simply for safety
+        if (ghostPoints.Length + 2 < currentLogIndex) {
+            print(currentId + " has finished");
+            arrayComplete = true;
+        }
+
+        // if null must return
+        return;
+    }
+
+    Point currentPoint = MakePoint(currentCar);
+
+    // reassign a point if there is space for it else insert at the end the new point
+    if (currentLogIndex >= ghostPoints.Length) {
+        // set last point
+        ghostPoints.InsertLast(currentPoint);
+    }
+    else {
+        ghostPoints[currentLogIndex] = currentPoint;
+    }
+
+    // debug print
+    // print(car + " " + currentPoint.Get());
 }
 
 void Update(float dt) {
@@ -268,13 +171,11 @@ void Update(float dt) {
     }
 
     ISceneVis@ scene = GetApp().GameScene;
+    // ensures the player is in a race
+    if (scene is null) { return; }
+
     // gets the track
     CGameCtnChallenge@ track = GetApp().RootMap;
-
-    // ensures the player is in a race
-    if (scene is null) {
-        return;
-    }
 
     // get all of the cars and ghosts
     // ONLY DO THIS IF SCENE IS NOT NULL
@@ -347,7 +248,7 @@ void Update(float dt) {
 
     // cars must be greater than one to ensure the cars are included
     // only do this once the race has started (if newPbSet is true the race must be at the end)
-    if (cars.Length > 1 && !newPbSet) {
+    if (cars.Length > 1) {
         // make misc array (only does this if not already set)
         MakeMiscArray(cars, numCars, miscArray);
         // updates the size of the window only once
@@ -367,41 +268,62 @@ void Update(float dt) {
     // calculate the gaps
 
     // only calculate if the frames between gap requirement is met
-    if (framesBetweenGap.GetValue()) {
+    if (framesBetweenGap.GetValue() && arrayComplete) {
         // define a point
-        Point thisPoint;
-
-        // get the point data
-        thisPoint.y = cars[0].AsyncState.Position.y;
-        thisPoint.x = cars[0].AsyncState.Position.x;
-        thisPoint.z = cars[0].AsyncState.Position.z;
-
-        // gets time stamp
-        thisPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
+        Point thisPoint = MakePoint(cars[0]);
+        int myGap = 0;
 
         // set the based on the chosen algorithm
         switch (gapAlg) {
             case GapAlgorithm::Linear:
                 // set the gaps using the linear algorithm
-                SetGaps::Linear(thisPoint, miscArray, ghostPoints);
+                myGap = SetGaps::Linear(thisPoint, ghostPoints);
                 break;
 
             case GapAlgorithm::ModifiedLinear:
                 // set the gaps using the modified linear algorithm 
-                SetGaps::ModifiedLinear(thisPoint, miscArray, ghostPoints);
+                myGap = SetGaps::ModifiedLinear(thisPoint, ghostPoints);
                 break;
 
             case GapAlgorithm::Estimation:
                 // set the gaps using the estimation algorithm
-                SetGaps::Estimation(thisPoint, miscArray, ghostPoints);
+                SetGaps::Estimation(thisPoint, ghostPoints);
                 break;
-        }   
+        }
+
+        for (int i = 0; i < miscArray.Length; i++) {
+            // gets id from misc array
+            uint currentId = miscArray[i].id;
+
+            if (currentId == 0) {
+                break;
+            }
+
+            // get the vis from id
+            CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
+
+            // the current gap
+            int curGap;
+
+            // if there is no car use the previous gap
+            if (currentCar is null) {
+                print(currentId + " is null");
+                curGap = miscArray[i].relGap;
+            }
+            // else calculate new gap
+            else {
+                Point thisPoint = MakePoint(currentCar);
+
+                curGap = SetGaps::ModifiedLinear(thisPoint, ghostPoints);
+
+                // set the relative gap 
+                miscArray[i].relGap = curGap;
+            }
+            
+            // get the gap relative to the ghost
+            miscArray[i].gap = myGap - curGap;
+        }
     }
-
-    // ------------------------------------------------------------------------
-    // evaluate pbs in order to correctly reset the arrays
-
-    HandlePb();
 
     // -------------------------------------------------------------------------
     // housekeeping

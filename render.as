@@ -80,14 +80,17 @@ namespace Render {
             // ONLY FOR DEBUGGING
             UI::InputInt("LOG", currentLogIndex);
             UI::InputInt("TIME", GetApp().TimeSinceInitMs - startTime);
+            UI::InputInt("SIZE", ghostPoints.Length);
+            UI::Checkbox("COMPLETE", arrayComplete);
 
             for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);
 
+                UI::SeparatorText("");
+
                 UI::InputInt("ID", miscArray[i].id);
-                UI::InputInt("SIZE", miscArray[i].arraySize);
-                UI::InputInt("ACTUAL SIZE", ghostPoints[i].Length);
-                UI::Checkbox("COMPLETE", miscArray[i].isArrayComplete);
+                UI::InputInt("GAP", miscArray[i].gap);
+                UI::InputInt("REL GAP", miscArray[i].relGap);
 
                 UI::PopID();
             }
@@ -110,5 +113,5 @@ void Render() {
     }
 
     Render::Normal();
-    // Render::Debug();
+    Render::Debug();
 }

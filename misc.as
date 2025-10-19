@@ -1,10 +1,10 @@
 class Miscellaneous {
-    uint32 arraySize = 0;
-    bool isArrayComplete = false;
-
     uint id;
+
     // as milliseconds
     int gap;
+    // gap relative to ghost points
+    int relGap; 
 
     // index of the previous gap
     uint lastIdx;
@@ -22,10 +22,10 @@ void ResetMiscArray(uint8 numCars, array<Miscellaneous> @miscArray) {
     isMiscArraySet = false;
 
     for (uint8 i = 0; i < numCars; i++) {
-        miscArray[i].arraySize = 0;
-        miscArray[i].isArrayComplete = false;
         miscArray[i].id = 0;
+
         miscArray[i].gap = 0;
+        miscArray[i].relGap = 0;
 
         // reset last index
         miscArray[i].lastIdx = 0;

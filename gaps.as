@@ -80,17 +80,19 @@ namespace SetGaps {
     // used to prevent 
     float distThreshold = -1;
 
-    void PointsToGap(Miscellaneous @item, Point @p1, Point @p2) {
+    int PointsToGap(Point @p1, Point @p2) {
         // no threshold
         if (distThreshold == -1) {
-            item.gap = p1.timeStamp - p2.timeStamp;
-            return;
+            return p1.timeStamp - p2.timeStamp;
         }
 
         // only set gap if below threshold
         if (GetDist(p1, p2) <= distThreshold) {
-            item.gap = p1.timeStamp - p2.timeStamp;
+            return p1.timeStamp - p2.timeStamp;
         }
+
+        // fail so dist = 0
+        return 0;
     }
 
     // function to optimise the intervals arrays based on the frame rate and logs per second
@@ -117,122 +119,89 @@ namespace SetGaps {
         searchRadius = logsPerSecond * searchRangeSeconds;
     }
 
-    // need the misc array, current position and array of points
-    void Linear(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Point>>@ ghostPoints) {
-        // iterate all cars lists
-        for (int i = 0; i < miscArray.Length; i++) {
-            // end of loop because this is all of the cars
-            if (miscArray[i].id == 0) {
-                break;
-            }
-
-            // if array not complete don't calculate gap
-            // unless overridden
-            if (!miscArray[i].isArrayComplete && !getGapOverride) {
-                continue;
-            }
-
-            // get min index by iterating each item in array
-            int minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], 0, miscArray[i].arraySize, 1);
-            
-            // -----------------------------------------------------------------------------------
-
-            // FOR DEBUG
-            // print(i);
-
-            // set the gap based on the timestamps
-            PointsToGap(miscArray[i], currentPoint, ghostPoints[i][minIdx]);
+    // current position and array of points
+    int Linear(Point currentPoint, Point[]@ ghostPoints) {
+        // if array not complete don't calculate gap
+        // unless overridden
+        if (!arrayComplete && !getGapOverride) {
+            return 0;
         }
+
+        // get min index by iterating each item in array
+        int minIdx = GetMinDistIndex(currentPoint, ghostPoints, 0, ghostPoints.Length, 1);
+        
+        // -----------------------------------------------------------------------------------
+
+        // set the gap based on the timestamps
+        return PointsToGap(currentPoint, ghostPoints[minIdx]);
+    }
+
+    // current position and array of points
+    int ModifiedLinear(Point currentPoint, Point[]@ ghostPoints) {
+        // if array not complete don't calculate gap
+        // unless overridden
+        if (!arrayComplete && !getGapOverride) {
+            return 0;
+        }
+            
+        // ------------------------------------------------------------------------------------
+        // get min index
+
+        // define some variables to start
+        int minIdx = 0;
+        int checkStart = 0;
+        int checkEnd = ghostPoints.Length;
+
+        // iterate all intervals in checkIntervals
+        for (int interval = 0; interval < checkIntervals.Length; interval++) {
+            // gets the min idx from the start to the end in intervals of interval
+            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervals[interval]);
+
+            // set the check start and check end for the next loop using the current interval
+            // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+            checkStart = minIdx - checkIntervals[interval];
+            checkEnd = minIdx + checkIntervals[interval];
+        }
+        
+        // -----------------------------------------------------------------------------------
+
+        // set the gap based on the timestamps
+        return PointsToGap(currentPoint, ghostPoints[minIdx]);
     }
 
     // need the misc array, current position and array of points
-    void ModifiedLinear(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Point>>@ ghostPoints) {
-        // iterate all cars lists
-        for (int i = 0; i < miscArray.Length; i++) {
-            // end of loop because this is all of the cars
-            if (miscArray[i].id == 0) {
-                break;
-            }
-
-            // if array not complete don't calculate gap
-            // unless overridden
-            if (!miscArray[i].isArrayComplete && !getGapOverride) {
-                continue;
-            }
-            
-            // ------------------------------------------------------------------------------------
-            // get min index
-
-            // define some variables to start
-            int minIdx = 0;
-            int checkStart = 0;
-            int checkEnd = miscArray[i].arraySize;
-
-            // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < checkIntervals.Length; interval++) {
-                // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervals[interval]);
-
-                // set the check start and check end for the next loop using the current interval
-                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervals[interval];
-                checkEnd = minIdx + checkIntervals[interval];
-            }
-            
-            // -----------------------------------------------------------------------------------
-
-            // FOR DEBUG
-            // print(i);
-
-            // set the gap based on the timestamps
-            PointsToGap(miscArray[i], currentPoint, ghostPoints[i][minIdx]);
+    void Estimation(Point currentPoint, Point[]@ ghostPoints) {
+        /* // if array not complete don't calculate gap
+        // unless overridden
+        if (!arrayComplete && !getGapOverride) {
+            return;
         }
-    }
-
-    // need the misc array, current position and array of points
-    void Estimation(Point currentPoint, array<Miscellaneous> @miscArray, array<array<Point>>@ ghostPoints) {
-        // iterate all cars lists
-        for (int i = 0; i < miscArray.Length; i++) {
-            // end of loop because this is all of the cars
-            if (miscArray[i].id == 0) {
-                break;
-            }
-
-            // if array not complete don't calculate gap
-            // unless overridden
-            if (!miscArray[i].isArrayComplete && !getGapOverride) {
-                continue;
-            }
             
-            // ------------------------------------------------------------------------------------
-            // get min index
+        // ------------------------------------------------------------------------------------
+        // get min index
 
-            // define some variables to start
-            int minIdx = 0;
-            // get the start and end of our estimated search
-            int checkStart = miscArray[i].lastIdx - searchRadius;
-            int checkEnd = miscArray[i].lastIdx + searchRadius;
+        // define some variables to start
+        int minIdx = 0;
+        // get the start and end of our estimated search
+        int checkStart = miscArray[i].lastIdx - searchRadius;
+        int checkEnd = miscArray[i].lastIdx + searchRadius;
 
-            // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
-                // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints[i], checkStart, checkEnd, checkIntervalsEst[interval]);
+        // iterate all intervals in checkIntervals
+        for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
+            // gets the min idx from the start to the end in intervals of interval
+            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervalsEst[interval]);
 
-                // set the check start and check end for the next loop using the current interval
-                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervalsEst[interval];
-                checkEnd = minIdx + checkIntervalsEst[interval];
-            }
-
-            // -----------------------------------------------------------------------------------
-
-            // FOR DEBUG
-            // print(i);
-
-            // set the gap based on the timestamps
-            PointsToGap(miscArray[i], currentPoint, ghostPoints[i][minIdx]);
-            // set the last index to the index we found the min value
-            miscArray[i].lastIdx = minIdx;
+            // set the check start and check end for the next loop using the current interval
+            // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+            checkStart = minIdx - checkIntervalsEst[interval];
+            checkEnd = minIdx + checkIntervalsEst[interval];
         }
+
+        // -----------------------------------------------------------------------------------
+
+        // set the gap based on the timestamps
+        PointsToGap(miscArray[i], currentPoint, ghostPoints[minIdx]);
+        // set the last index to the index we found the min value
+        miscArray[i].lastIdx = minIdx; */
     }
 }
