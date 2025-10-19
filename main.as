@@ -63,6 +63,9 @@ void ResetRaceVars() {
 
     // reset currentFrameNumber just so always starts at 0
     framesBetweenLog.Reset();
+
+    // reset the misc array (this magically fixes an issue I had where the vehicle IDs keep changing)
+    ResetMiscArray(numCars, miscArray);
 }
 
 // function to reset all variables
@@ -112,7 +115,6 @@ Point MakePoint(CSceneVehicleVis@ car) {
 void LogPoints(ISceneVis@ scene) {
     // only log points if not complete
     if (arrayComplete) {
-        // print(miscArray[carIdx].id + " is complete " + carIdx);
         return;
     }
 
@@ -141,7 +143,7 @@ void LogPoints(ISceneVis@ scene) {
         // if current log index is greater than the size + 2, the array must have stopped tracking so must have finished
         // + 2 simply for safety
         if (ghostPoints.Length + 2 < currentLogIndex) {
-            print(currentId + " has finished");
+            print("Logging finished");
             arrayComplete = true;
         }
 
@@ -299,7 +301,6 @@ void Update(float dt) {
                 break;
             }
 
-            // get the vis from id
             CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
 
             // the current gap
