@@ -295,35 +295,31 @@ void Update(float dt) {
             // the current gap
             int curGap;
 
-            // if there is no car use the previous gap
-            if (currentCar is null) {
-                curGap = miscArray[i].relGap;
-            }
-            // else calculate new gap
-            else {
+            // if there is car calculate new gap
+            if (currentCar !is null) {
                 Point thisPoint = MakePoint(currentCar);
 
                 // set the based on the chosen algorithm
                 switch (gapAlg) {
                     case GapAlgorithm::Linear:
                         // set the gaps using the linear algorithm
-                        curGap = SetGaps::Linear(thisPoint, ghostPoints);
+                        SetGaps::Linear(thisPoint, ghostPoints, miscArray[i]);
                         break;
 
                     case GapAlgorithm::ModifiedLinear:
                         // set the gaps using the modified linear algorithm 
-                        curGap = SetGaps::ModifiedLinear(thisPoint, ghostPoints);
+                        SetGaps::ModifiedLinear(thisPoint, ghostPoints, miscArray[i]);
                         break;
 
                     case GapAlgorithm::Estimation:
                         // set the gaps using the estimation algorithm
-                        SetGaps::Estimation(thisPoint, ghostPoints);
+                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i]);
                         break;
                 }
-
-                // set the relative gap 
-                miscArray[i].relGap = curGap;
             }
+
+            // current gap is relGap regardless of if car exists or not
+            curGap = miscArray[i].relGap;
 
             // user's gap is miscArray at 0
             if (i == 0) {

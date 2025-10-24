@@ -120,11 +120,11 @@ namespace SetGaps {
     }
 
     // current position and array of points
-    int Linear(Point currentPoint, Point[]@ ghostPoints) {
+    void Linear(Point currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
-            return 0;
+            return;
         }
 
         // get min index by iterating each item in array
@@ -133,15 +133,15 @@ namespace SetGaps {
         // -----------------------------------------------------------------------------------
 
         // set the gap based on the timestamps
-        return PointsToGap(currentPoint, ghostPoints[minIdx]);
+        miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
     }
 
     // current position and array of points
-    int ModifiedLinear(Point currentPoint, Point[]@ ghostPoints) {
+    void ModifiedLinear(Point currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
-            return 0;
+            return;
         }
             
         // ------------------------------------------------------------------------------------
@@ -166,12 +166,12 @@ namespace SetGaps {
         // -----------------------------------------------------------------------------------
 
         // set the gap based on the timestamps
-        return PointsToGap(currentPoint, ghostPoints[minIdx]);
+        miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
     }
 
     // need the misc array, current position and array of points
-    void Estimation(Point currentPoint, Point[]@ ghostPoints) {
-        /* // if array not complete don't calculate gap
+    void Estimation(Point currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
+        // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
             return;
@@ -183,8 +183,8 @@ namespace SetGaps {
         // define some variables to start
         int minIdx = 0;
         // get the start and end of our estimated search
-        int checkStart = miscArray[i].lastIdx - searchRadius;
-        int checkEnd = miscArray[i].lastIdx + searchRadius;
+        int checkStart = miscPtr.lastIdx - searchRadius;
+        int checkEnd = miscPtr.lastIdx + searchRadius;
 
         // iterate all intervals in checkIntervals
         for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
@@ -199,9 +199,10 @@ namespace SetGaps {
 
         // -----------------------------------------------------------------------------------
 
-        // set the gap based on the timestamps
-        PointsToGap(miscArray[i], currentPoint, ghostPoints[minIdx]);
         // set the last index to the index we found the min value
-        miscArray[i].lastIdx = minIdx; */
+        miscPtr.lastIdx = minIdx;
+
+        // set the gap based on the timestamps
+        miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
     }
 }
