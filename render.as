@@ -92,6 +92,7 @@ namespace Render {
                 UI::InputInt("ID", miscArray[i].id);
                 UI::InputInt("GAP", miscArray[i].gap);
                 UI::InputInt("REL GAP", miscArray[i].relGap);
+                UI::InputInt("LAST IDX", miscArray[i].lastIdx);
 
                 UI::PopID();
             }
@@ -114,5 +115,5 @@ void Render() {
     }
 
     Render::Normal();
-    Render::Debug();
+    // Render::Debug();
 }

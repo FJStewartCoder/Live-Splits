@@ -173,6 +173,59 @@ void LogPoints(ISceneVis@ scene) {
     // print(car + " " + currentPoint.Get());
 }
 
+void GetGaps(ISceneVis @scene) {
+    // gap for the user
+    int myGap = 0;
+
+    for (int i = 0; i < miscArray.Length; i++) {
+        // gets id from misc array
+        uint currentId = miscArray[i].id;
+
+        if (currentId == 0) {
+            break;
+        }
+
+        CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
+
+        // the current gap
+        int curGap;
+
+        // if there is car calculate new gap
+        if (currentCar !is null) {
+            Point thisPoint = MakePoint(currentCar);
+
+            // set the based on the chosen algorithm
+            switch (gapAlg) {
+                case GapAlgorithm::Linear:
+                    // set the gaps using the linear algorithm
+                    SetGaps::Linear(thisPoint, ghostPoints, miscArray[i]);
+                    break;
+
+                case GapAlgorithm::ModifiedLinear:
+                    // set the gaps using the modified linear algorithm 
+                    SetGaps::ModifiedLinear(thisPoint, ghostPoints, miscArray[i]);
+                    break;
+
+                case GapAlgorithm::Estimation:
+                    // set the gaps using the estimation algorithm
+                    SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i]);
+                    break;
+            }
+        }
+
+        // current gap is relGap regardless of if car exists or not
+        curGap = miscArray[i].relGap;
+
+        // user's gap is miscArray at 0
+        if (i == 0) {
+            myGap = curGap;
+        }
+
+        // get the gap relative to the ghost
+        miscArray[i].gap = myGap - curGap;
+    }
+}
+
 void Update(float dt) {
     // if the plugin is off don't do anything
     if (!isEnabled) {
@@ -279,56 +332,8 @@ void Update(float dt) {
 
     // only calculate if the frames between gap requirement is met
     if (framesBetweenGap.GetValue() && arrayComplete) {
-        // gap for the user
-        int myGap = 0;
-
-        for (int i = 0; i < miscArray.Length; i++) {
-            // gets id from misc array
-            uint currentId = miscArray[i].id;
-
-            if (currentId == 0) {
-                break;
-            }
-
-            CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
-
-            // the current gap
-            int curGap;
-
-            // if there is car calculate new gap
-            if (currentCar !is null) {
-                Point thisPoint = MakePoint(currentCar);
-
-                // set the based on the chosen algorithm
-                switch (gapAlg) {
-                    case GapAlgorithm::Linear:
-                        // set the gaps using the linear algorithm
-                        SetGaps::Linear(thisPoint, ghostPoints, miscArray[i]);
-                        break;
-
-                    case GapAlgorithm::ModifiedLinear:
-                        // set the gaps using the modified linear algorithm 
-                        SetGaps::ModifiedLinear(thisPoint, ghostPoints, miscArray[i]);
-                        break;
-
-                    case GapAlgorithm::Estimation:
-                        // set the gaps using the estimation algorithm
-                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i]);
-                        break;
-                }
-            }
-
-            // current gap is relGap regardless of if car exists or not
-            curGap = miscArray[i].relGap;
-
-            // user's gap is miscArray at 0
-            if (i == 0) {
-                myGap = curGap;
-            }
-
-            // get the gap relative to the ghost
-            miscArray[i].gap = myGap - curGap;
-        }
+        // gets all of the gaps
+        GetGaps(scene);
     }
 
     // -------------------------------------------------------------------------
