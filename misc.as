@@ -42,19 +42,19 @@ void MakeMiscArray(CSceneVehicleVis@[] allCurrentCars, uint8 numCars, array<Misc
     }
 
     // this because we are not including the player
-    int carsLength = allCurrentCars.Length - 1;
+    int carsLength = allCurrentCars.Length;
 
     // get the value which is smaller
     // prevents overflowing the array and causing unnecessary processing
     int smallerNumber = (numCars < carsLength) ? numCars : carsLength;
 
-    // begin at one and add one to the smallerNumber
-    for (int i = 1; i < smallerNumber + 1; i++) {
+    // gets the id for all of the cars
+    for (int i = 0; i < smallerNumber; i++) {
         // sets the id
         uint id = GetEntityId(allCurrentCars[i]);
 
         // place at one less than the i because i starts at 1
-        miscArray[i - 1].id = id;
+        miscArray[i].id = id;
         print("Current Car ID: " + id);
     }
 

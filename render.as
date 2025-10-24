@@ -39,7 +39,8 @@ namespace Render {
 
         // creates window
         if (UI::Begin("Live Splits", flags)) {
-            for (int i = 0; i < validCars; i++) {
+            // show gaps for all cars except the current car
+            for (int i = 1; i < validCars; i++) {
                 float curGap = miscArray[i].gap / 1000.0;
                 // includes "+" if greater than 0
                 string curGapString = ((curGap > 0)? "+" : "") + tostring(curGap);

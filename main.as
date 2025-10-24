@@ -135,7 +135,7 @@ void LogPoints(ISceneVis@ scene) {
     }
 
     // gets id from misc array
-    uint currentId = miscArray[0].id;
+    uint currentId = miscArray[1].id;
 
     // not a valid id
     if (currentId == 0) {
@@ -269,6 +269,7 @@ void Update(float dt) {
 
     // only log frames if frame number is 0
     // unless you are at the start
+    // TODO: fix error where no items in misc array
     if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
         LogPoints(scene);
     }
@@ -278,27 +279,8 @@ void Update(float dt) {
 
     // only calculate if the frames between gap requirement is met
     if (framesBetweenGap.GetValue() && arrayComplete) {
-        // define a point
-        Point thisPoint = MakePoint(cars[0]);
+        // gap for the user
         int myGap = 0;
-
-        // set the based on the chosen algorithm
-        switch (gapAlg) {
-            case GapAlgorithm::Linear:
-                // set the gaps using the linear algorithm
-                myGap = SetGaps::Linear(thisPoint, ghostPoints);
-                break;
-
-            case GapAlgorithm::ModifiedLinear:
-                // set the gaps using the modified linear algorithm 
-                myGap = SetGaps::ModifiedLinear(thisPoint, ghostPoints);
-                break;
-
-            case GapAlgorithm::Estimation:
-                // set the gaps using the estimation algorithm
-                SetGaps::Estimation(thisPoint, ghostPoints);
-                break;
-        }
 
         for (int i = 0; i < miscArray.Length; i++) {
             // gets id from misc array
@@ -321,12 +303,33 @@ void Update(float dt) {
             else {
                 Point thisPoint = MakePoint(currentCar);
 
-                curGap = SetGaps::ModifiedLinear(thisPoint, ghostPoints);
+                // set the based on the chosen algorithm
+                switch (gapAlg) {
+                    case GapAlgorithm::Linear:
+                        // set the gaps using the linear algorithm
+                        curGap = SetGaps::Linear(thisPoint, ghostPoints);
+                        break;
+
+                    case GapAlgorithm::ModifiedLinear:
+                        // set the gaps using the modified linear algorithm 
+                        curGap = SetGaps::ModifiedLinear(thisPoint, ghostPoints);
+                        break;
+
+                    case GapAlgorithm::Estimation:
+                        // set the gaps using the estimation algorithm
+                        SetGaps::Estimation(thisPoint, ghostPoints);
+                        break;
+                }
 
                 // set the relative gap 
                 miscArray[i].relGap = curGap;
             }
-            
+
+            // user's gap is miscArray at 0
+            if (i == 0) {
+                myGap = curGap;
+            }
+
             // get the gap relative to the ghost
             miscArray[i].gap = myGap - curGap;
         }
