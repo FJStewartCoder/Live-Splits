@@ -84,8 +84,78 @@ uint GetArray(uint id) {
     return uint(-1);
 }
 
+uint CalculateApproximation(CacheEntry @prevCache, CacheEntry @nextCache, uint timeStamp, uint tolerance = 5000) {
+    // the total time difference between current and other cache's timestamps
+    // get the timestamp difference from the bigger - smaller
+    float timeDiff = nextCache.timeStamp - prevCache.timeStamp;
+
+    // if timediff is too great, then return failure
+    if (timeDiff > tolerance) {
+        return uint(-1);
+    }
+
+    // the time difference from the timeStamp to the previous cache's timeStamp
+    // gets the gap between the timestamp and the previous cache
+    float myDiff = timeStamp - prevCache.timeStamp;
+
+    // get the difference between the gaps
+    float gapDiff = nextCache.gap - prevCache.gap;
+
+    // the percentage of the gap that we need to get
+    float gapMultiplier = myDiff / timeDiff;
+
+    // calculate the actual gap number using the multiplier
+    int approximateGapDiff = gapDiff * gapMultiplier;
+
+    // return the gap approximation + the previous gap
+    return prevCache.gap + approximateGapDiff;
+}
+
+// function to estimate the gap based on the cache entries
+// can return uint(-1) if the time difference is too great
+uint ApproximateGap(uint arrayIdx, uint cacheIdx, uint timeStamp) {
+    // e.g 12, 14, 20
+    // because 14 is 2/8 between the surrounding points get the time diff between 12 and 20 and multiply by 2/8
+    // add this to the time at 12 to get the approximate time gap
+    CacheEntry @curCache = cacheArray[arrayIdx][cacheIdx];
+
+    // three scenarios:
+    // same timeStamp (just return the gap)
+    // timeStamp is less than the curCache timestamp (previous idx is prev, current idx is next)
+    // else timeStamp is greater than the curCache timestamp (cur idx is prev, next idx is next)
+
+    if (curCache.timeStamp == timeStamp) {
+        return curCache.gap;
+    }
+
+    if (timeStamp < curCache.timeStamp) {
+        // if there are no entries before, we can not continue
+        if (cacheIdx == 1) {
+            return curCache.gap;
+        }
+
+        // other cache is previous cache
+        CacheEntry @otherCache = cacheArray[arrayIdx][cacheIdx - 1];
+
+        return CalculateApproximation(otherCache, curCache, timeStamp);
+    }
+    else {
+        // if there are no entries after the current one
+        if (cacheIdx == cacheArray[arrayIdx].Length - 1) {
+            return curCache.gap;
+        }
+
+        // other cache is the next one
+        CacheEntry @otherCache = cacheArray[arrayIdx][cacheIdx + 1];
+
+        return CalculateApproximation(curCache, otherCache, timeStamp);
+    }
+
+    return curCache.gap;
+}
+
 // tolerance is the number of milliseconds difference that the gap can be for a cache to be denied
-int GetCacheItem(uint timeStamp, uint id, uint tolerance = 1000) {
+int GetCacheItem(uint timeStamp, uint id) {
     // get the index of the array based on id
     uint cacheArrayIndex = GetArray(id);
 
@@ -101,20 +171,10 @@ int GetCacheItem(uint timeStamp, uint id, uint tolerance = 1000) {
 
     // binary search the cache array to find the closest timestamp
     uint closestIdx = BinarySearch(cacheArrayIndex, timeStamp);
-    CacheEntry @curCache = cacheArray[cacheArrayIndex][closestIdx];
 
-    // TODO: add some approximation based on how much between the points the time stamp is
-    // e.g 12, 14!, 20
-    // because 14 is 2/8 between the surrounding points get the time diff between 12 and 20 and multiply by 2/8
-    // add this to the time at 12 to get the approximate time gap
+    uint curGap = ApproximateGap(cacheArrayIndex, closestIdx, timeStamp);
 
-    uint curGap = curCache.gap;
-
-    // checks for if the closest time stamp is within a sensible range (e.g 0.5s away)
-    // this is 1 second deviation allowed
-    float timeDiff = Math::Abs(curCache.timeStamp - timeStamp);
-
-    if (timeDiff > tolerance) {
+    if (curGap == uint(-1)) {
         return errorVal;
     }
 
