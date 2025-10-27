@@ -81,14 +81,23 @@ void ResetAllVars() {
 
     // optimise for the current track
     SetGaps::Optimise(expectedFrameRate, 10);
+
+    // reset the cache
+    ResetCacheArray();
 }
 
 // TODO: fix multilap (it will go completely wrong)
 
 // TODO: add setting for Optimise(resolution) resolution
 
+// TODO: fix error where car entity IDs shift when you (the player) finish
+// the cars do however remain the same order despite the shift
+// this is so that the cache array doesn't continue to grow because new IDs keep getting added
+
 // TODO: fix car finishing early bug as well
 // THIS IS CAUSED BY PAUSING THE GAME
+
+// TODO: fix pause bugs
 
 void Main() {
     // upon loading sets the current config
@@ -97,6 +106,10 @@ void Main() {
     // load values that need syncing
     LoadAlg();
     LoadCounters();
+}
+
+int GetTime() {
+    return GetApp().TimeSinceInitMs - startTime;
 }
 
 Point MakePoint(CSceneVehicleVis@ car) {
@@ -108,7 +121,7 @@ Point MakePoint(CSceneVehicleVis@ car) {
     newPoint.z = car.AsyncState.Position.z;
 
     // gets time stamp
-    newPoint.timeStamp = GetApp().TimeSinceInitMs - startTime;
+    newPoint.timeStamp = GetTime();
 
     return newPoint;
 }
@@ -187,24 +200,37 @@ void GetGaps(ISceneVis @scene) {
 
         // if there is car calculate new gap
         if (currentCar !is null) {
-            Point thisPoint = MakePoint(currentCar);
+            int cacheItem = GetCacheItem(GetTime(), miscArray[i].id);
 
-            // set the based on the chosen algorithm
-            switch (gapAlg) {
-                case GapAlgorithm::Linear:
-                    // set the gaps using the linear algorithm
-                    SetGaps::Linear(thisPoint, ghostPoints, miscArray[i]);
-                    break;
+            // only use cache if valid item and not the player car
+            if (cacheItem != errorVal && i != 0) {
+                miscArray[i].relGap = cacheItem;
+                // print("Got Cache!");
+            }
+            else {
+                Point thisPoint = MakePoint(currentCar);
 
-                case GapAlgorithm::ModifiedLinear:
-                    // set the gaps using the modified linear algorithm 
-                    SetGaps::ModifiedLinear(thisPoint, ghostPoints, miscArray[i]);
-                    break;
+                // set the based on the chosen algorithm
+                switch (gapAlg) {
+                    case GapAlgorithm::Linear:
+                        // set the gaps using the linear algorithm
+                        SetGaps::Linear(thisPoint, ghostPoints, miscArray[i]);
+                        break;
 
-                case GapAlgorithm::Estimation:
-                    // set the gaps using the estimation algorithm
-                    SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i]);
-                    break;
+                    case GapAlgorithm::ModifiedLinear:
+                        // set the gaps using the modified linear algorithm 
+                        SetGaps::ModifiedLinear(thisPoint, ghostPoints, miscArray[i]);
+                        break;
+
+                    case GapAlgorithm::Estimation:
+                        // set the gaps using the estimation algorithm
+                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i]);
+                        break;
+                }
+
+                // create a new cache item
+                // only add a cache item if there was not found a cache item
+                SetCacheItem(miscArray[i].relGap, GetTime(), miscArray[i].id);
             }
         }
 

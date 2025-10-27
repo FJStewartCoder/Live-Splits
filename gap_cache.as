@@ -5,6 +5,8 @@ class CacheEntry {
     uint timeStamp;
 }
 
+const int errorVal = uint(-1) >> 1;
+
 // 2d array of cache entries
 
 // ARRAY IS STRUCTED AS BELOW
@@ -52,13 +54,14 @@ uint BinarySearch(uint idx, uint value) {
         mid = (l + r) / 2;
 
         if (cacheArray[idx][mid].timeStamp == value) {
-            break;
+            // if got value, return value
+            return mid;
         }
-        else if (cacheArray[idx][mid].timeStamp < value) {
-            r = mid - 1;
+        else if (value > cacheArray[idx][mid].timeStamp) {
+            l = mid + 1;
         }
         else {
-            l = mid + 1;
+            r = mid - 1;
         }
     }
 
@@ -81,34 +84,38 @@ uint GetArray(uint id) {
     return uint(-1);
 }
 
-int GetCacheItem(uint timeStamp, uint id) {
+// tolerance is the number of milliseconds difference that the gap can be for a cache to be denied
+int GetCacheItem(uint timeStamp, uint id, uint tolerance = 1000) {
     // get the index of the array based on id
     uint cacheArrayIndex = GetArray(id);
 
     // if not found, return 0
     if (cacheArrayIndex == uint(-1)) {
-        return 0;
+        return errorVal;
     }
 
     // if there are no entries then return 0 as well
     if (cacheArray[cacheArrayIndex].Length == 1) {
-        return 0;
+        return errorVal;
     }
 
     // binary search the cache array to find the closest timestamp
     uint closestIdx = BinarySearch(cacheArrayIndex, timeStamp);
+    CacheEntry @curCache = cacheArray[cacheArrayIndex][closestIdx];
 
     // TODO: add some approximation based on how much between the points the time stamp is
     // e.g 12, 14!, 20
     // because 14 is 2/8 between the surrounding points get the time diff between 12 and 20 and multiply by 2/8
     // add this to the time at 12 to get the approximate time gap
 
-    uint curGap = cacheArray[cacheArrayIndex][closestIdx].gap;
+    uint curGap = curCache.gap;
 
     // checks for if the closest time stamp is within a sensible range (e.g 0.5s away)
     // this is 1 second deviation allowed
-    if (Math::Abs(curGap - timeStamp) > 1000) {
-        return 0;
+    float timeDiff = Math::Abs(curCache.timeStamp - timeStamp);
+
+    if (timeDiff > tolerance) {
+        return errorVal;
     }
 
     // return the gap
@@ -135,27 +142,28 @@ void SetCacheItem(int gap, uint timeStamp, uint id) {
     // if no entries insert last the new entry
     if (arrayPtr.Length == 1) {
         arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp));
+        return;
     }
 
     uint insertIdx = uint(-1);
 
-    // insert the item into the correct position
-    for (int i = 1; i < arrayPtr.Length; i++) {
-        // if the same timeStamp is already present then return
-        if (arrayPtr[i].timeStamp == timeStamp) {
-            return;
-        }
-        // iterate until the first item larger
-        else if (arrayPtr[i].timeStamp > timeStamp) {
-            insertIdx = i;
-        }
+    // search for where to insert
+    insertIdx = BinarySearch(cacheArrayIndex, timeStamp);
+    
+    // if timestamp is same then we don't need to add the same value again
+    if (arrayPtr[insertIdx].timeStamp == timeStamp) {
+        return;
+    }
+
+    // if timestamp to insert is greater than the one at the insertIdx, we need to insert after so increment insertIdx
+    if (timeStamp > arrayPtr[insertIdx].timeStamp) {
+        // 1, 2, 4, 5, 6, 7, 8, 9
+        // we would insert 3 at index 2
+        // if bin search returned idx 1, the tstamp would be 2, we want +1 idx
+        // if returned idx 2, tstamp is 4 which is bigger so do nothing
+        insertIdx++;
     }
 
     // insert the item
-    if (insertIdx == uint(-1)) {
-        arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp));
-    }
-    else {
-        arrayPtr.InsertAt(insertIdx, MakeCacheEntry(gap, timeStamp));
-    }
+    arrayPtr.InsertAt(insertIdx, MakeCacheEntry(gap, timeStamp));
 }
