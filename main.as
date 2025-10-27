@@ -352,7 +352,7 @@ void Update(float dt) {
     // calculate the gaps
 
     // only calculate if the frames between gap requirement is met
-    if (framesBetweenGap.GetValue() && arrayComplete) {
+    if (framesBetweenGap.GetValue() && (arrayComplete || getGapOverride)) {
         // gets all of the gaps
         GetGaps(scene);
     }
