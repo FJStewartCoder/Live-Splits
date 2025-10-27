@@ -115,7 +115,7 @@ namespace SetGaps {
     }
 
     // current position and array of points
-    void Linear(Point currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
+    void Linear(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
@@ -132,7 +132,7 @@ namespace SetGaps {
     }
 
     // current position and array of points
-    void ModifiedLinear(Point currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
+    void ModifiedLinear(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
@@ -165,7 +165,7 @@ namespace SetGaps {
     }
 
     // need the misc array, current position and array of points
-    void Estimation(Point currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
+    void Estimation(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
