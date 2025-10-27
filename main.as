@@ -106,6 +106,9 @@ void Main() {
     // load values that need syncing
     LoadAlg();
     LoadCounters();
+
+    // create the dist cache array
+    MakeDistCacheArray();
 }
 
 int GetTime() {
