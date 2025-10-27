@@ -5,7 +5,7 @@ namespace Render {
         // gets the number of valid cars
         int validCars;
 
-        for (validCars = 0; validCars < numCars; validCars++) {
+        for (validCars = 1; validCars < numCars; validCars++) {
             if (miscArray[validCars].id == 0) {
                 break;
             }
@@ -15,8 +15,11 @@ namespace Render {
         // styling
 
         if (updateWindowSize) {
-            int height = (FONT_SIZE * validCars) + (TEXT_SPACING * (validCars - 1)) + (FRAME_PADDING * 2);
-            int width = FONT_SIZE * 6;
+            int height = (FONT_SIZE * (validCars - 1)) + (TEXT_SPACING * (validCars - 2)) + (FRAME_PADDING * 2);
+
+            // get the string width of placeholder amount using this function
+            vec2 textSize = Draw::MeasureString("+99.999", null, FONT_SIZE);
+            int width = textSize.x + (FRAME_PADDING * 2);
 
             // set window height
             // UI::Cond:Always always updates the height
