@@ -90,7 +90,7 @@ uint CalculateApproximation(CacheEntry @prevCache, CacheEntry @nextCache, uint t
     float timeDiff = nextCache.timeStamp - prevCache.timeStamp;
 
     // if timediff is too great, then return failure
-    if (timeDiff > tolerance) {
+    if (timeDiff > float(tolerance)) {
         return uint(-1);
     }
 
@@ -106,6 +106,10 @@ uint CalculateApproximation(CacheEntry @prevCache, CacheEntry @nextCache, uint t
 
     // calculate the actual gap number using the multiplier
     int approximateGapDiff = gapDiff * gapMultiplier;
+
+    // DEBUG PRINTS
+    // print("pts " + prevCache.timeStamp + " nts " + nextCache.timeStamp + " cts " + timeStamp);
+    // print("pg " + prevCache.gap + " ng " + nextCache.gap + " cts " + approximateGapDiff);
 
     // return the gap approximation + the previous gap
     return prevCache.gap + approximateGapDiff;
@@ -137,7 +141,7 @@ uint ApproximateGap(uint arrayIdx, uint cacheIdx, uint timeStamp) {
         // other cache is previous cache
         CacheEntry @otherCache = cacheArray[arrayIdx][cacheIdx - 1];
 
-        return CalculateApproximation(otherCache, curCache, timeStamp);
+        return CalculateApproximation(otherCache, curCache, timeStamp, 500);
     }
     else {
         // if there are no entries after the current one
@@ -148,14 +152,12 @@ uint ApproximateGap(uint arrayIdx, uint cacheIdx, uint timeStamp) {
         // other cache is the next one
         CacheEntry @otherCache = cacheArray[arrayIdx][cacheIdx + 1];
 
-        return CalculateApproximation(curCache, otherCache, timeStamp);
+        return CalculateApproximation(curCache, otherCache, timeStamp, 500);
     }
-
-    return curCache.gap;
 }
 
 // tolerance is the number of milliseconds difference that the gap can be for a cache to be denied
-int GetCacheItem(uint timeStamp, uint id) {
+int GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
     // get the index of the array based on id
     uint cacheArrayIndex = GetArray(id);
 
@@ -172,10 +174,26 @@ int GetCacheItem(uint timeStamp, uint id) {
     // binary search the cache array to find the closest timestamp
     uint closestIdx = BinarySearch(cacheArrayIndex, timeStamp);
 
-    uint curGap = ApproximateGap(cacheArrayIndex, closestIdx, timeStamp);
+    // basic check to ensure within a reasonable range
+    uint cacheTimeStamp = cacheArray[cacheArrayIndex][closestIdx].timeStamp;
 
-    if (curGap == uint(-1)) {
+    if (Math::Abs(timeStamp - cacheTimeStamp) > 1000) {
         return errorVal;
+    }
+
+    uint curGap;
+
+    // if using approx, use the approx func
+    if (useApproximation) {
+        curGap = ApproximateGap(cacheArrayIndex, closestIdx, timeStamp);
+
+        if (curGap == uint(-1)) {
+            return errorVal;
+        }
+    }
+    // else get the gap of the closest index
+    else {
+        curGap = cacheArray[cacheArrayIndex][closestIdx].gap;
     }
 
     // return the gap
