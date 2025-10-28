@@ -1,5 +1,12 @@
 bool updateWindowSize = false;
 
+vec2 GetScreenCentre() {
+    int gameWidth = Draw::GetWidth();
+    int gameHeight = Draw::GetHeight();
+
+    return vec2(gameWidth / 2, gameHeight / 2);
+}
+
 namespace Render {
     void Normal() {
         // gets the number of valid cars
@@ -102,6 +109,54 @@ namespace Render {
         }
         UI::End();
     }
+
+    void Bar() {
+        // the maximum gap each side the bar will accept
+        const float gapRange = 4000;  // 4 seconds in milliseconds
+
+        const float width = 400;
+        const float height = 100;
+
+        UI::DrawList @drawList = UI::GetForegroundDrawList();
+
+        vec2 screenCentre = GetScreenCentre();
+
+        vec2 topLeft = vec2(screenCentre.x - (width / 2), screenCentre.y - (height / 2));
+
+        // top left pos, then the size
+        // draw the outer bar
+        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(1, 1, 1, 0.3));
+
+        // draw the centre line
+        drawList.AddLine(vec2(screenCentre.x, screenCentre.y + (height / 2)), vec2(screenCentre.x, screenCentre.y - (height / 2)), vec4(0, 0, 0, 1), 2);
+
+        // iterate miscArray
+        for (int i = 1; i < miscArray.Length; i++) {
+            if (miscArray[i].id == 0) {
+                break;
+            }
+
+            // get the current gap and calculate the length of the bar relative to the max
+            int curGap = Math::Abs(miscArray[i].gap);
+
+            if (curGap > gapRange) {
+                curGap = gapRange;
+            }
+
+            float relativeLength = float(curGap) / gapRange;
+
+            float lineOffset = (width / 2) * relativeLength;
+
+            if (miscArray[i].gap < 0) {
+                // draw line after the middle
+                drawList.AddLine(vec2(screenCentre.x + lineOffset, screenCentre.y + (height / 2)), vec2(screenCentre.x + lineOffset, screenCentre.y - (height / 2)), vec4(0, 1, 0, 1), 5);
+            }
+            else {
+                // draw line before middle
+                drawList.AddLine(vec2(screenCentre.x - lineOffset, screenCentre.y + (height / 2)), vec2(screenCentre.x - lineOffset, screenCentre.y - (height / 2)), vec4(1, 0, 0, 1), 5);  
+            }
+        }
+    }
 }
 
 void Render() {
@@ -119,4 +174,5 @@ void Render() {
 
     Render::Normal();
     // Render::Debug();
+    Render::Bar();
 }
