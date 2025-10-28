@@ -33,6 +33,10 @@ uint startTime = 0;
 // ensure data is only reset once every cycle
 bool startDataSet = false;
 
+// toggle for if you want to use the cache or not
+// will allow for support of multiplayer
+bool useCache = true;
+
 
 void ResizeArrays(uint runLength) {
     // resize the main array
@@ -203,7 +207,13 @@ void GetGaps(ISceneVis @scene) {
 
         // if there is car calculate new gap
         if (currentCar !is null) {
-            int cacheItem = GetCacheItem(GetTime(), miscArray[i].id);
+            int cacheItem = errorVal;
+            
+            // only if using cache will the cache be obtained
+            // else it will be error val which skips by default
+            if (useCache) {
+                GetCacheItem(GetTime(), miscArray[i].id);
+            }
 
             // only use cache if valid item and not the player car
             if (cacheItem != errorVal && i != 0) {
@@ -231,9 +241,12 @@ void GetGaps(ISceneVis @scene) {
                         break;
                 }
 
-                // create a new cache item
-                // only add a cache item if there was not found a cache item
-                SetCacheItem(miscArray[i].relGap, GetTime(), miscArray[i].id);
+                // only if using cache will cache item be added
+                if (useCache) {
+                    // create a new cache item
+                    // only add a cache item if there was not found a cache item
+                    SetCacheItem(miscArray[i].relGap, GetTime(), miscArray[i].id);
+                }
             }
         }
 
@@ -346,7 +359,6 @@ void Update(float dt) {
 
     // only log frames if frame number is 0
     // unless you are at the start
-    // TODO: fix error where no items in misc array
     if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
         LogPoints(scene);
     }
