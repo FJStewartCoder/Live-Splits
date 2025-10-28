@@ -174,12 +174,18 @@ int GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
     // binary search the cache array to find the closest timestamp
     uint closestIdx = BinarySearch(cacheArrayIndex, timeStamp);
 
-    // basic check to ensure within a reasonable range
-    uint cacheTimeStamp = cacheArray[cacheArrayIndex][closestIdx].timeStamp;
+    // --------------------------------------------------------------------------------
+    // check to ensure that there are points after the current point
+    // will ensure there are enough cache items
+    // PREVENTS A BUG WHERE THE PREVIOUS CACHE ITEM GETS USED CAUSING NO CACHE ENTRTIES TO BE EVER CREATED
 
-    if (Math::Abs(timeStamp - cacheTimeStamp) > 1000) {
+    CacheEntry[] @curArray = cacheArray[cacheArrayIndex];
+
+    if (curArray[curArray.Length - 1].timeStamp < timeStamp) {
         return errorVal;
     }
+
+    // --------------------------------------------------------------------------------
 
     uint curGap;
 
