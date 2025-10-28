@@ -6,6 +6,7 @@ class CacheEntry {
 }
 
 const int errorVal = uint(-1) >> 1;
+const uint maxCacheSize = 50000;
 
 // 2d array of cache entries
 
@@ -226,6 +227,10 @@ void SetCacheItem(int gap, uint timeStamp, uint id) {
     // if no entries insert last the new entry
     if (arrayPtr.Length == 1) {
         arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp));
+        return;
+    }
+
+    if (arrayPtr.Length > maxCacheSize) {
         return;
     }
 
