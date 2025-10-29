@@ -188,12 +188,16 @@ namespace Render {
         // the maximum gap each side the bar will accept
         const float gapRange = 4000;  // 4 seconds in milliseconds
 
-        const float width = 400;
-        const float height = 100;
+        // quarter screen width
+        float width = Draw::GetWidth() / 4;
+        // 16th screen height
+        float height = Draw::GetHeight() / 16;
 
         const float transparency = 0.6;
         vec4 lineColour = vec4(1, 1, 1, transparency);
-        const float thickness = 5;
+        float thickness = width / 160;
+
+        float rounding = 5;
 
         UI::DrawList @drawList = UI::GetForegroundDrawList();
 
@@ -204,7 +208,7 @@ namespace Render {
 
         // top left pos, then the size
         // draw the outer bar
-        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, transparency), 5);
+        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, transparency), rounding);
 
         float minGap;
         float maxGap;
@@ -274,7 +278,7 @@ namespace Render {
         drawList.AddLine(vec2(centrePos.x, centrePos.y + (height / 2)), vec2(centrePos.x, centrePos.y - (height / 2)), lineColour, thickness);
 
         // draw outer border
-        drawList.AddRect(vec4(topLeft.x, topLeft.y, width, height), lineColour, 5, thickness);
+        drawList.AddRect(vec4(topLeft.x, topLeft.y, width, height), lineColour, rounding, thickness);
     }
 }
 
@@ -291,7 +295,7 @@ void Render() {
         return;
     }
 
-    Render::Normal();
+    // Render::Normal();
     // Render::Debug();
     Render::Bar();
 }
