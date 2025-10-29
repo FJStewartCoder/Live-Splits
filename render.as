@@ -24,6 +24,62 @@ float GetLineOffset(int gap, float maxGap, float totalWidth) {
     
 }
 
+string IntToString(int val, int length) {
+    string str = tostring(val);
+    int curLength = str.Length;
+
+    if (curLength < length) {
+        string filler = "";
+
+        for (int i = 0; i < length - curLength; i++) {
+            filler += "0";
+        }
+
+        str = filler + str;
+    }
+
+    return str;
+}
+
+string GapToString(int gap) {
+    // get + or minus
+    // 0 is considered to be +0
+    string symbol = (gap < 0) ? "-" : "+";
+
+    // get absolute because we know the symbol
+    gap = Math::Abs(gap);
+
+    // get number of hours and remove from gap
+    int hours = gap / (60 * 60 * 1000);
+    gap -= (hours * (60 * 60 * 1000));
+
+    // get minutes and remove number of milliseconds of this from gap
+    int minutes = gap / (60 * 1000);
+    gap -= (minutes * (60 * 1000));
+
+    // get seconds and remove from gap
+    int seconds = gap / 1000;
+    gap -= (seconds * 1000);
+
+    int milliseconds = gap;
+
+    string stringGap = symbol;
+
+    if (hours > 0) {
+        stringGap += hours + ":" + IntToString(minutes, 2) + ":";
+    }
+    else if (minutes > 0) {
+        stringGap += IntToString(minutes, 2) + ":";
+    }
+
+    stringGap += IntToString(seconds, 2) + "." + IntToString(milliseconds, 3);
+
+    // DEBUG PRINT
+    // 1print(stringGap);
+
+    return stringGap;
+}
+
 namespace Render {
     void Normal() {
         // gets the number of valid cars
@@ -68,9 +124,10 @@ namespace Render {
         if (UI::Begin("Live Splits", flags)) {
             // show gaps for all cars except the current car
             for (int i = 1; i < validCars; i++) {
-                float curGap = miscArray[i].gap / 1000.0;
+                int curGap = miscArray[i].gap;
+
                 // includes "+" if greater than 0
-                string curGapString = ((curGap > 0)? "+" : "") + tostring(curGap);
+                string curGapString = GapToString(curGap);
 
                 UI::PushID(i);
 
@@ -134,16 +191,20 @@ namespace Render {
         const float width = 400;
         const float height = 100;
 
+        const float transparency = 0.6;
+        vec4 lineColour = vec4(1, 1, 1, transparency);
+        const float thickness = 5;
+
         UI::DrawList @drawList = UI::GetForegroundDrawList();
 
         vec2 centrePos = GetScreenCentre();
-        centrePos.y = centrePos.y / 2;
+        centrePos.y = centrePos.y / 4;
 
         vec2 topLeft = vec2(centrePos.x - (width / 2), centrePos.y - (height / 2));
 
         // top left pos, then the size
         // draw the outer bar
-        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(1, 1, 1, 0.3));
+        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, transparency), 5);
 
         float minGap;
         float maxGap;
@@ -171,20 +232,31 @@ namespace Render {
             }
         }
         
-        print(minGap + " " + maxGap);
+        // DEBUG PRINT
+        // print(minGap + " " + maxGap);
 
         float drawLength;
 
         // only draw min offset if actually negative
         if (minGap < 0) {
             drawLength = GetLineOffset(minGap, gapRange, width);
-            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(0, 1, 0, 1));
+            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(0, 1, 0, transparency));
+
+            string text = GapToString(minGap);
+
+            // write the gap the side
+            drawList.AddText(vec2(centrePos.x + (width / 2) - Draw::MeasureString(text).x, centrePos.y + (height / 2)), vec4(1, 1, 1, 1), text);
         }
 
         // only draw max offset if actually positive
         if (maxGap > 0) {
             drawLength = GetLineOffset(maxGap, gapRange, width);
-            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(1, 0, 0, 1));
+            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(1, 0, 0, transparency));
+
+            string text = GapToString(maxGap);
+
+            // write the gap the side
+            drawList.AddText(vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)), vec4(1, 1, 1, 1), text);
         }
 
         // iterate miscArray to draw in each point that a car is gaining
@@ -193,12 +265,16 @@ namespace Render {
                 break;
             }
 
-            drawLength = GetLineOffset(miscArray[i].gap, gapRange, width / 2);
-            drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, 1), 2);
+            // draw a line per car
+            drawLength = GetLineOffset(miscArray[i].gap, gapRange, width);
+            drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, transparency), thickness / 2);
         }
 
         // draw the centre line
-        drawList.AddLine(vec2(centrePos.x, centrePos.y + (height / 2)), vec2(centrePos.x, centrePos.y - (height / 2)), vec4(0, 0, 0, 1), 4);
+        drawList.AddLine(vec2(centrePos.x, centrePos.y + (height / 2)), vec2(centrePos.x, centrePos.y - (height / 2)), lineColour, thickness);
+
+        // draw outer border
+        drawList.AddRect(vec4(topLeft.x, topLeft.y, width, height), lineColour, 5, thickness);
     }
 }
 
