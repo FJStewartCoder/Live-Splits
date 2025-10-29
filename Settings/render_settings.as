@@ -35,7 +35,7 @@ void DebugSettings() {
 
 // -----------------------------------------------------------------------
 
-[SettingsTab name="UI"]
+[SettingsTab name="UI" order="2"]
 void RenderSettings() {
     UI::BeginTabBar("RenderOptions");
 

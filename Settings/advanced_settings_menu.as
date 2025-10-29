@@ -27,10 +27,7 @@ int IntInput(const string&in name, int value, int min, int max, int step = 1) {
     return value;
 }
 
-// ACCESS TO EVERY SETTING IN DETAIL
-
-[SettingsTab name="Advanced" order="1"]
-void AdvancedSettings() {
+void AllSettings() {
     // --------------------------------------------------------------------
     // numCars
 
@@ -46,7 +43,6 @@ void AdvancedSettings() {
     // --------------------------------------------------------------------
     // framesBetweenLog
 
-
     int value = IntInput("Frames Between Logging Point", framesBetweenLog.GetCount(), 1, 500, 1);
     // set both the stored value and the actual value to the same number to preserve sync
     SetLogValue(value);
@@ -58,7 +54,9 @@ void AdvancedSettings() {
     value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
     // set both the stored value and the actual value to the same number to preserve sync
     SetGapValue(value);
+}
 
+void GapSettings() {
     // --------------------------------------------------------------------
     // gapAlg
 
@@ -90,5 +88,42 @@ void AdvancedSettings() {
     if (gapAlg == GapAlgorithm::Estimation) {
         // get array max size using custom wrapper thing
         searchRangeSeconds = IntInput("Search Radius (Seconds)", searchRangeSeconds, 1, 60, 1);
-    }  
+    }
+}
+
+void CacheSettings() {
+    useCache = UI::Checkbox("Enable Cache", useCache);
+
+    if (useCache) {
+        // cache max size
+    }
+
+    useApproximation = UI::Checkbox("Enable Cache Approximation", useApproximation);
+}
+
+// ACCESS TO EVERY SETTING IN DETAIL
+
+[SettingsTab name="Advanced" order="1"]
+void AdvancedSettings() {
+    UI::BeginTabBar("AdvancedTabBar");
+
+    if (UI::BeginTabItem("All")) {
+        AllSettings();
+
+        UI::EndTabItem();
+    }
+
+    if (UI::BeginTabItem("Gap")) {
+        GapSettings();
+
+        UI::EndTabItem();
+    }
+
+    if (UI::BeginTabItem("Cache")) {
+        CacheSettings();
+
+        UI::EndTabItem();
+    }
+
+    UI::EndTabBar();
 }

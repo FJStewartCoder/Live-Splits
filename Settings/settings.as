@@ -43,6 +43,18 @@ int FRAME_PADDING = 10;
 int enabledRenderingOptions = 0;
 
 // --------------------------------------------------------
+// cache settings
+
+// toggle for if you want to use the cache or not
+// will allow for support of multiplayer
+[Setting hidden]
+bool useCache = true;
+
+// used to increase the likelihood of cache hits with a smaller cache size my guessing the gap
+[Setting hidden]
+bool useCacheApproximation = false;
+
+// --------------------------------------------------------
 // specialised gapAlg scripts
 
 // which algorithm to use for the gap

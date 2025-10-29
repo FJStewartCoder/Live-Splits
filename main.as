@@ -33,10 +33,6 @@ uint startTime = 0;
 // ensure data is only reset once every cycle
 bool startDataSet = false;
 
-// toggle for if you want to use the cache or not
-// will allow for support of multiplayer
-bool useCache = true;
-
 
 void ResizeArrays(uint runLength) {
     // resize the main array
@@ -212,7 +208,7 @@ void GetGaps(ISceneVis @scene) {
             // only if using cache will the cache be obtained
             // else it will be error val which skips by default
             if (useCache) {
-                cacheItem = GetCacheItem(GetTime(), miscArray[i].id);
+                cacheItem = GetCacheItem(GetTime(), miscArray[i].id, useCacheApproximation);
             }
 
             // only use cache if valid item and not the player car
