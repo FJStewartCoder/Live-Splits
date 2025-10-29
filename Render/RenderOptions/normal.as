@@ -1,0 +1,81 @@
+bool updateWindowSize = false;
+
+namespace Render {
+    void Normal() {
+        // gets the number of valid cars
+        int validCars;
+
+        for (validCars = 1; validCars < numCars; validCars++) {
+            if (miscArray[validCars].id == 0) {
+                break;
+            }
+        }
+
+        // --------------------------------------------------------
+        // styling
+
+        if (updateWindowSize) {
+            int height = (FONT_SIZE * (validCars - 1)) + (TEXT_SPACING * (validCars - 2)) + (FRAME_PADDING * 2);
+
+            // get the string width of placeholder amount using this function
+            vec2 textSize = Draw::MeasureString("+99.999", null, FONT_SIZE);
+            int width = textSize.x + (FRAME_PADDING * 2);
+
+            // set window height
+            // UI::Cond:Always always updates the height
+            UI::SetNextWindowSize(width, height, UI::Cond::Always);
+
+            updateWindowSize = false;
+        }
+
+        // set font size
+        UI::PushFontSize(FONT_SIZE);
+        // set item spacing
+        UI::PushStyleVar(UI::StyleVar::ItemSpacing, vec2(TEXT_SPACING, TEXT_SPACING));
+        // set item spacing
+        UI::PushStyleVar(UI::StyleVar::WindowPadding, vec2(FRAME_PADDING, FRAME_PADDING));
+
+        // --------------------------------------------------------
+
+        // set flags
+        auto flags = UI::WindowFlags::NoTitleBar | UI::WindowFlags::NoDecoration;
+
+        // creates window
+        if (UI::Begin("Live Splits", flags)) {
+            // show gaps for all cars except the current car
+            for (int i = 1; i < validCars; i++) {
+                int curGap = miscArray[i].gap;
+
+                // includes "+" if greater than 0
+                string curGapString = GapToString(curGap);
+
+                UI::PushID(i);
+
+                // change colour based on success
+                if (curGap > 0) {
+                    // slower
+                    UI::PushStyleColor(UI::Col::Text, vec4(1, 0, 0, 1));
+                }
+                else if (curGap < 0) {
+                    // faster
+                    UI::PushStyleColor(UI::Col::Text, vec4(0 , 1, 0, 1));
+                }
+                else {
+                    // equal
+                    UI::PushStyleColor(UI::Col::Text, vec4(1, 1, 1, 1));
+                }
+
+                // display text
+                UI::Text(curGapString);
+                
+                UI::PopStyleColor();
+                UI::PopID();
+            }
+        }
+        UI::End();
+
+        // pop style
+        UI::PopStyleVar(2);
+        UI::PopFontSize();
+    }
+}
