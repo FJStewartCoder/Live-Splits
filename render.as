@@ -7,6 +7,23 @@ vec2 GetScreenCentre() {
     return vec2(gameWidth / 2, gameHeight / 2);
 }
 
+float GetLineOffset(int gap, float maxGap, float totalWidth) {
+    // get the current gap and calculate the length of the bar relative to the max
+    int curGap = Math::Abs(gap);
+
+    if (curGap > maxGap) {
+        curGap = maxGap;
+    }
+
+    if (gap < 0) {
+        return -1 * (totalWidth / 2) * float(curGap) / maxGap;
+    }
+    else {
+        return (totalWidth / 2) * float(curGap) / maxGap;
+    }
+    
+}
+
 namespace Render {
     void Normal() {
         // gets the number of valid cars
@@ -119,43 +136,69 @@ namespace Render {
 
         UI::DrawList @drawList = UI::GetForegroundDrawList();
 
-        vec2 screenCentre = GetScreenCentre();
+        vec2 centrePos = GetScreenCentre();
+        centrePos.y = centrePos.y / 2;
 
-        vec2 topLeft = vec2(screenCentre.x - (width / 2), screenCentre.y - (height / 2));
+        vec2 topLeft = vec2(centrePos.x - (width / 2), centrePos.y - (height / 2));
 
         // top left pos, then the size
         // draw the outer bar
         drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(1, 1, 1, 0.3));
 
-        // draw the centre line
-        drawList.AddLine(vec2(screenCentre.x, screenCentre.y + (height / 2)), vec2(screenCentre.x, screenCentre.y - (height / 2)), vec4(0, 0, 0, 1), 2);
+        float minGap;
+        float maxGap;
 
-        // iterate miscArray
+        // iterate miscArray to draw the largest bars only
         for (int i = 1; i < miscArray.Length; i++) {
             if (miscArray[i].id == 0) {
                 break;
             }
 
-            // get the current gap and calculate the length of the bar relative to the max
-            int curGap = Math::Abs(miscArray[i].gap);
+            int curGap = miscArray[i].gap;
 
-            if (curGap > gapRange) {
-                curGap = gapRange;
+            if (i == 1) {
+                minGap = curGap;
+                maxGap = curGap;
+
+                continue;
             }
 
-            float relativeLength = float(curGap) / gapRange;
-
-            float lineOffset = (width / 2) * relativeLength;
-
-            if (miscArray[i].gap < 0) {
-                // draw line after the middle
-                drawList.AddLine(vec2(screenCentre.x + lineOffset, screenCentre.y + (height / 2)), vec2(screenCentre.x + lineOffset, screenCentre.y - (height / 2)), vec4(0, 1, 0, 1), 5);
+            if (curGap < minGap) {
+                minGap = curGap;
             }
-            else {
-                // draw line before middle
-                drawList.AddLine(vec2(screenCentre.x - lineOffset, screenCentre.y + (height / 2)), vec2(screenCentre.x - lineOffset, screenCentre.y - (height / 2)), vec4(1, 0, 0, 1), 5);  
+            else if (curGap > maxGap) {
+                maxGap = curGap;
             }
         }
+        
+        print(minGap + " " + maxGap);
+
+        float drawLength;
+
+        // only draw min offset if actually negative
+        if (minGap < 0) {
+            drawLength = GetLineOffset(minGap, gapRange, width);
+            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(0, 1, 0, 1));
+        }
+
+        // only draw max offset if actually positive
+        if (maxGap > 0) {
+            drawLength = GetLineOffset(maxGap, gapRange, width);
+            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(1, 0, 0, 1));
+        }
+
+        // iterate miscArray to draw in each point that a car is gaining
+        for (int i = 1; i < miscArray.Length; i++) {
+            if (miscArray[i].id == 0) {
+                break;
+            }
+
+            drawLength = GetLineOffset(miscArray[i].gap, gapRange, width / 2);
+            drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, 1), 2);
+        }
+
+        // draw the centre line
+        drawList.AddLine(vec2(centrePos.x, centrePos.y + (height / 2)), vec2(centrePos.x, centrePos.y - (height / 2)), vec4(0, 0, 0, 1), 4);
     }
 }
 
