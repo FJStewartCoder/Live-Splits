@@ -29,14 +29,18 @@ bool isEnabled = true;
 // --------------------------------------------------------
 // UI settings
 
-[Setting name="Font Size" category="UI"]
+[Setting hidden]
 int FONT_SIZE = 100;
 
-[Setting name="Text Spacing" category="UI"]
+[Setting hidden]
 int TEXT_SPACING = 10;
 
-[Setting name="Frame Padding" category="UI"]
+[Setting hidden]
 int FRAME_PADDING = 10;
+
+[Setting hidden]
+// each setting is represented as one bit shifted by some amount
+int enabledRenderingOptions = 0;
 
 // --------------------------------------------------------
 // specialised gapAlg scripts

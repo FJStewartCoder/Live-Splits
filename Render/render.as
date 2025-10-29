@@ -49,12 +49,12 @@ string GapToString(int gap) {
     stringGap += IntToString(seconds, 2) + "." + IntToString(milliseconds, 3);
 
     // DEBUG PRINT
-    // 1print(stringGap);
+    // print(stringGap);
 
     return stringGap;
 }
 
-void RenderInterface() {
+void Render() {
     // if the plugin is off don't do anything
     if (!isEnabled) {
         return;
@@ -67,9 +67,17 @@ void RenderInterface() {
         return;
     }
 
-    // Render::Normal();
-    // Render::Debug();
-    Render::Bar();
+    if (EnabledStatus(0)) {
+        Render::Normal();
+    }
+    
+    if (EnabledStatus(1)) {
+        Render::Bar();
+    }
+
+    if (EnabledStatus(2)) {
+        Render::Debug();
+    }
 }
 
 void RenderMenu() {
