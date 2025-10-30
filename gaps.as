@@ -62,9 +62,6 @@ namespace SetGaps {
     // however, greater can help to filter out brief periods of crossing over the track
     array<uint> checkIntervals = {30, 8, 1};
 
-    // check intervals for estimation algorithm
-    array<uint> checkIntervalsEst = {4, 2, 1};
-
     // how far either side of the last index will we search
     uint searchRadius = 500;
 
@@ -103,15 +100,6 @@ namespace SetGaps {
         
         // sets the checkIntervals
         checkIntervals = {gapBetweenChecks, optimalSecondGap, 1};
-        // ------------------------------------------------------------------------------------------
-
-        // number of checks per seconds (we know number of seconds)
-        gapBetweenChecks = (float(searchRadius) / 1000) * 2 * resolution;
-        // same as above
-        optimalSecondGap = Math::Sqrt(gapBetweenChecks / 2);
-
-        // set the checkIntervalsEst
-        checkIntervalsEst = {gapBetweenChecks, optimalSecondGap, 1};
         // ------------------------------------------------------------------------------------------
 
         // set search radius for estimation to some number of seconds
@@ -180,14 +168,14 @@ namespace SetGaps {
         }
         else {
             // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
+            for (int interval = 0; interval < checkIntervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervalsEst[interval]);
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervalsEst[interval];
-                checkEnd = minIdx + checkIntervalsEst[interval];
+                checkStart = minIdx - checkIntervals[interval];
+                checkEnd = minIdx + checkIntervals[interval];
             }
         }
 
