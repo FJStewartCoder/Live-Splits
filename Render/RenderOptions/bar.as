@@ -23,16 +23,12 @@ float GetLineOffset(int gap, float maxGap, float totalWidth) {
 
 namespace Render {
     void Bar() {
-        // the maximum gap each side the bar will accept
-        const float gapRange = 4000;  // 4 seconds in milliseconds
-
         // quarter screen width
         float width = Draw::GetWidth() / 4;
         // 16th screen height
         float height = Draw::GetHeight() / 16;
 
-        const float transparency = 0.6;
-        vec4 lineColour = vec4(1, 1, 1, transparency);
+        vec4 lineColour = vec4(1, 1, 1, barTransparency);
         float thickness = width / 160;
 
         float rounding = 5;
@@ -46,7 +42,7 @@ namespace Render {
 
         // top left pos, then the size
         // draw the outer bar
-        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, transparency), rounding);
+        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, barTransparency), rounding);
 
         float minGap;
         float maxGap;
@@ -81,24 +77,24 @@ namespace Render {
 
         // only draw min offset if actually negative
         if (minGap < 0) {
-            drawLength = GetLineOffset(minGap, gapRange, width);
-            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(0, 1, 0, transparency));
+            drawLength = GetLineOffset(minGap, barGapRange, width);
+            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(0, 1, 0, barTransparency));
 
             string text = GapToString(minGap);
 
             // write the gap the side
-            drawList.AddText(vec2(centrePos.x + (width / 2) - Draw::MeasureString(text).x, centrePos.y + (height / 2)), vec4(1, 1, 1, 1), text);
+            drawList.AddText(vec2(centrePos.x + (width / 2) - Draw::MeasureString(text).x, centrePos.y + (height / 2)), vec4(1, 1, 1, barTransparency), text);
         }
 
         // only draw max offset if actually positive
         if (maxGap > 0) {
-            drawLength = GetLineOffset(maxGap, gapRange, width);
-            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(1, 0, 0, transparency));
+            drawLength = GetLineOffset(maxGap, barGapRange, width);
+            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(1, 0, 0, barTransparency));
 
             string text = GapToString(maxGap);
 
             // write the gap the side
-            drawList.AddText(vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)), vec4(1, 1, 1, 1), text);
+            drawList.AddText(vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)), vec4(1, 1, 1, barTransparency), text);
         }
 
         // iterate miscArray to draw in each point that a car is gaining
@@ -108,8 +104,8 @@ namespace Render {
             }
 
             // draw a line per car
-            drawLength = GetLineOffset(miscArray[i].gap, gapRange, width);
-            drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, transparency), thickness / 2);
+            drawLength = GetLineOffset(miscArray[i].gap, barGapRange, width);
+            drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, barTransparency), thickness / 2);
         }
 
         // draw the centre line

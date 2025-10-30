@@ -6,7 +6,6 @@ class CacheEntry {
 }
 
 const int errorVal = uint(-1) >> 1;
-const uint maxCacheSize = 50000;
 
 // 2d array of cache entries
 

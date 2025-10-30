@@ -80,11 +80,43 @@ void Render() {
     }
 }
 
+void RenderOptionsMenu() {
+    if (UI::BeginMenu("Render")) {
+        // variable to store the value if enabled or disabled
+        bool enabled = EnabledStatus(0);
+
+        // option for normal view
+        if (UI::MenuItem("Table", "", enabled)) {
+            SetEnabled(0, !enabled);
+        }
+
+        // set the enabled status
+        enabled = EnabledStatus(1);
+        // option for normal view
+        if (UI::MenuItem("Bar", "", enabled)) {
+            SetEnabled(1, !enabled);
+        }
+
+        // set the enabled status
+        enabled = EnabledStatus(2);
+        // option for normal view
+        if (UI::MenuItem("Debug", "", enabled)) {
+            SetEnabled(2, !enabled);
+        }
+
+        UI::EndMenu();
+    }
+}
+
 void RenderMenu() {
     if (UI::BeginMenu("Live Splits")) {
-        if (UI::MenuItem("Test")) {
-
+        // toggle for on of off    
+        if (UI::MenuItem("Enabled", "", isEnabled)) {
+            isEnabled = !isEnabled;
         }
+
+        // render the menu to render options
+        RenderOptionsMenu();
 
         UI::EndMenu();
     }

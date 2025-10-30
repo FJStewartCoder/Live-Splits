@@ -80,15 +80,13 @@ void ResetAllVars() {
     ResetMiscArray(numCars, miscArray);
 
     // optimise for the current track
-    SetGaps::Optimise(expectedFrameRate, 10);
+    SetGaps::Optimise(expectedFrameRate, modLinResolution);
 
     // reset the cache
     ResetCacheArray();
 }
 
 // TODO: fix multilap (it will go completely wrong)
-
-// TODO: add setting for Optimise(resolution) resolution
 
 // TODO: fix error where car entity IDs shift when you (the player) finish
 // the cars do however remain the same order despite the shift

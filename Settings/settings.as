@@ -38,9 +38,19 @@ int TEXT_SPACING = 10;
 [Setting hidden]
 int FRAME_PADDING = 10;
 
+// ------------------------------------------------------
+// other render settings
+
 [Setting hidden]
 // each setting is represented as one bit shifted by some amount
 int enabledRenderingOptions = 0;
+
+// the maximum gap each side the bar will accept
+[Setting hidden]
+float barGapRange = 4000;  // 4 seconds in milliseconds
+
+[Setting hidden]
+float barTransparency = 0.7;  // transparency of the bar
 
 // --------------------------------------------------------
 // cache settings
@@ -49,6 +59,10 @@ int enabledRenderingOptions = 0;
 // will allow for support of multiplayer
 [Setting hidden]
 bool useCache = true;
+
+// the max size of the cache per cache list
+[Setting hidden]
+uint maxCacheSize = 10000;
 
 // used to increase the likelihood of cache hits with a smaller cache size my guessing the gap
 [Setting hidden]
@@ -70,6 +84,10 @@ void SetGapAlg(GapAlgorithm newAlgorithm) {
     // automatically converted to int
     algorithmChoice = newAlgorithm;
 }
+
+// number of points per second to check when using modified linear alg
+[Setting hidden]
+uint modLinResolution = 10;
 
 
 // function to load the desynced values
@@ -93,11 +111,17 @@ RotatingCounter framesBetweenGap(1);
 
 // two functions below to prevent the desync
 void SetLogValue(uint value) {
+    // fixes a bug where gap doesn't update in settings
+    if (value == framesBetweenLogValue) { return; }
+
     framesBetweenLog.SetCount(value);
     framesBetweenLogValue = value;
 }
 
 void SetGapValue(uint value) {
+    // fixes a bug where gap doesn't update in settings
+    if (value == framesBetweenGapValue) { return; }
+
     framesBetweenGap.SetCount(value);
     framesBetweenGapValue = value;
 }

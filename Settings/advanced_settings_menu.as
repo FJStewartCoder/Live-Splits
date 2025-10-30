@@ -27,6 +27,28 @@ int IntInput(const string&in name, int value, int min, int max, int step = 1) {
     return value;
 }
 
+float FloatInput(const string&in name, float value, float min, float max, float step = 1, float step_fast = 2, string fmt = "%.3f") {
+    // arbitrary value
+    float newValue;
+
+    // make the input int
+    newValue = UI::InputFloat(name, value, step, step_fast, fmt);
+
+    // if changed, set performance choice to custom
+    if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
+
+    // set numCars to the value
+    value = newValue;
+
+    // basic validation (1, 20)
+    if (value < min) { value = min; }
+    else if (value > max) { value = max; }
+
+    return value;
+}
+
+// -----------------------------------------------------------------------------------------------
+
 void AllSettings() {
     // --------------------------------------------------------------------
     // numCars
@@ -89,6 +111,11 @@ void GapSettings() {
         // get array max size using custom wrapper thing
         searchRangeSeconds = IntInput("Search Radius (Seconds)", searchRangeSeconds, 1, 60, 1);
     }
+    // only allow for changing this if using mod lin
+    else if (gapAlg == GapAlgorithm::ModifiedLinear) {
+        // get array max size using custom wrapper thing
+        modLinResolution = IntInput("Search Resolution", modLinResolution, 2, 30, 1);
+    }
 }
 
 void CacheSettings() {
@@ -96,9 +123,10 @@ void CacheSettings() {
 
     if (useCache) {
         // cache max size
+        maxCacheSize = IntInput("Max Cache Size", maxCacheSize, 100, 25000 );
     }
 
-    useApproximation = UI::Checkbox("Enable Cache Approximation", useApproximation);
+    useCacheApproximation = UI::Checkbox("Enable Cache Approximation", useCacheApproximation);
 }
 
 // ACCESS TO EVERY SETTING IN DETAIL
