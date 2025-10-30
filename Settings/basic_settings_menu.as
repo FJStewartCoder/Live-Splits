@@ -59,7 +59,7 @@ void SetConfig() {
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
             SetGapValue(uint(Math::Round(expectedFrameRate / 8, 0)));
 
-            SetGapAlg(GapAlgorithm::ModifiedLinear);
+            SetGapAlg(GapAlgorithm::Full);
 
             break;
 
@@ -77,7 +77,7 @@ void SetConfig() {
             SetLogValue(1);
             SetGapValue(12);
 
-            SetGapAlg(GapAlgorithm::ModifiedLinear);
+            SetGapAlg(GapAlgorithm::Full);
 
             break;
 
@@ -89,12 +89,13 @@ void SetConfig() {
 
             arrayMaxSize = expectedFrameRate * 60 * 45;
             numCars = 7;
+            useLinearGap = true;
 
             // sets new counts
             SetLogValue(1);
             SetGapValue(8);
 
-            SetGapAlg(GapAlgorithm::ModifiedLinear);
+            SetGapAlg(GapAlgorithm::Full);
 
             break;
 
@@ -106,12 +107,13 @@ void SetConfig() {
 
             arrayMaxSize = expectedFrameRate * 60 * 120;
             numCars = 10;
+            useLinearGap = true;
 
             // sets new counts
             SetLogValue(1);
             SetGapValue(4);
 
-            SetGapAlg(GapAlgorithm::Linear);
+            SetGapAlg(GapAlgorithm::Full);
 
             break;
         

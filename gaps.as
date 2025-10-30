@@ -32,23 +32,19 @@ int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int m
 
 // used to specify in main which algorithm to use
 enum GapAlgorithm {
-    Linear,
-    ModifiedLinear,
+    Full,
     Estimation
 };
 
 // function to convert numerical value to enum GapAlgorithm
 GapAlgorithm intToEnum(int value) {
-    GapAlgorithm enumValue = GapAlgorithm::Linear;
+    GapAlgorithm enumValue = GapAlgorithm::Full;
 
     switch (value) {
         case 0:
-            enumValue = GapAlgorithm::Linear;
+            enumValue = GapAlgorithm::Full;
             break;
         case 1:
-            enumValue = GapAlgorithm::ModifiedLinear;
-            break;
-        case 2:
             enumValue = GapAlgorithm::Estimation;
             break;
         default:
@@ -95,6 +91,7 @@ namespace SetGaps {
     void Optimise(uint frameRate, uint resolution) {
         // get the number of logs per seconds and use it to get more accurate and optimised results
 
+        // ------------------------------------------------------------------------------------------
         // +1 in case truncates
         int logsPerSecond = (frameRate / framesBetweenLog.GetCount()) + 1;
         // defines how many points are between each check (logs per second / resolution) e.g 100 per second, res = 2. So, check each 50 logs
@@ -106,8 +103,16 @@ namespace SetGaps {
         
         // sets the checkIntervals
         checkIntervals = {gapBetweenChecks, optimalSecondGap, 1};
+        // ------------------------------------------------------------------------------------------
 
-        // TODO: OPTIMISE CHECKINTERVALSEST
+        // number of checks per seconds (we know number of seconds)
+        gapBetweenChecks = (float(searchRadius) / 1000) * 2 * resolution;
+        // same as above
+        optimalSecondGap = Math::Sqrt(gapBetweenChecks / 2);
+
+        // set the checkIntervalsEst
+        checkIntervalsEst = {gapBetweenChecks, optimalSecondGap, 1};
+        // ------------------------------------------------------------------------------------------
 
         // set search radius for estimation to some number of seconds
         // currently searchs 2 seconds either side
@@ -115,24 +120,7 @@ namespace SetGaps {
     }
 
     // current position and array of points
-    void Linear(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
-        // if array not complete don't calculate gap
-        // unless overridden
-        if (!arrayComplete && !getGapOverride) {
-            return;
-        }
-
-        // get min index by iterating each item in array
-        int minIdx = GetMinDistIndex(currentPoint, ghostPoints, 0, ghostPoints.Length, 1);
-        
-        // -----------------------------------------------------------------------------------
-
-        // set the gap based on the timestamps
-        miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
-    }
-
-    // current position and array of points
-    void ModifiedLinear(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
+    void Full(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr, bool useLinear = false) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
@@ -147,15 +135,21 @@ namespace SetGaps {
         int checkStart = 0;
         int checkEnd = ghostPoints.Length;
 
-        // iterate all intervals in checkIntervals
-        for (int interval = 0; interval < checkIntervals.Length; interval++) {
-            // gets the min idx from the start to the end in intervals of interval
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervals[interval]);
+        // if linear, do a linear search
+        if (useLinear) {
+            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, 1);
+        }
+        else {
+            // iterate all intervals in checkIntervals
+            for (int interval = 0; interval < checkIntervals.Length; interval++) {
+                // gets the min idx from the start to the end in intervals of interval
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervals[interval]);
 
-            // set the check start and check end for the next loop using the current interval
-            // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-            checkStart = minIdx - checkIntervals[interval];
-            checkEnd = minIdx + checkIntervals[interval];
+                // set the check start and check end for the next loop using the current interval
+                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+                checkStart = minIdx - checkIntervals[interval];
+                checkEnd = minIdx + checkIntervals[interval];
+            }
         }
         
         // -----------------------------------------------------------------------------------
@@ -165,7 +159,7 @@ namespace SetGaps {
     }
 
     // need the misc array, current position and array of points
-    void Estimation(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr) {
+    void Estimation(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr, bool useLinear = false) {
         // if array not complete don't calculate gap
         // unless overridden
         if (!arrayComplete && !getGapOverride) {
@@ -181,15 +175,20 @@ namespace SetGaps {
         int checkStart = miscPtr.lastIdx - searchRadius;
         int checkEnd = miscPtr.lastIdx + searchRadius;
 
-        // iterate all intervals in checkIntervals
-        for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
-            // gets the min idx from the start to the end in intervals of interval
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervalsEst[interval]);
+        if (useLinear) {
+            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, 1);
+        }
+        else {
+            // iterate all intervals in checkIntervals
+            for (int interval = 0; interval < checkIntervalsEst.Length; interval++) {
+                // gets the min idx from the start to the end in intervals of interval
+                minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervalsEst[interval]);
 
-            // set the check start and check end for the next loop using the current interval
-            // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-            checkStart = minIdx - checkIntervalsEst[interval];
-            checkEnd = minIdx + checkIntervalsEst[interval];
+                // set the check start and check end for the next loop using the current interval
+                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+                checkStart = minIdx - checkIntervalsEst[interval];
+                checkEnd = minIdx + checkIntervalsEst[interval];
+            }
         }
 
         // -----------------------------------------------------------------------------------

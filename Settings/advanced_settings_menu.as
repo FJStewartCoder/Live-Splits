@@ -1,7 +1,6 @@
 // list of algorithm names as strings
 array<string> algorithmChoices = {
-    "Linear",
-    "Modified Linear",
+    "Full",
     "Estimation"
 };
 
@@ -82,6 +81,9 @@ void GapSettings() {
     // --------------------------------------------------------------------
     // gapAlg
 
+    // toggle for use linear gap
+    useLinearGap = UI::Checkbox("Use Linear", useLinearGap);
+
     // create the combo box for the gap algorithm
     if (UI::BeginCombo("Gap Algorithm", algorithmChoices[algorithmChoice])) {
         // iterate choices
@@ -112,7 +114,7 @@ void GapSettings() {
         searchRangeSeconds = IntInput("Search Radius (Seconds)", searchRangeSeconds, 1, 60, 1);
     }
     // only allow for changing this if using mod lin
-    else if (gapAlg == GapAlgorithm::ModifiedLinear) {
+    else if (gapAlg == GapAlgorithm::Full) {
         // get array max size using custom wrapper thing
         modLinResolution = IntInput("Search Resolution", modLinResolution, 2, 30, 1);
     }

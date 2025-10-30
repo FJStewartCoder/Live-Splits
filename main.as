@@ -219,19 +219,14 @@ void GetGaps(ISceneVis @scene) {
 
                 // set the based on the chosen algorithm
                 switch (gapAlg) {
-                    case GapAlgorithm::Linear:
+                    case GapAlgorithm::Full:
                         // set the gaps using the linear algorithm
-                        SetGaps::Linear(thisPoint, ghostPoints, miscArray[i]);
-                        break;
-
-                    case GapAlgorithm::ModifiedLinear:
-                        // set the gaps using the modified linear algorithm 
-                        SetGaps::ModifiedLinear(thisPoint, ghostPoints, miscArray[i]);
+                        SetGaps::Full(thisPoint, ghostPoints, miscArray[i], useLinearGap);
                         break;
 
                     case GapAlgorithm::Estimation:
                         // set the gaps using the estimation algorithm
-                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i]);
+                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i], useLinearGap);
                         break;
                 }
 

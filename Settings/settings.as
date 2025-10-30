@@ -9,6 +9,10 @@ bool getGapOverride = false;
 [Setting hidden]
 uint searchRangeSeconds = 1;
 
+// bool to use linear gap or not
+[Setting hidden]
+bool useLinearGap = false;
+
 // ---------------------------------------------------------
 // main settings
 
@@ -43,7 +47,7 @@ int FRAME_PADDING = 10;
 
 [Setting hidden]
 // each setting is represented as one bit shifted by some amount
-int enabledRenderingOptions = 0;
+int enabledRenderingOptions = 2;  // by default is bar
 
 // the maximum gap each side the bar will accept
 [Setting hidden]
@@ -54,10 +58,10 @@ float barTransparency = 0.7;  // transparency of the bar
 
 // the offsets of the bar
 [Setting hidden]
-int xOffset = -100;
+int xOffset = 0;
 
 [Setting hidden]
-int yOffset = -100;
+int yOffset = 0;
 
 // --------------------------------------------------------
 // cache settings
