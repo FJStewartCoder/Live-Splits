@@ -52,6 +52,13 @@ float barGapRange = 4000;  // 4 seconds in milliseconds
 [Setting hidden]
 float barTransparency = 0.7;  // transparency of the bar
 
+// the offsets of the bar
+[Setting hidden]
+int xOffset = -100;
+
+[Setting hidden]
+int yOffset = -100;
+
 // --------------------------------------------------------
 // cache settings
 

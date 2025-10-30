@@ -21,6 +21,25 @@ float GetLineOffset(int gap, float maxGap, float totalWidth) {
     }    
 }
 
+vec2 CalculateMaxOffsets(float barWidth, float barHeight) {
+    int width = Draw::GetWidth();
+    int height = Draw::GetHeight();
+
+    return vec2((width - barWidth) / 2, (height - barHeight) / 2);
+}
+
+// ensures offsets are valid
+void EnsureOffsets(float width, float height) {
+    vec2 maxOffsets = CalculateMaxOffsets(width, height);
+
+    // basic validation for x and y offset
+    if (xOffset > maxOffsets.x) { xOffset = maxOffsets.x; }
+    else if (xOffset < -1 * maxOffsets.x) { xOffset = -1 * maxOffsets.x; }
+
+    if (yOffset > maxOffsets.y) { yOffset = maxOffsets.y; }
+    else if (yOffset < -1 * maxOffsets.y) { yOffset = -1 * maxOffsets.y; }
+}
+
 namespace Render {
     void Bar() {
         // quarter screen width
@@ -28,15 +47,22 @@ namespace Render {
         // 16th screen height
         float height = Draw::GetHeight() / 16;
 
+        // ensure the offsets
+        EnsureOffsets(width, height);
+
         vec4 lineColour = vec4(1, 1, 1, barTransparency);
         float thickness = width / 160;
 
-        float rounding = 5;
+        const float rounding = 5;
 
         UI::DrawList @drawList = UI::GetForegroundDrawList();
 
+        // get the centre of the screen
         vec2 centrePos = GetScreenCentre();
-        centrePos.y = centrePos.y / 4;
+
+        // offset the centre pos by the x and y offsets
+        centrePos.x += xOffset;
+        centrePos.y -= yOffset;
 
         vec2 topLeft = vec2(centrePos.x - (width / 2), centrePos.y - (height / 2));
 

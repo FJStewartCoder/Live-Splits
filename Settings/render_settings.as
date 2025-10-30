@@ -40,6 +40,12 @@ void BarSettings() {
     float temp = FloatInput("Gap Range", barGapRange / 1000, 0.2, 240, 0.1, 1, "%.2fs");
     // convert from seconds to milliseconds
     barGapRange = temp * 1000;
+
+    UI::Separator();  // ------------------------------------------------------------------------------------
+
+    // the min and max don't really matter because the ensure function will sort it
+    xOffset = IntInput("X Offset", xOffset, -10000, 10000, 5);
+    yOffset = IntInput("Y Offset", yOffset, -10000, 10000, 5);
 }
 
 void DebugSettings() {
