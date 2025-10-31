@@ -81,6 +81,8 @@ void GapSettings() {
     // --------------------------------------------------------------------
     // gapAlg
 
+    if (algorithmChoice >= algorithmChoices.Length) { algorithmChoice = 0; } 
+
     // toggle for use linear gap
     useLinearGap = UI::Checkbox("Use Linear", useLinearGap);
 
