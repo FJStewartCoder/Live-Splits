@@ -1,0 +1,9 @@
+File Name: Map ID
+
+uint numPoints
+
+for each point:
+    uint tStamp
+    double x
+    double y
+    double z
