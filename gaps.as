@@ -142,6 +142,11 @@ namespace SetGaps {
         
         // -----------------------------------------------------------------------------------
 
+        // set the last index to the index we found the min value
+        // SET THIS ANYWAY EVEN IF NOT USED INCASE SWITCHING BETWEEN ALGORITHMS
+        // THIS WILL FIX ISSUES OF SWITCHING FROM FULL TO ESTIMATION
+        miscPtr.lastIdx = minIdx;
+
         // set the gap based on the timestamps
         miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
     }
