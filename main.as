@@ -143,7 +143,9 @@ void GetGaps(ISceneVis @scene) {
 
         // if there is car calculate new gap
         if (currentCar !is null) {
-            int cacheItem = errorVal;
+            CacheReturnItem cacheItem;
+            // by default is error so if not using cache will not attempt to use cache
+            cacheItem.isError = true;
             
             // only if using cache will the cache be obtained
             // else it will be error val which skips by default
@@ -152,8 +154,11 @@ void GetGaps(ISceneVis @scene) {
             }
 
             // only use cache if valid item and not the player car
-            if (cacheItem != errorVal && i != 0) {
-                miscArray[i].relGap = cacheItem;
+            if (!cacheItem.isError && i != 0) {
+                // fill in the cached data
+                miscArray[i].relGap = cacheItem.gap;
+                miscArray[i].lastIdx = cacheItem.idx;
+
                 // print("Got Cache!");
             }
             else {
@@ -176,7 +181,7 @@ void GetGaps(ISceneVis @scene) {
                 if (useCache) {
                     // create a new cache item
                     // only add a cache item if there was not found a cache item
-                    SetCacheItem(miscArray[i].relGap, GetTime(), miscArray[i].id);
+                    SetCacheItem(miscArray[i].relGap, GetTime(), miscArray[i].id, miscArray[i].lastIdx);
                 }
             }
         }

@@ -3,7 +3,18 @@ class CacheEntry {
     int gap;
     // the timeStamp that the gap was observed
     uint timeStamp;
+    // the index of the lastIdx (fixes issue with reseting whilst caching using estimation)
+    uint idx = 0;
 }
+
+// this is returned to the user when they request a cached gap
+// gap can be error val if error
+class CacheReturnItem {
+    bool isError = false;
+
+    int gap = 0;
+    uint idx = 0;
+};
 
 const int errorVal = uint(-1) >> 1;
 
@@ -27,11 +38,12 @@ void ResetCacheArray() {
 
 // ----------------------------------------------------------
 
-CacheEntry MakeCacheEntry(int gap, uint timeStamp) {
+CacheEntry MakeCacheEntry(int gap, uint timeStamp, uint idx = 0) {
     CacheEntry newEntry;
 
     newEntry.gap = gap;
     newEntry.timeStamp = timeStamp;
+    newEntry.idx = idx;
 
     return newEntry;
 }
@@ -157,18 +169,22 @@ uint ApproximateGap(uint arrayIdx, uint cacheIdx, uint timeStamp) {
 }
 
 // tolerance is the number of milliseconds difference that the gap can be for a cache to be denied
-int GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
+CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
+    CacheReturnItem item;
+
     // get the index of the array based on id
     uint cacheArrayIndex = GetArray(id);
 
     // if not found, return 0
     if (cacheArrayIndex == uint(-1)) {
-        return errorVal;
+        item.isError = true;
+        return item;
     }
 
     // if there are no entries then return 0 as well
     if (cacheArray[cacheArrayIndex].Length == 1) {
-        return errorVal;
+        item.isError = true;
+        return item;
     }
 
     // binary search the cache array to find the closest timestamp
@@ -182,7 +198,8 @@ int GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
     CacheEntry[] @curArray = cacheArray[cacheArrayIndex];
 
     if (curArray[curArray.Length - 1].timeStamp < timeStamp) {
-        return errorVal;
+        item.isError = true;
+        return item;
     }
 
     // --------------------------------------------------------------------------------
@@ -194,7 +211,8 @@ int GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
         curGap = ApproximateGap(cacheArrayIndex, closestIdx, timeStamp);
 
         if (curGap == uint(-1)) {
-            return errorVal;
+            item.isError = true;
+            return item;
         }
     }
     // else get the gap of the closest index
@@ -202,18 +220,23 @@ int GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
         curGap = cacheArray[cacheArrayIndex][closestIdx].gap;
     }
 
+    // fill in the data of the return item
+    item.isError = false;
+    item.gap = curGap;
+    item.idx = cacheArray[cacheArrayIndex][closestIdx].idx;
+
     // return the gap
-    return curGap;
+    return item;
 }
 
-void SetCacheItem(int gap, uint timeStamp, uint id) {
+void SetCacheItem(int gap, uint timeStamp, uint id, uint idx) {
     // get the index of the array based on id
     uint cacheArrayIndex = GetArray(id);
 
     // if not found, return 0
     if (cacheArrayIndex == uint(-1)) {
         // create a new array with a new cache entry that stores the id as timestamp
-        array<CacheEntry> newArray = {MakeCacheEntry(0, id)};
+        array<CacheEntry> newArray = {MakeCacheEntry(0, id, idx)};
         // insert last the new array
         cacheArray.InsertLast(newArray);
 
@@ -225,7 +248,7 @@ void SetCacheItem(int gap, uint timeStamp, uint id) {
 
     // if no entries insert last the new entry
     if (arrayPtr.Length == 1) {
-        arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp));
+        arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp, idx));
         return;
     }
 
@@ -253,5 +276,5 @@ void SetCacheItem(int gap, uint timeStamp, uint id) {
     }
 
     // insert the item
-    arrayPtr.InsertAt(insertIdx, MakeCacheEntry(gap, timeStamp));
+    arrayPtr.InsertAt(insertIdx, MakeCacheEntry(gap, timeStamp, idx));
 }
