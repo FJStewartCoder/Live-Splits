@@ -104,6 +104,36 @@ void Main() {
 
     // create the dist cache array
     MakeDistCacheArray();
+
+    CGameCtnApp@ app = GetApp();
+    CGameCtnNetwork@ net = app.Network;
+    CGamePlaygroundScript@ playground = app.PlaygroundScript;
+
+    MwFastBuffer<CGameGhostScript@> netGhosts = net.ClientManiaAppPlayground.DataFileMgr.Ghosts;
+
+    for (int i = 0; i < netGhosts.Length; i++) {
+        print(tostring(netGhosts[i].Nickname));
+    }
+
+    MwFastBuffer<CGameGhostScript@> localGhosts = playground.DataFileMgr.Ghosts;
+
+    for (int i = 0; i < localGhosts.Length; i++) {
+        print(tostring(localGhosts[i].Nickname));
+    }
+
+    // ENTITY ID TO NAME
+    // THE FIRST GHOST begins with 2 is your current player
+    // THE LAST 2 GHOSTS are your pb then your no respawn ghost
+    // IDs ARE ALLOCATED IN THE ORDER OF THE GHOST NAMES
+
+    // IF GHOSTS ARE CHANGED IN RACE your pb becomes second but no respawn stays last
+
+    // DEFINITIVE ORDER:
+    // ALL GHOSTS ARE ADDED IN THE ORDER IN WHICH YOU SELECTED THEM (SAME AS NETGHOSTS ORDER)
+    // THEN YOUR PB IS ADDED
+
+    // ALL SUBSEQUENT GHOSTS ARE ADDED AT THE END OF THIS (AFTER YOUR PB) UNTIL YOU FINISH (ORDER IS THEN RESET TO ABOVE)
+    // REMOVING GHOSTS JUST BREAKS THE WHOLE SYSTEM
 }
 
 int GetTime() {
