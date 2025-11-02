@@ -11,12 +11,25 @@ class Time {
     uint lastTime = 0;
 
     uint GetTime() {
-        CGamePlaygroundScript @script = GetApp().PlaygroundScript;
-        // if null, return no time
-        if (script is null) { return 0; }
+        uint time = 0;
+
+        CGameScriptHandlerPlaygroundInterface @netScript = GetApp().Network.PlaygroundInterfaceScriptHandler;
+
+        // if we have netScript, use that because it is more accurate
+        if (netScript !is null) {
+            time = netScript.GameTime - startTime;
+        }
+        // else use the less accurate local script
+        else {
+            CGamePlaygroundScript @script = GetApp().PlaygroundScript;
+            // if null, return no time
+            if (script !is null) { 
+                time = script.Now - startTime;
+            }
+        }
 
         // this gets the current time ignoring pauses
-        return script.Now - startTime;
+        return time;
     }
 
     void SetStartTime() {
