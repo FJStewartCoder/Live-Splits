@@ -7,3 +7,25 @@ for each point:
     double x
     double y
     double z
+
+
+Version 2:
+
+uint8 versionNumber
+uint numPoints
+
+iterate each point and get the minimum gap between each point
+
+uint16 minGap
+
+iterate each point again and subtract minGap from each gap
+Get the maximum of these gaps
+Calculate the smallest number of bytes to store this
+
+uint8 numBytes
+
+for each point:
+    (numBytes bytes) tStamp (as time between previous one - minGap)
+    float x
+    float y
+    float z
