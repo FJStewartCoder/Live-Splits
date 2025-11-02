@@ -2,7 +2,7 @@
 name        = "Live Splits"
 author      = "HappyGamerManTM"
 category    = "Race"
-version     = "0.4.4"
+version     = "0.4.6"
 
 [script]
 dependencies=[ "VehicleState" ]

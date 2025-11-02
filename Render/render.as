@@ -60,12 +60,8 @@ void Render() {
         return;
     }
 
-    ISceneVis@ scene = GetApp().GameScene;
-
-    // ensures the player is in a race
-    if (scene is null) {
-        return;
-    }
+    // if not in game, don't do anything
+    if (!IsInGame()) { return; }
 
     if (EnabledStatus(0)) {
         Render::Normal();

@@ -23,14 +23,14 @@ array<Miscellaneous> miscArray(numCars);
 // stores the number of where to log the value
 uint32 currentLogIndex = 0;
 
-// variable to store the start time
-uint startTime = 0;
-
 // ensure data is only reset once every cycle
 bool startDataSet = false;
 
 // bool to store if already saved the points
 bool isSaved = false;
+
+// the time manager
+Time timer;
 
 
 // reset only the vars relevant to the current race
@@ -39,7 +39,7 @@ void ResetRaceVars() {
     currentLogIndex = 0;
 
     // reset current time
-    startTime = GetApp().TimeSinceInitMs;
+    timer.SetStartTime();
 
     // iterate miscArray and set last idx to 0
     for (int i = 0; i < miscArray.Length; i++) {
@@ -106,10 +106,6 @@ void Main() {
     MakeDistCacheArray();
 }
 
-int GetTime() {
-    return GetApp().TimeSinceInitMs - startTime;
-}
-
 Point MakePoint(CSceneVehicleVis@ car) {
     Point newPoint;
 
@@ -119,7 +115,7 @@ Point MakePoint(CSceneVehicleVis@ car) {
     newPoint.z = car.AsyncState.Position.z;
 
     // gets time stamp
-    newPoint.timeStamp = GetTime();
+    newPoint.timeStamp = timer.GetTime();
 
     return newPoint;
 }
@@ -150,7 +146,7 @@ void GetGaps(ISceneVis @scene) {
             // only if using cache will the cache be obtained
             // else it will be error val which skips by default
             if (useCache) {
-                cacheItem = GetCacheItem(GetTime(), miscArray[i].id, useCacheApproximation);
+                cacheItem = GetCacheItem(timer.GetTime(), miscArray[i].id, useCacheApproximation);
             }
 
             // only use cache if valid item and not the player car
@@ -181,7 +177,7 @@ void GetGaps(ISceneVis @scene) {
                 if (useCache) {
                     // create a new cache item
                     // only add a cache item if there was not found a cache item
-                    SetCacheItem(miscArray[i].relGap, GetTime(), miscArray[i].id, miscArray[i].lastIdx);
+                    SetCacheItem(miscArray[i].relGap, timer.GetTime(), miscArray[i].id, miscArray[i].lastIdx);
                 }
             }
         }
@@ -200,14 +196,21 @@ void GetGaps(ISceneVis @scene) {
 }
 
 void Update(float dt) {
+    // if paused, don't continue
+    if (timer.IsPaused()) {
+        // DEBUG MESSAGE
+        // print("paused");
+        return;
+    }
+
     // if the plugin is off don't do anything
     if (!isEnabled) {
         return;
     }
 
     ISceneVis@ scene = GetApp().GameScene;
-    // ensures the player is in a race
-    if (scene is null) { return; }
+    // if not in game, don't do anything
+    if (!IsInGame()) { return; } 
 
     // gets the track
     CGameCtnChallenge@ track = GetApp().RootMap;
@@ -275,9 +278,9 @@ void Update(float dt) {
         return;
     }
 
-    // the only time this wiull be true is on the first loop so set start time to 0
+    // the only time this will be true is on the first loop so set start time to 0
     if (startDataSet) {
-        startTime = GetApp().TimeSinceInitMs;
+        timer.SetStartTime();
     }
 
     // becomes false once we pass this stage
