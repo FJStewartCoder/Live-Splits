@@ -29,3 +29,12 @@ for each point:
     float x
     float y
     float z
+
+
+10,000 points
+Samples every 0.25 seconds
+
+V1 -> 8b + (32b * 10000) = 32008b
+V2 -> 2b + 8b + 4b + ((2b + 4b + 4b + 4b) * 10000) = 14014b
+
+Assume 50ms out per gap so 200ms minimum. Max gap = 100ms (2b)
