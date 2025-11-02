@@ -196,13 +196,6 @@ void GetGaps(ISceneVis @scene) {
 }
 
 void Update(float dt) {
-    // if paused, don't continue
-    if (timer.IsPaused()) {
-        // DEBUG MESSAGE
-        // print("paused");
-        return;
-    }
-
     // if the plugin is off don't do anything
     if (!isEnabled) {
         return;
@@ -240,9 +233,17 @@ void Update(float dt) {
         ResetAllVars();
     }
 
+    // if paused, don't continue
+    if (timer.IsPaused()) {
+        // DEBUG MESSAGE
+        // print("paused");
+        return;
+    }
+
     // only if the array is not complete, load points
     // this will then set arrayComplete to true so won't reoccur
-    if (!arrayComplete) {
+    // only load if using saving
+    if (useSave && !arrayComplete) {
         // prevent saving the same points
         if (LoadPoints(currentMap) == 0) {
             isSaved = true;
@@ -326,8 +327,8 @@ void Update(float dt) {
     // increment currentLogIndex
     currentLogIndex++;
 
-    // if complete, save the points
-    if (arrayComplete && !isSaved) {
+    // if complete, save the points if using save
+    if (useSave && arrayComplete && !isSaved) {
         if (SavePoints(currentMap) == 0) {
             isSaved = true;
         }

@@ -1,4 +1,10 @@
 // ---------------------------------------------------------
+// save settings
+
+[Setting hidden]
+bool useSave = true;
+
+// ---------------------------------------------------------
 // gap settings
 
 // show gap even if not array complete (for long maps)
@@ -99,7 +105,6 @@ void SetGapAlg(GapAlgorithm newAlgorithm) {
 // number of points per second to check when using modified linear alg
 [Setting hidden]
 uint modLinResolution = 10;
-
 
 // function to load the desynced values
 void LoadAlg() {

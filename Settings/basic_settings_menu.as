@@ -178,4 +178,7 @@ void BasicSettings() {
 
     // checkbox for getGapOverride;
     getGapOverride = UI::Checkbox("Show Gap While Logging", getGapOverride);
+
+    // save toggle
+    useSave = UI::Checkbox("Enable Saving", useSave);
 }
