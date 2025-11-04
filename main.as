@@ -92,8 +92,6 @@ void ResetAllVars() {
 // TODO: fix car finishing early bug as well
 // THIS IS CAUSED BY PAUSING THE GAME
 
-// TODO: fix pause bugs
-
 void Main() {
     // upon loading sets the current config
     SetConfig();
