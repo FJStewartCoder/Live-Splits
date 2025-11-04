@@ -41,11 +41,11 @@ Assume 50ms out per gap so 200ms minimum. Max gap = 100ms (2b)
 
 Some slight alterations
 Write all byte sizes first
-Write all mins at those byte sizes in the order:
-    tStamp
-    x
-    y
-    z
+Write all mins in the following order;
+    uint tStamp
+    int x
+    int y
+    int z
 
 Then write the multiplier for the points
 Finally, write the first point (the starter one as uint, int, int, int)

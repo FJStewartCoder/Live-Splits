@@ -251,10 +251,10 @@ int SavePointsV2(const string&in id) {
 
     // write all mins at the byte sizes
     // these define the offsets
-    saveFile.Write(WriteBytes(data.minTStamp, data.tBytes));
-    saveFile.Write(WriteBytes(data.minX, data.xBytes));
-    saveFile.Write(WriteBytes(data.minY, data.yBytes));
-    saveFile.Write(WriteBytes(data.minZ, data.zBytes));
+    saveFile.Write(data.minTStamp);
+    saveFile.Write(data.minX);
+    saveFile.Write(data.minY);
+    saveFile.Write(data.minZ);
 
     // write the pow10Multipler to interpret the data
     saveFile.Write(data.pow10Multiplier);
