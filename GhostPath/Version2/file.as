@@ -145,15 +145,15 @@ void FinalCompression(NewPoint[]@ newPoints, SaveData @data) {
 uint8 GetNumBytes(int num) {
     // uint8
     if (num < 256) {
-        return 2;
+        return 1;
     }
     // uint16
     if (num < 256 << 8) {
-        return 4;
+        return 2;
     }
     // uint32
     if (num < 256 << 24) {
-        return 8;
+        return 4;
     }
     
     // just no
@@ -189,7 +189,7 @@ void ProcessPoints(NewPoint[]@ newPoints, SaveData @data) {
     // gets byte amounts
     GetByteAmounts(data);
 
-    for (int i = 0; i < newPoints.Length; i++) { print(newPoints[i].Get()); }
+    // print the savedata data
     print(data.Get());
 }
 
@@ -197,13 +197,13 @@ MemoryBuffer WriteBytes(int num, uint8 numBytes) {
     MemoryBuffer buf;
 
     switch (numBytes) {
-        case 2:
+        case 1:
             buf.Write(uint8(num));
             break;
-        case 4:
+        case 2:
             buf.Write(uint16(num));
             break;
-        case 8:
+        case 4:
             buf.Write(uint32(num));
             break;
         default:
@@ -287,32 +287,45 @@ int LoadPointsV2(const string&in id) {
     string filePath = IO::FromStorageFolder(id);
 
     // don't try open the file if it doesn't exist
-    if (!IO::FileExists(filePath)) { return 1; }
+    if (!IO::FileExists(filePath)) {
+        print("No ghost exists for this track");
+        return 1;
+    }
 
     IO::File saveFile(filePath, IO::FileMode::Read);
 
     SaveData data;
 
     // read uint8 version
-    MemoryBuffer @versionData = saveFile.Read(2);
+    MemoryBuffer @versionData = saveFile.Read(1);
     data.version = versionData.ReadUInt8();
 
     // close are return fail
     if (data.version != 2) {
+        print("This file is not version 2");
         saveFile.Close();
         return 1;
     }
 
     // uint32 num points, 4 uint8 for num bytes, 1 uint and 3 ints for min values and uint8 for pow10multiplier
-    MemoryBuffer @headerData = saveFile.Read(8 + (2 * 4) + (8 * 4) + 2);
+    MemoryBuffer @headerData = saveFile.Read(4 + (1 * 4) + (4 * 4) + 1);
 
     // read all data from header
     data.numPoints = headerData.ReadUInt32();
 
     // there are no points so fail
-    if (data.numPoints == 0) { saveFile.Close(); return 1; }
+    if (data.numPoints == 0) {
+        print("No points were found.");
+        saveFile.Close();
+        return 1;
+    }
     // if there are too many points, don't load
-    if (data.numPoints > arrayMaxSize) { saveFile.Close(); return 1; }
+    if (data.numPoints > arrayMaxSize) {
+        print(data.numPoints);
+        print("Too many points found");
+        saveFile.Close();
+        return 1;
+    }
 
     data.tBytes = headerData.ReadUInt8();
     data.xBytes = headerData.ReadUInt8();
@@ -323,6 +336,9 @@ int LoadPointsV2(const string&in id) {
     data.minX = headerData.ReadInt32();
     data.minY = headerData.ReadInt32();
     data.minZ = headerData.ReadInt32();
+
+    // read pow 10 multiplier
+    data.pow10Multiplier = headerData.ReadUInt8();
 
     print("Found " + data.numPoints + " ghost points.");
 
@@ -339,7 +355,7 @@ int LoadPointsV2(const string&in id) {
     int cumZ = 0;
 
     // read the first point from the buffer
-    MemoryBuffer @firstPoint = saveFile.Read(8 * 4);
+    MemoryBuffer @firstPoint = saveFile.Read(4 * 4);
 
     cumTimeStamp = firstPoint.ReadUInt32();
     cumX = firstPoint.ReadInt32();
@@ -359,30 +375,30 @@ int LoadPointsV2(const string&in id) {
 
     for (int i = 1; i < data.numPoints; i++) {
         switch (data.tBytes) {
-            case 2:
+            case 1:
                 uTemp = mainBody.ReadUInt8();
                 break;
-            case 4:
+            case 2:
                 uTemp = mainBody.ReadUInt16();
                 break;
-            case 8:
+            case 4:
                 uTemp = mainBody.ReadUInt32();
                 break;
         }
 
-        cumTimeStamp += uTemp;
+        cumTimeStamp += (uTemp + data.minTStamp);
         ghostPoints[i].timeStamp = cumTimeStamp;
 
         // ----------------------------------------------------  
 
         switch (data.xBytes) {
-            case 2:
+            case 1:
                 iTemp = mainBody.ReadUInt8();
                 break;
-            case 4:
+            case 2:
                 iTemp = mainBody.ReadUInt16();
                 break;
-            case 8:
+            case 4:
                 iTemp = mainBody.ReadUInt32();
                 break;
         }
@@ -394,13 +410,13 @@ int LoadPointsV2(const string&in id) {
         // ----------------------------------------------------  
 
         switch (data.yBytes) {
-            case 2:
+            case 1:
                 iTemp = mainBody.ReadUInt8();
                 break;
-            case 4:
+            case 2:
                 iTemp = mainBody.ReadUInt16();
                 break;
-            case 8:
+            case 4:
                 iTemp = mainBody.ReadUInt32();
                 break;
         }
@@ -412,13 +428,13 @@ int LoadPointsV2(const string&in id) {
         // ----------------------------------------------------  
 
         switch (data.zBytes) {
-            case 2:
+            case 1:
                 iTemp = mainBody.ReadUInt8();
                 break;
-            case 4:
+            case 2:
                 iTemp = mainBody.ReadUInt16();
                 break;
-            case 8:
+            case 4:
                 iTemp = mainBody.ReadUInt32();
                 break;
         }

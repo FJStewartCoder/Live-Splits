@@ -1,4 +1,4 @@
-int SavePoints(const string&in id) {
+int SavePointsV1(const string&in id) {
     // only save is array is complete
     if (!arrayComplete) {
         return 1;
@@ -26,7 +26,7 @@ int SavePoints(const string&in id) {
     return 0;
 }
 
-int LoadPoints(const string&in id) {
+int LoadPointsV1(const string&in id) {
     string filePath = IO::FromStorageFolder(id);
 
     // don't try open the file if it doesn't exist
