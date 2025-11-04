@@ -245,7 +245,7 @@ void Update(float dt) {
     // only load if using saving
     if (useSave && !arrayComplete) {
         // prevent saving the same points
-        if (LoadPoints(currentMap) == 0) {
+        if (LoadPointsV2(currentMap) == 0) {
             isSaved = true;
         }
     }
