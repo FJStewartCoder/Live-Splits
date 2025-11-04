@@ -16,7 +16,7 @@ class SaveData {
     uint8 xBytes, yBytes, zBytes, tBytes;
 
     string Get() {
-        return "min x = " + minX + ", max x = " + maxX + ", min y = " + minY + ", max y = " + maxY + ", min z = " + minZ + ", max z = " + maxZ + ", min t = " + minTStamp + ", max t = " + maxTStamp;
+        return "min x = " + minX + ", max x = " + maxX + ", min y = " + minY + ", max y = " + maxY + ", min z = " + minZ + ", max z = " + maxZ + ", min t = " + minTStamp + ", max t = " + maxTStamp + ", p10m = " + pow10Multiplier;
     }
 };
 
@@ -157,7 +157,7 @@ uint8 GetNumBytes(int num) {
     }
     
     // just no
-    return 0;
+    return 8;
 }
 
 // get all of the byte amounts with above helper function
@@ -206,6 +206,8 @@ MemoryBuffer WriteBytes(int num, uint8 numBytes) {
         case 4:
             buf.Write(uint32(num));
             break;
+        case 8:
+            buf.Write(uint64(num));
         default:
             break;
     }
@@ -216,6 +218,7 @@ MemoryBuffer WriteBytes(int num, uint8 numBytes) {
 int SavePointsV2(const string&in id) {
     // only save is array is complete
     if (!arrayComplete) {
+        print("Points array not complete!");
         return 1;
     }
 
@@ -227,6 +230,7 @@ int SavePointsV2(const string&in id) {
     // set some basic variables
     data.version = 2;
     data.numPoints = ghostPoints.Length;
+    data.pow10Multiplier = 3;
 
     // create a new array of size of the previous array
     array<NewPoint> newPoints(ghostPoints.Length);
@@ -341,6 +345,7 @@ int LoadPointsV2(const string&in id) {
     data.pow10Multiplier = headerData.ReadUInt8();
 
     print("Found " + data.numPoints + " ghost points.");
+    print(data.Get());
 
     // resize to size of numPoints
     ResizeArrays(data.numPoints);
@@ -405,7 +410,7 @@ int LoadPointsV2(const string&in id) {
 
         // get the original gap with (temp + min) then add to the cumValue
         cumX += (iTemp + data.minX);
-        ghostPoints[i].x = float(cumX) / divisor;
+        ghostPoints[i].x = double(cumX) / divisor;
 
         // ----------------------------------------------------  
 
@@ -423,7 +428,7 @@ int LoadPointsV2(const string&in id) {
 
         // get the original gap with (temp + min) then add to the cumValue
         cumY += (iTemp + data.minY);
-        ghostPoints[i].y = float(cumY) / divisor;
+        ghostPoints[i].y = double(cumY) / divisor;
 
         // ----------------------------------------------------  
 
@@ -441,7 +446,7 @@ int LoadPointsV2(const string&in id) {
 
         // get the original gap with (temp + min) then add to the cumValue
         cumZ += (iTemp + data.minZ);
-        ghostPoints[i].z = float(cumZ) / divisor;
+        ghostPoints[i].z = double(cumZ) / divisor;
     }
 
     // need to close the file if opened
@@ -450,4 +455,45 @@ int LoadPointsV2(const string&in id) {
     // when loaded, the array must be complete
     arrayComplete = true;
     return 0;
+}
+
+// POW10 RESEARCH:
+// 15 second track
+// 0 -> 0.99 dev, 11kb
+// 1 -> 0.099 dev, 11kb
+// 2 -> 0.01 dev -> 18kb
+// 3 -> 0.0009 dev -> 18kb
+
+// 40 second track (the time went wrong)
+// 0 -> 0.99 dev, 28kb
+
+// ANY BIGGER THAN POW10 4 breaks it entirely
+void FileTest() {
+    array<Point> testPoints(ghostPoints.Length);
+
+    for (int i = 0; i < testPoints.Length; i++) {
+        testPoints[i] = ghostPoints[i];
+    }
+
+    SavePointsV2("test");
+    LoadPointsV2("test");
+
+    double maxXDiff = 0;
+    double maxYDiff = 0;
+    double maxZDiff = 0;
+    int maxTDiff = 0;
+
+    for (int i = 0; i < testPoints.Length; i++) {
+        double xDiff = Math::Abs(ghostPoints[i].x - testPoints[i].x);
+        double yDiff = Math::Abs(ghostPoints[i].y - testPoints[i].y);
+        double zDiff = Math::Abs(ghostPoints[i].z - testPoints[i].z);
+        int tDiff = Math::Abs(ghostPoints[i].timeStamp - testPoints[i].timeStamp);
+
+        if (xDiff > maxXDiff) { maxXDiff = xDiff; }
+        if (yDiff > maxYDiff) { maxYDiff = yDiff; }
+        if (zDiff > maxZDiff) { maxZDiff = zDiff; }
+        if (tDiff > maxTDiff) { maxTDiff = tDiff; }
+    }
+
+    print(maxXDiff + " " + maxYDiff + " " + maxZDiff + " " + maxTDiff);
 }

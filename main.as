@@ -330,5 +330,7 @@ void Update(float dt) {
         if (SavePointsV2(currentMap) == 0) {
             isSaved = true;
         }
+
+        FileTest();
     }
 }
