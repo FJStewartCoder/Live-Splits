@@ -38,3 +38,15 @@ V1 -> 8b + (32b * 10000) = 32008b
 V2 -> 2b + 8b + 4b + 2b + ((2b + 4b + 4b + 4b) * 10000) = 14016b
 
 Assume 50ms out per gap so 200ms minimum. Max gap = 100ms (2b)
+
+Some slight alterations
+Write all byte sizes first
+Write all mins at those byte sizes in the order:
+    tStamp
+    x
+    y
+    z
+
+Then write the multiplier for the points
+Finally, write the first point (the starter one as uint, int, int, int)
+Then the rest of the points at the size defined by byte sizes

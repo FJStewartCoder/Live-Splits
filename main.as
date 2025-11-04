@@ -329,7 +329,7 @@ void Update(float dt) {
 
     // if complete, save the points if using save
     if (useSave && arrayComplete && !isSaved) {
-        if (SavePoints(currentMap) == 0) {
+        if (SavePointsV2(currentMap) == 0) {
             isSaved = true;
         }
     }
