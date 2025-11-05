@@ -7,11 +7,16 @@ int LoadPoints(const string&in id) {
     IO::File saveFile(filePath, IO::FileMode::Read);
 
     MemoryBuffer @version = saveFile.Read(1);
+    uint8 vNum = version.ReadUInt8();
 
     // determine version and read based on version
-    if (version.ReadUInt8() == 2) {
+    if (vNum == 3) {
         saveFile.Close();
-        return LoadPointsV2(id);
+        return LoadPointsV3(id);
+    }
+    else if (vNum == 2) {
+        saveFile.Close();
+        print("Version 2 files are no supported due to bugs.");
     }
     else {
         saveFile.Close();

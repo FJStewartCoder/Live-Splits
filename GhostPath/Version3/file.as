@@ -6,11 +6,11 @@ class SaveData {
     uint8 pow10Multiplier = 2;
 
     // needed for processing
-    int minX, minY, minZ = 0;
-    int maxX, maxY, maxZ = 0;
+    int64 minX, minY, minZ = 0;
+    int64 maxX, maxY, maxZ = 0;
 
-    uint minTStamp = 0;
-    uint maxTStamp = 0;
+    uint64 minTStamp = 0;
+    uint64 maxTStamp = 0;
 
     // the number of bytes needed to store the maximum value
     uint8 xBytes, yBytes, zBytes, tBytes;
@@ -23,34 +23,49 @@ class SaveData {
         return "min x = " + minX + ", min y = " + minY + ", min z = " + minZ + ", min t = " + minTStamp;
     }
 
+    string GetMax() {
+        return "max x = " + maxX + ", max y = " + maxY + ", max z = " + maxZ + ", max t = " + maxTStamp;
+    }
+
     string GetByteData() {
         return "xbytes: " + xBytes + ", ybytes: " + yBytes + ", zbytes: " + zBytes + ", tbytes: " + tBytes;
     }
 
     string Get() {
-        return GetMiscData() + "\n" + GetMin() + "\n" + GetByteData();
+        return GetMiscData() + "\n" + GetMin() + "\n" + GetMax() + "\n" + GetByteData();
     }
 };
 
 class NewPoint {
     // stores the x, y, z coordinates
-    int x, y, z;
+    int64 x, y, z;
     // stores the timeStamp of these coordinates
     // used to calculate the split
     // int but miliseconds
-    uint timeStamp;
+    uint64 timeStamp;
 
     string Get() {
         return "x = " + x + ", y = " + y + ", z = " + z + ", time = " + timeStamp;
     }
 }
 
+// custom power function to ensure numbers can be big enough
+uint64 Power(uint val, uint idx) {
+    uint64 res = 1;
+    for (int i = 0; i < idx; i++) { res *= val; }
+    return res;
+}
+
+// NEWPOINT AND SAVEDATA ARE DEFINED IN V2 AND ARE NOT DIFFERENT
+
 void ToNewPoints(NewPoint[]@ newPoints, uint multiplier = 1) {
+    uint64 multi = Power(10, multiplier);
+
     for (int i = 0; i < ghostPoints.Length; i++) {
         // convert ghostPoints coordinates and convert to int
-        newPoints[i].x = ghostPoints[i].x * Math::Pow(10, multiplier);
-        newPoints[i].y = ghostPoints[i].y * Math::Pow(10, multiplier);
-        newPoints[i].z = ghostPoints[i].z * Math::Pow(10, multiplier);
+        newPoints[i].x = ghostPoints[i].x * multi;
+        newPoints[i].y = ghostPoints[i].y * multi;
+        newPoints[i].z = ghostPoints[i].z * multi;
 
         // timestamp is the same
         newPoints[i].timeStamp = ghostPoints[i].timeStamp;
@@ -60,8 +75,8 @@ void ToNewPoints(NewPoint[]@ newPoints, uint multiplier = 1) {
 void ConvertToDiff(NewPoint[]@ newPoints) {
     // iterate until one before the end (because we i - 1)
     // have to go in reverse order so that we don't overwrite data we need
-    // iterate all but i == 0
-    for (int i = ghostPoints.Length - 1; i != 0; i--) {
+    // iterate all but i == 1
+    for (int i = ghostPoints.Length - 1; i >= 1; i--) {
         // the current point is the difference between the same point in ghosts - the previous point
         newPoints[i].x = newPoints[i].x - newPoints[i - 1].x;
         newPoints[i].y = newPoints[i].y - newPoints[i - 1].y;
@@ -154,21 +169,19 @@ void FinalCompression(NewPoint[]@ newPoints, SaveData @data) {
     }
 }
 
-uint8 GetNumBytes(int num) {
-    // uint8
-    if (num < (1 << 8)) {
-        return 1;
+uint8 GetNumBytes(int64 num) {
+    uint64 curNum = 1;
+
+    // get number of bytes used to store the value
+    for (uint8 i = 0; i < 8; i++) {
+        // print(curNum + " " + num);
+
+        if (num < curNum) {
+            return i;
+        }
+
+        curNum = curNum << 8;
     }
-    // uint16
-    if (num < (1 << 16)) {
-        return 2;
-    }
-    // uint32
-    if (num < (1 << 32)) {
-        return 4;
-    }
-    
-    // just no
     return 8;
 }
 
@@ -205,29 +218,27 @@ void ProcessPoints(NewPoint[]@ newPoints, SaveData @data) {
     print(data.Get());
 }
 
-MemoryBuffer WriteBytes(int num, uint8 numBytes) {
+MemoryBuffer WriteBytes(int64 num, uint8 numBytes) {
     MemoryBuffer buf;
 
-    switch (numBytes) {
-        case 1:
-            buf.Write(uint8(num));
-            break;
-        case 2:
-            buf.Write(uint16(num));
-            break;
-        case 4:
-            buf.Write(uint32(num));
-            break;
-        case 8:
-            buf.Write(uint64(num));
-        default:
-            break;
+    // write the whole number int 8bit sections
+    // so shift by some multiple of 8 then && by 11111111 so that only 1s are kept
+    // example:
+    // 10101010 10101010 10101010
+    // shift by (3 - 1) * 8
+
+    uint8 saveNum;
+
+    // start at one otherwise the the first value will be 0 but include the last num
+    for (uint8 i = 1; i <= numBytes; i++) {
+        saveNum = (num >> ((numBytes - i) * 8)) & 0b11111111;
+        buf.Write(saveNum);
     }
 
     return buf;
 }
 
-int SavePointsV2(const string&in id) {
+int SavePointsV3(const string&in id) {
     // only save is array is complete
     if (!arrayComplete) {
         print("Points array not complete!");
@@ -240,7 +251,7 @@ int SavePointsV2(const string&in id) {
     SaveData data;
 
     // set some basic variables
-    data.version = 2;
+    data.version = 3;
     data.numPoints = ghostPoints.Length;
     data.pow10Multiplier = 2;
 
@@ -299,7 +310,27 @@ int SavePointsV2(const string&in id) {
     return 0;
 }
 
-int LoadPointsV2(const string&in id) {
+uint64 ReadBytes(MemoryBuffer @buf, uint8 numBytes) {
+    uint64 num = 0;
+
+    // example 11110000 00111100 00001111
+    // Read8 = 11110000
+    // num = 00000000 00000000 00000000
+    // shift num 8 * 2 is needed
+
+    uint64 readData;
+
+    // i is 1 to numBytes so it shifts correct number of times
+    for (uint8 i = 1; i <= numBytes; i++) {
+        readData = buf.ReadUInt8();
+        // need to use | so that the numbers are combined
+        num = num | (readData << ((numBytes - i) * 8));
+    }
+
+    return num;
+}
+
+int LoadPointsV3(const string&in id) {
     string filePath = IO::FromStorageFolder(id);
 
     // don't try open the file if it doesn't exist
@@ -317,14 +348,14 @@ int LoadPointsV2(const string&in id) {
     data.version = versionData.ReadUInt8();
 
     // close are return fail
-    if (data.version != 2) {
-        print("This file is not version 2");
+    if (data.version != 3) {
+        print("This file is not version 3");
         saveFile.Close();
         return 1;
     }
 
-    // uint32 num points, 4 uint8 for num bytes, 1 uint and 3 ints for min values and uint8 for pow10multiplier
-    MemoryBuffer @headerData = saveFile.Read(4 + (1 * 4) + (4 * 4) + 1);
+    // uint32 num points, 4 uint8 for num bytes, 1 uint64 and 3 int64 for min values and uint8 for pow10multiplier
+    MemoryBuffer @headerData = saveFile.Read(4 + (1 * 4) + (8 * 4) + 1);
 
     // read all data from header
     data.numPoints = headerData.ReadUInt32();
@@ -337,7 +368,6 @@ int LoadPointsV2(const string&in id) {
     }
     // if there are too many points, don't load
     if (data.numPoints > arrayMaxSize) {
-        print(data.numPoints);
         print("Too many points found");
         saveFile.Close();
         return 1;
@@ -348,10 +378,10 @@ int LoadPointsV2(const string&in id) {
     data.yBytes = headerData.ReadUInt8();
     data.zBytes = headerData.ReadUInt8();
 
-    data.minTStamp = headerData.ReadUInt32();
-    data.minX = headerData.ReadInt32();
-    data.minY = headerData.ReadInt32();
-    data.minZ = headerData.ReadInt32();
+    data.minTStamp = headerData.ReadUInt64();
+    data.minX = headerData.ReadInt64();
+    data.minY = headerData.ReadInt64();
+    data.minZ = headerData.ReadInt64();
 
     // read pow 10 multiplier
     data.pow10Multiplier = headerData.ReadUInt8();
@@ -363,26 +393,26 @@ int LoadPointsV2(const string&in id) {
     ResizeArrays(data.numPoints);
 
     // get the multiplier
-    int divisor = Math::Pow(10, data.pow10Multiplier);
+    uint64 divisor = Power(10, data.pow10Multiplier);
 
     // store all cumulative values
-    uint cumTimeStamp = 0;
-    int cumX = 0;
-    int cumY = 0;
-    int cumZ = 0;
+    uint64 cumTimeStamp = 0;
+    int64 cumX = 0;
+    int64 cumY = 0;
+    int64 cumZ = 0;
 
     // read the first point from the buffer
-    MemoryBuffer @firstPoint = saveFile.Read(4 * 4);
+    MemoryBuffer @firstPoint = saveFile.Read(8 * 4);
 
-    cumTimeStamp = firstPoint.ReadUInt32();
-    cumX = firstPoint.ReadInt32();
-    cumY = firstPoint.ReadInt32();
-    cumZ = firstPoint.ReadInt32();
+    cumTimeStamp = firstPoint.ReadUInt64();
+    cumX = firstPoint.ReadInt64();
+    cumY = firstPoint.ReadInt64();
+    cumZ = firstPoint.ReadInt64();
 
     ghostPoints[0].timeStamp = cumTimeStamp;
-    ghostPoints[0].x = float(cumX) / divisor;
-    ghostPoints[0].y = float(cumY) / divisor;
-    ghostPoints[0].z = float(cumZ) / divisor;
+    ghostPoints[0].x = double(cumX) / divisor;
+    ghostPoints[0].y = double(cumY) / divisor;
+    ghostPoints[0].z = double(cumZ) / divisor;
 
     // read all of the points based on gathered data
     MemoryBuffer @mainBody = saveFile.Read(data.numPoints * (data.tBytes + data.xBytes + data.yBytes + data.zBytes));
@@ -391,40 +421,14 @@ int LoadPointsV2(const string&in id) {
     int64 iTemp;
 
     for (int i = 1; i < data.numPoints; i++) {
-        switch (data.tBytes) {
-            case 1:
-                uTemp = mainBody.ReadUInt8();
-                break;
-            case 2:
-                uTemp = mainBody.ReadUInt16();
-                break;
-            case 4:
-                uTemp = mainBody.ReadUInt32();
-                break;
-            case 8:
-                iTemp = mainBody.ReadUInt64();
-                break;
-        }
+        uTemp = ReadBytes(mainBody, data.tBytes);
 
         cumTimeStamp += (uTemp + data.minTStamp);
         ghostPoints[i].timeStamp = cumTimeStamp;
 
         // ----------------------------------------------------  
 
-        switch (data.xBytes) {
-            case 1:
-                iTemp = mainBody.ReadUInt8();
-                break;
-            case 2:
-                iTemp = mainBody.ReadUInt16();
-                break;
-            case 4:
-                iTemp = mainBody.ReadUInt32();
-                break;
-            case 8:
-                iTemp = mainBody.ReadUInt64();
-                break;
-        }
+        iTemp = ReadBytes(mainBody, data.xBytes);
 
         // get the original gap with (temp + min) then add to the cumValue
         cumX += (iTemp + data.minX);
@@ -432,20 +436,7 @@ int LoadPointsV2(const string&in id) {
 
         // ----------------------------------------------------  
 
-        switch (data.yBytes) {
-            case 1:
-                iTemp = mainBody.ReadUInt8();
-                break;
-            case 2:
-                iTemp = mainBody.ReadUInt16();
-                break;
-            case 4:
-                iTemp = mainBody.ReadUInt32();
-                break;
-            case 8:
-                iTemp = mainBody.ReadUInt64();
-                break;
-        }
+        iTemp = ReadBytes(mainBody, data.yBytes);
 
         // get the original gap with (temp + min) then add to the cumValue
         cumY += (iTemp + data.minY);
@@ -453,20 +444,7 @@ int LoadPointsV2(const string&in id) {
 
         // ----------------------------------------------------  
 
-        switch (data.zBytes) {
-            case 1:
-                iTemp = mainBody.ReadUInt8();
-                break;
-            case 2:
-                iTemp = mainBody.ReadUInt16();
-                break;
-            case 4:
-                iTemp = mainBody.ReadUInt32();
-                break;
-            case 8:
-                iTemp = mainBody.ReadUInt64();
-                break;
-        }
+        iTemp = ReadBytes(mainBody, data.zBytes);
 
         // get the original gap with (temp + min) then add to the cumValue
         cumZ += (iTemp + data.minZ);
@@ -490,17 +468,15 @@ int LoadPointsV2(const string&in id) {
 
 // 40 second track (the time went wrong)
 // 0 -> 0.99 dev, 28kb
-
-// ANY BIGGER THAN POW10 4 breaks it entirely
-void FileTest() {
+void FileTestV3() {
     array<Point> testPoints(ghostPoints.Length);
 
     for (int i = 0; i < testPoints.Length; i++) {
         testPoints[i] = ghostPoints[i];
     }
 
-    SavePointsV2("test");
-    LoadPointsV2("test");
+    SavePointsV3("test");
+    LoadPointsV3("test");
 
     double maxXDiff = 0;
     double maxYDiff = 0;
@@ -518,7 +494,8 @@ void FileTest() {
         if (zDiff > maxZDiff) { maxZDiff = zDiff; }
         if (tDiff > maxTDiff) { maxTDiff = tDiff; }
 
-        print(ghostPoints[i].timeStamp + " " + testPoints[i].timeStamp);
+        // print(ghostPoints[i].timeStamp + " " + testPoints[i].timeStamp);
+        // print(ghostPoints[i].Get() + " " + testPoints[i].Get());
     }
 
     print(maxXDiff + " " + maxYDiff + " " + maxZDiff + " " + maxTDiff);
