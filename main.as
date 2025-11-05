@@ -90,7 +90,6 @@ void ResetAllVars() {
 // this is so that the cache array doesn't continue to grow because new IDs keep getting added
 
 // TODO: fix car finishing early bug as well
-// THIS IS CAUSED BY PAUSING THE GAME
 
 void Main() {
     // upon loading sets the current config
