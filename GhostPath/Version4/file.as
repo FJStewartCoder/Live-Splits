@@ -1,4 +1,4 @@
-namespace V3 {
+namespace V4 {
     class SaveData {
         uint8 version = 0;
         uint numPoints = 0;
@@ -252,7 +252,7 @@ namespace V3 {
         SaveData data;
 
         // set some basic variables
-        data.version = 3;
+        data.version = 4;
         data.numPoints = ghostPoints.Length;
         data.pow10Multiplier = 2;
 

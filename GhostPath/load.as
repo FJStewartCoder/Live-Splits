@@ -12,7 +12,7 @@ int LoadPoints(const string&in id) {
     // determine version and read based on version
     if (vNum == 3) {
         saveFile.Close();
-        return LoadPointsV3(id);
+        return V3::LoadPoints(id);
     }
     else if (vNum == 2) {
         saveFile.Close();
@@ -20,7 +20,7 @@ int LoadPoints(const string&in id) {
     }
     else {
         saveFile.Close();
-        return LoadPointsV1(id);
+        return V1::LoadPoints(id);
     }
 
     // no determined version

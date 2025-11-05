@@ -326,7 +326,7 @@ void Update(float dt) {
 
     // if complete, save the points if using save
     if (useSave && arrayComplete && !isSaved) {
-        if (SavePointsV3(currentMap) == 0) {
+        if (V3::SavePoints(currentMap) == 0) {
             isSaved = true;
         }
 
