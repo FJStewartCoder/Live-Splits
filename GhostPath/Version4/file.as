@@ -175,9 +175,7 @@ namespace V4 {
         print(data.Get());
     }
 
-    MemoryBuffer WriteBytes(int64 num) {
-        MemoryBuffer buf;
-
+    void WriteBytes(MemoryBuffer @buf, int64 num, uint8 numBytes) {
         // write the whole number int 8bit sections
         // so shift by some multiple of 8 then && by 11111111 so that only 1s are kept
         // example:
@@ -186,18 +184,36 @@ namespace V4 {
 
         uint8 saveNum;
 
-        // get the number of bytes for this particular number
-        uint8 numBytes = GetNumBytes(num);
-
-        // write the number of bytes before the actual number
-        buf.Write(numBytes);
-
         // start at one otherwise the the first value will be 0 but include the last num
         for (uint8 i = 1; i <= numBytes; i++) {
             saveNum = (num >> ((numBytes - i) * 8)) & 0b11111111;
             buf.Write(saveNum);
         }
+    }
 
+    MemoryBuffer WritePoint(NewPoint @p) {
+        MemoryBuffer buf;
+
+        uint64 biggest = p.x;
+
+        // get the biggest value
+        if (p.y > biggest) { biggest = p.y; }
+        if (p.z > biggest) { biggest = p.z; }
+        if (p.timeStamp > biggest) { biggest = p.timeStamp; }
+
+        // get the number of bytes for the biggest value
+        uint8 numBytes = GetNumBytes(biggest);
+
+        // write the number of bytes then the point
+        buf.Write(numBytes);
+
+        // write all of the values
+        WriteBytes(buf, p.timeStamp, numBytes);
+        WriteBytes(buf, p.x, numBytes);
+        WriteBytes(buf, p.y, numBytes);
+        WriteBytes(buf, p.z, numBytes);
+
+        // return the buffer
         return buf;
     }
 
@@ -216,7 +232,7 @@ namespace V4 {
         // set some basic variables
         data.version = 4;
         data.numPoints = ghostPoints.Length;
-        data.pow10Multiplier = 10;
+        data.pow10Multiplier = 2;
 
         // create a new array of size of the previous array
         array<NewPoint> newPoints(ghostPoints.Length);
@@ -251,10 +267,7 @@ namespace V4 {
 
         // write each point
         for (int i = 1; i < newPoints.Length; i++) {
-            saveFile.Write(WriteBytes(newPoints[i].timeStamp));
-            saveFile.Write(WriteBytes(newPoints[i].x));
-            saveFile.Write(WriteBytes(newPoints[i].y));
-            saveFile.Write(WriteBytes(newPoints[i].z));
+            saveFile.Write(WritePoint(newPoints[i]));
         }
 
         // ---------------------------------------------------
@@ -267,7 +280,7 @@ namespace V4 {
         return 0;
     }
 
-    uint64 ReadBytes(MemoryBuffer @buf) {
+    uint64 ReadBytes(MemoryBuffer @buf, uint8 numBytes) {
         uint64 num = 0;
 
         // example 11110000 00111100 00001111
@@ -277,9 +290,6 @@ namespace V4 {
 
         uint64 readData;
 
-        // get the number of bytes for this particular value
-        uint8 numBytes = buf.ReadUInt8();
-
         // i is 1 to numBytes so it shifts correct number of times
         for (uint8 i = 1; i <= numBytes; i++) {
             readData = buf.ReadUInt8();
@@ -288,6 +298,20 @@ namespace V4 {
         }
 
         return num;
+    }
+
+    NewPoint ReadPoint(MemoryBuffer @buf) {
+        uint8 numBytes = buf.ReadUInt8();
+
+        NewPoint p;
+
+        // read all of the data using the numBytes
+        p.timeStamp = ReadBytes(buf, numBytes);
+        p.x = ReadBytes(buf, numBytes);
+        p.y = ReadBytes(buf, numBytes);
+        p.z = ReadBytes(buf, numBytes);
+
+        return p;
     }
 
     int LoadPoints(const string&in id) {
@@ -373,37 +397,30 @@ namespace V4 {
         // read until the end       
         MemoryBuffer @mainBody = saveFile.Read(saveFile.Size() - saveFile.Pos());
 
-        uint64 uTemp;
-        int64 iTemp;
-
         for (int i = 1; i < data.numPoints; i++) {
-            uTemp = ReadBytes(mainBody);
+            // read the point
+            NewPoint p = ReadPoint(mainBody);
 
-            cumTimeStamp += (uTemp + data.minTStamp);
+            // process the point
+            cumTimeStamp += (p.timeStamp + data.minTStamp);
             ghostPoints[i].timeStamp = cumTimeStamp;
 
             // ----------------------------------------------------  
 
-            iTemp = ReadBytes(mainBody);
-
             // get the original gap with (temp + min) then add to the cumValue
-            cumX += (iTemp + data.minX);
+            cumX += (p.x + data.minX);
             ghostPoints[i].x = double(cumX) / divisor;
 
             // ----------------------------------------------------  
 
-            iTemp = ReadBytes(mainBody);
-
             // get the original gap with (temp + min) then add to the cumValue
-            cumY += (iTemp + data.minY);
+            cumY += (p.y + data.minY);
             ghostPoints[i].y = double(cumY) / divisor;
 
             // ----------------------------------------------------  
 
-            iTemp = ReadBytes(mainBody);
-
             // get the original gap with (temp + min) then add to the cumValue
-            cumZ += (iTemp + data.minZ);
+            cumZ += (p.z + data.minZ);
             ghostPoints[i].z = double(cumZ) / divisor;
         }
 

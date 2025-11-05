@@ -331,6 +331,6 @@ void Update(float dt) {
         }
 
         // FOR DEBUG
-        // V4::FileTest();
+        V4::FileTest();
     }
 }
