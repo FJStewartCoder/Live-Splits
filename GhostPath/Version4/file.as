@@ -8,13 +8,7 @@ namespace V4 {
 
         // needed for processing
         int64 minX, minY, minZ = 0;
-        int64 maxX, maxY, maxZ = 0;
-
         uint64 minTStamp = 0;
-        uint64 maxTStamp = 0;
-
-        // the number of bytes needed to store the maximum value
-        uint8 xBytes, yBytes, zBytes, tBytes;
 
         string GetMiscData() {
             return "version: " + version + ", points: " + numPoints + ", p10m: " + pow10Multiplier;
@@ -24,16 +18,8 @@ namespace V4 {
             return "min x = " + minX + ", min y = " + minY + ", min z = " + minZ + ", min t = " + minTStamp;
         }
 
-        string GetMax() {
-            return "max x = " + maxX + ", max y = " + maxY + ", max z = " + maxZ + ", max t = " + maxTStamp;
-        }
-
-        string GetByteData() {
-            return "xbytes: " + xBytes + ", ybytes: " + yBytes + ", zbytes: " + zBytes + ", tbytes: " + tBytes;
-        }
-
         string Get() {
-            return GetMiscData() + "\n" + GetMin() + "\n" + GetMax() + "\n" + GetByteData();
+            return GetMiscData() + "\n" + GetMin();
         }
     };
 
@@ -88,7 +74,7 @@ namespace V4 {
         }
     }
 
-    void GetMinMax(NewPoint[]@ newPoints, SaveData @data) {
+    void GetMin(NewPoint[]@ newPoints, SaveData @data) {
         for (int i = 1; i < newPoints.Length; i++) {
             // if first iteration all min and max should be these values
             if (i == 1) {
@@ -96,31 +82,21 @@ namespace V4 {
                 data.minY = newPoints[i].y;
                 data.minZ = newPoints[i].z;
 
-                data.maxX = newPoints[i].x;
-                data.maxY = newPoints[i].y;
-                data.maxZ = newPoints[i].z;
-
                 data.minTStamp = newPoints[i].timeStamp;
-                data.minTStamp = newPoints[i].timeStamp;
-
                 continue;
             }
 
             // min max
             if (newPoints[i].x < data.minX) { data.minX = newPoints[i].x; }
-            else if (newPoints[i].x > data.maxX) { data.maxX = newPoints[i].x; }
 
             // min max
             if (newPoints[i].y < data.minY) { data.minY = newPoints[i].y; }
-            else if (newPoints[i].y > data.maxY) { data.maxY = newPoints[i].y; }
 
             // min max
             if (newPoints[i].z < data.minZ) { data.minZ = newPoints[i].z; }
-            else if (newPoints[i].z > data.maxZ) { data.maxZ = newPoints[i].z; }
 
             // min max
             if (newPoints[i].timeStamp < data.minTStamp) { data.minTStamp = newPoints[i].timeStamp; }
-            else if (newPoints[i].timeStamp > data.maxTStamp) { data.maxTStamp = newPoints[i].timeStamp; }
         }
 
     }
@@ -130,10 +106,7 @@ namespace V4 {
     // if min == 0 then do nothing
 
     // this means all scenarios subtract minX from everything then nothing else
-    void FinalCompression(NewPoint[]@ newPoints, SaveData @data) {
-        // transform max to the max subtract the min which is subtracted from all
-        data.maxTStamp -= data.minTStamp;
-        
+    void FinalCompression(NewPoint[]@ newPoints, SaveData @data) {   
         // convert all timestamps to be subtract the min value
         for (int i = 1; i < newPoints.Length; i++) {
             newPoints[i].timeStamp -= data.minTStamp;
@@ -142,8 +115,6 @@ namespace V4 {
         // first iteration of compression
         if (data.minX != 0) {
             // subtract min from all (equivalent of adding the positive to all)
-            data.maxX -= data.minX;
-
             for (int i = 1; i < newPoints.Length; i++) {
                 newPoints[i].x -= data.minX;
             }
@@ -152,8 +123,6 @@ namespace V4 {
         // first iteration of compression
         if (data.minY != 0) {
             // subtract min from all (equivalent of adding the positive to all)
-            data.maxY -= data.minY;
-
             for (int i = 1; i < newPoints.Length; i++) {
                 newPoints[i].y -= data.minY;
             }
@@ -162,8 +131,6 @@ namespace V4 {
         // first iteration of compression
         if (data.minZ != 0) {
             // subtract min from all (equivalent of adding the positive to all)
-            data.maxZ -= data.minZ;
-
             for (int i = 1; i < newPoints.Length; i++) {
                 newPoints[i].z -= data.minZ;
             }
@@ -186,14 +153,6 @@ namespace V4 {
         return 8;
     }
 
-    // get all of the byte amounts with above helper function
-    void GetByteAmounts(SaveData @data) {
-        data.xBytes = GetNumBytes(data.maxX);
-        data.yBytes = GetNumBytes(data.maxY);
-        data.zBytes = GetNumBytes(data.maxZ);
-        data.tBytes = GetNumBytes(data.maxTStamp);
-    }
-
     void ProcessPoints(NewPoint[]@ newPoints, SaveData @data) {
         // if not the right size, resize
         if (newPoints.Length != ghostPoints.Length) {
@@ -207,19 +166,16 @@ namespace V4 {
         ConvertToDiff(newPoints);
 
         // get all min and max values
-        GetMinMax(newPoints, data);
+        GetMin(newPoints, data);
 
         // final process of compression
         FinalCompression(newPoints, data);
-
-        // gets byte amounts
-        GetByteAmounts(data);
 
         // print the savedata data
         print(data.Get());
     }
 
-    MemoryBuffer WriteBytes(int64 num, uint8 numBytes) {
+    MemoryBuffer WriteBytes(int64 num) {
         MemoryBuffer buf;
 
         // write the whole number int 8bit sections
@@ -229,6 +185,12 @@ namespace V4 {
         // shift by (3 - 1) * 8
 
         uint8 saveNum;
+
+        // get the number of bytes for this particular number
+        uint8 numBytes = GetNumBytes(num);
+
+        // write the number of bytes before the actual number
+        buf.Write(numBytes);
 
         // start at one otherwise the the first value will be 0 but include the last num
         for (uint8 i = 1; i <= numBytes; i++) {
@@ -254,7 +216,7 @@ namespace V4 {
         // set some basic variables
         data.version = 4;
         data.numPoints = ghostPoints.Length;
-        data.pow10Multiplier = 2;
+        data.pow10Multiplier = 10;
 
         // create a new array of size of the previous array
         array<NewPoint> newPoints(ghostPoints.Length);
@@ -270,12 +232,6 @@ namespace V4 {
 
         // write the number of points
         saveFile.Write(data.numPoints);
-
-        // write all byte amounts
-        saveFile.Write(data.tBytes);
-        saveFile.Write(data.xBytes);
-        saveFile.Write(data.yBytes);
-        saveFile.Write(data.zBytes);
 
         // write all mins at the byte sizes
         // these define the offsets
@@ -295,10 +251,10 @@ namespace V4 {
 
         // write each point
         for (int i = 1; i < newPoints.Length; i++) {
-            saveFile.Write(WriteBytes(newPoints[i].timeStamp, data.tBytes));
-            saveFile.Write(WriteBytes(newPoints[i].x, data.xBytes));
-            saveFile.Write(WriteBytes(newPoints[i].y, data.yBytes));
-            saveFile.Write(WriteBytes(newPoints[i].z, data.zBytes));
+            saveFile.Write(WriteBytes(newPoints[i].timeStamp));
+            saveFile.Write(WriteBytes(newPoints[i].x));
+            saveFile.Write(WriteBytes(newPoints[i].y));
+            saveFile.Write(WriteBytes(newPoints[i].z));
         }
 
         // ---------------------------------------------------
@@ -311,7 +267,7 @@ namespace V4 {
         return 0;
     }
 
-    uint64 ReadBytes(MemoryBuffer @buf, uint8 numBytes) {
+    uint64 ReadBytes(MemoryBuffer @buf) {
         uint64 num = 0;
 
         // example 11110000 00111100 00001111
@@ -320,6 +276,9 @@ namespace V4 {
         // shift num 8 * 2 is needed
 
         uint64 readData;
+
+        // get the number of bytes for this particular value
+        uint8 numBytes = buf.ReadUInt8();
 
         // i is 1 to numBytes so it shifts correct number of times
         for (uint8 i = 1; i <= numBytes; i++) {
@@ -349,14 +308,14 @@ namespace V4 {
         data.version = versionData.ReadUInt8();
 
         // close are return fail
-        if (data.version != 3) {
-            print("This file is not version 3");
+        if (data.version != 4) {
+            print("This file is not version 4");
             saveFile.Close();
             return 1;
         }
 
-        // uint32 num points, 4 uint8 for num bytes, 1 uint64 and 3 int64 for min values and uint8 for pow10multiplier
-        MemoryBuffer @headerData = saveFile.Read(4 + (1 * 4) + (8 * 4) + 1);
+        // uint32 num points, 1 uint64 and 3 int64 for min values and uint8 for pow10multiplier
+        MemoryBuffer @headerData = saveFile.Read(4 + (8 * 4) + 1);
 
         // read all data from header
         data.numPoints = headerData.ReadUInt32();
@@ -373,11 +332,6 @@ namespace V4 {
             saveFile.Close();
             return 1;
         }
-
-        data.tBytes = headerData.ReadUInt8();
-        data.xBytes = headerData.ReadUInt8();
-        data.yBytes = headerData.ReadUInt8();
-        data.zBytes = headerData.ReadUInt8();
 
         data.minTStamp = headerData.ReadUInt64();
         data.minX = headerData.ReadInt64();
@@ -416,20 +370,21 @@ namespace V4 {
         ghostPoints[0].z = double(cumZ) / divisor;
 
         // read all of the points based on gathered data
-        MemoryBuffer @mainBody = saveFile.Read(data.numPoints * (data.tBytes + data.xBytes + data.yBytes + data.zBytes));
+        // read until the end       
+        MemoryBuffer @mainBody = saveFile.Read(saveFile.Size() - saveFile.Pos());
 
         uint64 uTemp;
         int64 iTemp;
 
         for (int i = 1; i < data.numPoints; i++) {
-            uTemp = ReadBytes(mainBody, data.tBytes);
+            uTemp = ReadBytes(mainBody);
 
             cumTimeStamp += (uTemp + data.minTStamp);
             ghostPoints[i].timeStamp = cumTimeStamp;
 
             // ----------------------------------------------------  
 
-            iTemp = ReadBytes(mainBody, data.xBytes);
+            iTemp = ReadBytes(mainBody);
 
             // get the original gap with (temp + min) then add to the cumValue
             cumX += (iTemp + data.minX);
@@ -437,7 +392,7 @@ namespace V4 {
 
             // ----------------------------------------------------  
 
-            iTemp = ReadBytes(mainBody, data.yBytes);
+            iTemp = ReadBytes(mainBody);
 
             // get the original gap with (temp + min) then add to the cumValue
             cumY += (iTemp + data.minY);
@@ -445,7 +400,7 @@ namespace V4 {
 
             // ----------------------------------------------------  
 
-            iTemp = ReadBytes(mainBody, data.zBytes);
+            iTemp = ReadBytes(mainBody);
 
             // get the original gap with (temp + min) then add to the cumValue
             cumZ += (iTemp + data.minZ);

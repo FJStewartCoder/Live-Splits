@@ -101,7 +101,7 @@ namespace V3 {
                 data.maxZ = newPoints[i].z;
 
                 data.minTStamp = newPoints[i].timeStamp;
-                data.minTStamp = newPoints[i].timeStamp;
+                data.maxTStamp = newPoints[i].timeStamp;
 
                 continue;
             }
