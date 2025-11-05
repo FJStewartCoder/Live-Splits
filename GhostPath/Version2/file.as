@@ -15,8 +15,20 @@ class SaveData {
     // the number of bytes needed to store the maximum value
     uint8 xBytes, yBytes, zBytes, tBytes;
 
+    string GetMiscData() {
+        return "version: " + version + ", points: " + numPoints + ", p10m: " + pow10Multiplier;
+    }
+
+    string GetMin() {
+        return "min x = " + minX + ", min y = " + minY + ", min z = " + minZ + ", min t = " + minTStamp;
+    }
+
+    string GetByteData() {
+        return "xbytes: " + xBytes + ", ybytes: " + yBytes + ", zbytes: " + zBytes + ", tbytes: " + tBytes;
+    }
+
     string Get() {
-        return "min x = " + minX + ", max x = " + maxX + ", min y = " + minY + ", max y = " + maxY + ", min z = " + minZ + ", max z = " + maxZ + ", min t = " + minTStamp + ", max t = " + maxTStamp + ", p10m = " + pow10Multiplier;
+        return GetMiscData() + "\n" + GetMin() + "\n" + GetByteData();
     }
 };
 
@@ -144,15 +156,15 @@ void FinalCompression(NewPoint[]@ newPoints, SaveData @data) {
 
 uint8 GetNumBytes(int num) {
     // uint8
-    if (num < 256) {
+    if (num < (1 << 8)) {
         return 1;
     }
     // uint16
-    if (num < 256 << 8) {
+    if (num < (1 << 16)) {
         return 2;
     }
     // uint32
-    if (num < 256 << 24) {
+    if (num < (1 << 32)) {
         return 4;
     }
     
@@ -230,7 +242,7 @@ int SavePointsV2(const string&in id) {
     // set some basic variables
     data.version = 2;
     data.numPoints = ghostPoints.Length;
-    data.pow10Multiplier = 3;
+    data.pow10Multiplier = 2;
 
     // create a new array of size of the previous array
     array<NewPoint> newPoints(ghostPoints.Length);
@@ -389,6 +401,9 @@ int LoadPointsV2(const string&in id) {
             case 4:
                 uTemp = mainBody.ReadUInt32();
                 break;
+            case 8:
+                iTemp = mainBody.ReadUInt64();
+                break;
         }
 
         cumTimeStamp += (uTemp + data.minTStamp);
@@ -405,6 +420,9 @@ int LoadPointsV2(const string&in id) {
                 break;
             case 4:
                 iTemp = mainBody.ReadUInt32();
+                break;
+            case 8:
+                iTemp = mainBody.ReadUInt64();
                 break;
         }
 
@@ -424,6 +442,9 @@ int LoadPointsV2(const string&in id) {
             case 4:
                 iTemp = mainBody.ReadUInt32();
                 break;
+            case 8:
+                iTemp = mainBody.ReadUInt64();
+                break;
         }
 
         // get the original gap with (temp + min) then add to the cumValue
@@ -441,6 +462,9 @@ int LoadPointsV2(const string&in id) {
                 break;
             case 4:
                 iTemp = mainBody.ReadUInt32();
+                break;
+            case 8:
+                iTemp = mainBody.ReadUInt64();
                 break;
         }
 
@@ -493,6 +517,8 @@ void FileTest() {
         if (yDiff > maxYDiff) { maxYDiff = yDiff; }
         if (zDiff > maxZDiff) { maxZDiff = zDiff; }
         if (tDiff > maxTDiff) { maxTDiff = tDiff; }
+
+        print(ghostPoints[i].timeStamp + " " + testPoints[i].timeStamp);
     }
 
     print(maxXDiff + " " + maxYDiff + " " + maxZDiff + " " + maxTDiff);

@@ -331,6 +331,7 @@ void Update(float dt) {
             isSaved = true;
         }
 
-        FileTest();
+        // FOR DEBUG
+        // FileTest();
     }
 }
