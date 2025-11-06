@@ -27,7 +27,67 @@ int GetPoints() {
         ghostPoints.InsertLast(newPoint);
     }
 
+    // gives 0.001s precision
+    InterpolateGhost(49);
+    print("Complete");
+
     arrayComplete = true;
 
     return 0;
+}
+
+// could use this for a non linear transform to the points
+float InterpolationFunc(float num) {
+    return num;
+}
+
+void InterpolateGhost(uint levels = 2) {
+    // adding n number of points between each point
+    // we will end up with ((len * 2) - 1)
+    // example of 3 x n x n x (x is original, n is new) 3 -> 5
+    // example of n new ones x nn x nn x 3 -> 7 ((len * (levels + 1)) - levels)
+
+    uint newSize = (ghostPoints.Length * (levels + 1)) - levels;
+
+    print("Converting ghost points of length " + ghostPoints.Length + " into length " + newSize);
+    print((float(ghostPoints[1].timeStamp - ghostPoints[0].timeStamp) / (levels + 1)) / 1000);
+
+    // make new array of new size
+    array<Point> newGhostPoints(newSize);
+
+    uint curPtr = 0;
+
+    Point curPoint;
+    Point nextPoint = ghostPoints[0];
+
+    for (uint i = 0; i < ghostPoints.Length - 1; i++) {
+        // swap the points
+        curPoint = nextPoint;
+        nextPoint = ghostPoints[i + 1];
+
+        // add the current point
+        newGhostPoints[curPtr++] = curPoint;
+
+        // get interpolated points
+        // if levels = 1 (1 new point) we need the point 1/2
+        // levels = 2, we need points 1/3 and 2/3
+        for (uint j = 1; j < levels + 1; j++) {
+            // get the multiplier
+            float multiplier = double(j) / (levels + 1);
+
+            newGhostPoints[curPtr].x = ((nextPoint.x - curPoint.x) * multiplier) + curPoint.x;
+            newGhostPoints[curPtr].y = ((nextPoint.y - curPoint.y) * multiplier) + curPoint.y;
+            newGhostPoints[curPtr].z = ((nextPoint.z - curPoint.z) * multiplier) + curPoint.z;
+            newGhostPoints[curPtr].timeStamp = ((nextPoint.timeStamp - curPoint.timeStamp) * multiplier) + curPoint.timeStamp;
+
+            // increment the current pointer once new point has been added
+            curPtr++;
+        }
+    }
+
+    // add the last point after the loop
+    newGhostPoints[newGhostPoints.Length - 1] = nextPoint;
+
+    // set ghost points to be new ghost points
+    ghostPoints = newGhostPoints;
 }
