@@ -117,12 +117,7 @@ void RenderMenu() {
         // toggle for gap override
         if (UI::MenuItem("Gap While Log", "", getGapOverride)) {
             getGapOverride = !getGapOverride;
-        }
-
-        // deletes all ghost point saves from this map
-        if (UI::MenuItem("Delete Saved Ghost", "")) {
-            DeleteById(currentMap);
-        }        
+        }  
 
         UI::EndMenu();
     }

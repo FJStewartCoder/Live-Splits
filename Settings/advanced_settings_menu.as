@@ -133,13 +133,6 @@ void CacheSettings() {
     useCacheApproximation = UI::Checkbox("Enable Cache Approximation", useCacheApproximation);
 }
 
-void FileSettings() {
-    // deletes all ghost point saves
-    if (UI::Button("Delete All Saved Ghosts")) {
-        DeleteAll();
-    }
-}
-
 // ACCESS TO EVERY SETTING IN DETAIL
 
 [SettingsTab name="Advanced" order="1"]
@@ -160,12 +153,6 @@ void AdvancedSettings() {
 
     if (UI::BeginTabItem("Cache")) {
         CacheSettings();
-
-        UI::EndTabItem();
-    }
-
-    if (UI::BeginTabItem("File")) {
-        FileSettings();
 
         UI::EndTabItem();
     }

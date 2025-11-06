@@ -131,6 +131,10 @@ void Main() {
 
     // ALL SUBSEQUENT GHOSTS ARE ADDED AT THE END OF THIS (AFTER YOUR PB) UNTIL YOU FINISH (ORDER IS THEN RESET TO ABOVE)
     // REMOVING GHOSTS JUST BREAKS THE WHOLE SYSTEM
+
+    // auto allGhosts = GetAllGhosts();
+
+    GetPoints();
 }
 
 Point MakePoint(CSceneVehicleVis@ car) {
@@ -267,16 +271,6 @@ void Update(float dt) {
         return;
     }
 
-    // only if the array is not complete, load points
-    // this will then set arrayComplete to true so won't reoccur
-    // only load if using saving
-    if (useSave && !arrayComplete) {
-        // prevent saving the same points
-        if (LoadPoints(currentMap) == 0) {
-            isSaved = true;
-        }
-    }
-
     // -------------------------------------------------------------------------
     // checks to ensure we can proceed
 
@@ -336,7 +330,7 @@ void Update(float dt) {
     // only log frames if frame number is 0
     // unless you are at the start
     if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
-        LogPoints(scene);
+        // GetPoints();
     }
 
     // -------------------------------------------------------------------------
@@ -353,14 +347,4 @@ void Update(float dt) {
 
     // increment currentLogIndex
     currentLogIndex++;
-
-    // if complete, save the points if using save
-    if (useSave && arrayComplete && !isSaved) {
-        if (V3::SavePoints(currentMap) == 0) {
-            isSaved = true;
-        }
-
-        // FOR DEBUG
-        // V3::FileTest();
-    }
 }
