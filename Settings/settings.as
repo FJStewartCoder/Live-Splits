@@ -116,23 +116,11 @@ void LoadAlg() {
 
 // hidden settings that store the value in the class
 [Setting hidden]
-uint framesBetweenLogValue = 1;
-[Setting hidden]
 uint framesBetweenGapValue = 1;
 
 // optimisation settings to change rate of variety of things
-RotatingCounter framesBetweenLog(1);
 RotatingCounter framesBetweenGap(1);
 
-
-// two functions below to prevent the desync
-void SetLogValue(uint value) {
-    // fixes a bug where gap doesn't update in settings
-    if (value == framesBetweenLogValue) { return; }
-
-    framesBetweenLog.SetCount(value);
-    framesBetweenLogValue = value;
-}
 
 void SetGapValue(uint value) {
     // fixes a bug where gap doesn't update in settings
@@ -144,6 +132,5 @@ void SetGapValue(uint value) {
 
 // function to load the desynced values
 void LoadCounters() {
-    framesBetweenLog.SetCount(framesBetweenLogValue);
     framesBetweenGap.SetCount(framesBetweenGapValue);
 }

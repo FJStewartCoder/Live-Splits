@@ -55,9 +55,6 @@ void ResetRaceVars() {
         miscArray[i].relGap = 0;
     }
 
-    // reset currentFrameNumber just so always starts at 0
-    framesBetweenLog.Reset();
-
     // reset the misc array (this magically fixes an issue I had where the vehicle IDs keep changing)
     ResetMiscArray(numCars, miscArray);
 }
@@ -99,9 +96,6 @@ void Main() {
     LoadAlg();
     LoadCounters();
 
-    // create the dist cache array
-    MakeDistCacheArray();
-
     CGameCtnApp@ app = GetApp();
     CGameCtnNetwork@ net = app.Network;
     CGamePlaygroundScript@ playground = app.PlaygroundScript;
@@ -131,10 +125,6 @@ void Main() {
 
     // ALL SUBSEQUENT GHOSTS ARE ADDED AT THE END OF THIS (AFTER YOUR PB) UNTIL YOU FINISH (ORDER IS THEN RESET TO ABOVE)
     // REMOVING GHOSTS JUST BREAKS THE WHOLE SYSTEM
-
-    // auto allGhosts = GetAllGhosts();
-
-    GetPoints();
 }
 
 Point MakePoint(CSceneVehicleVis@ car) {
@@ -262,6 +252,9 @@ void Update(float dt) {
         print("Track is now track id: " + currentMap);
 
         ResetAllVars();
+
+        // when entering a new track, get new points
+        GetPoints();
     }
 
     // if paused, don't continue
@@ -312,7 +305,6 @@ void Update(float dt) {
     // pre-log housekeeping and checks
 
     // increment all rotating counters
-    framesBetweenLog.Increment();
     framesBetweenGap.Increment();
 
     // cars must be greater than one to ensure the cars are included
@@ -322,15 +314,6 @@ void Update(float dt) {
         MakeMiscArray(cars, numCars, miscArray);
         // updates the size of the window only once
         updateWindowSize = true;
-    }
-
-    // -------------------------------------------------------------------------
-    // adding points scripts
-
-    // only log frames if frame number is 0
-    // unless you are at the start
-    if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
-        // GetPoints();
     }
 
     // -------------------------------------------------------------------------

@@ -50,7 +50,8 @@ CSceneVehicleVis::EntRecordDelta@[]@ GetSamplesFromGhost(CGameCtnGhost@ ghost) {
         auto dataPtr = ReadUint64PtrSafe(nextSamplePtr, 0x10);
         auto dataLen = Dev::ReadUInt32(nextSamplePtr + 0x18);
         data.InsertLast(CSceneVehicleVis::EntRecordDelta(time, dataPtr, dataLen));
-        yield();
+        // TODO: I DON'T KNOW WHAT COMMENTING THIS DOES BUT IT GOES FASTER
+        // yield();
         nextSamplePtr = ReadUint64PtrSafe(nextSamplePtr, 0);
     }
 
@@ -179,10 +180,11 @@ CSceneVehicleVis::EntRecordDelta@[]@[] GetAllGhosts() {
         Fids::Preload(app.RootMap.ModPackDesc.Fid);
     }
 
-    sleep(250);
-    while (app.PlaygroundScript is null) yield();
-    while (app.PlaygroundScript !is null && GetCurrentGhosts(app) is null) yield();
-    while (app.PlaygroundScript !is null && GetCurrentGhosts(app).Length == 0) yield();
+    // sleep(250);
+    // removed yield() from the brackets (I hope it doesn't break anything)
+    while (app.PlaygroundScript is null) {}
+    while (app.PlaygroundScript !is null && GetCurrentGhosts(app) is null) {}
+    while (app.PlaygroundScript !is null && GetCurrentGhosts(app).Length == 0) {}
 
     array<CSceneVehicleVis::EntRecordDelta@[]@> allGhosts;
 

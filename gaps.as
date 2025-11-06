@@ -90,7 +90,7 @@ namespace SetGaps {
 
         // ------------------------------------------------------------------------------------------
         // +1 in case truncates
-        int logsPerSecond = (frameRate / framesBetweenLog.GetCount()) + 1;
+        int logsPerSecond = (frameRate / 1) + 1;
         // defines how many points are between each check (logs per second / resolution) e.g 100 per second, res = 2. So, check each 50 logs
         int gapBetweenChecks = (logsPerSecond / resolution) + 1;
         // based on the formula x/n + 2n (logs / checkInterval + 2 * checkInterval), which tells how many logs will be taken in total, we can calculate the optimal check interval for the smallest number of checks

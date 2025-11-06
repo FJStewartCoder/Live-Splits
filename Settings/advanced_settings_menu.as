@@ -62,17 +62,10 @@ void AllSettings() {
     arrayMaxSize = IntInput("Array Max Size", arrayMaxSize, 500, 10000000, 100);  // 500 - 10_000_000
 
     // --------------------------------------------------------------------
-    // framesBetweenLog
-
-    int value = IntInput("Frames Between Logging Point", framesBetweenLog.GetCount(), 1, 500, 1);
-    // set both the stored value and the actual value to the same number to preserve sync
-    SetLogValue(value);
-
-    // --------------------------------------------------------------------
     // framesBetweenGap
 
     // reuses value
-    value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
+    int value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
     // set both the stored value and the actual value to the same number to preserve sync
     SetGapValue(value);
 }
