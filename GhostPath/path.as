@@ -27,8 +27,8 @@ int GetPoints() {
         ghostPoints.InsertLast(newPoint);
     }
 
-    // gives 0.001s precision
-    InterpolateGhost(49);
+    // gives 0.010s precision
+    InterpolateGhost(4);
     print("Complete");
 
     arrayComplete = true;
@@ -41,7 +41,7 @@ float InterpolationFunc(float num) {
     return num;
 }
 
-void InterpolateGhost(uint levels = 2) {
+void InterpolateGhost(uint levels = 4) {
     // adding n number of points between each point
     // we will end up with ((len * 2) - 1)
     // example of 3 x n x n x (x is original, n is new) 3 -> 5

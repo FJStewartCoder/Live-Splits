@@ -194,8 +194,7 @@ CSceneVehicleVis::EntRecordDelta@[]@[] GetAllGhosts() {
         for (uint i = 0; i < ghosts.Length; i++) {
             // get the data for every ghost and save in the list
             allGhosts.InsertLast(GetSamplesFromGhost(ghosts[i]));
-
-            print("Read ghost " + i);
+            print("Read ghost " + (i + 1) + "/" + ghosts.Length + ", Name: " + ghosts[i].GhostNickname);
         }
     }
 
