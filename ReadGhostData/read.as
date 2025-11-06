@@ -175,27 +175,26 @@ array<CGameCtnGhost@>@ GetCurrentGhosts(CGameCtnApp@ app) {
 }
 
 CSceneVehicleVis::EntRecordDelta@[]@[] GetAllGhosts() {
+    array<CSceneVehicleVis::EntRecordDelta@[]@> allGhosts;
+
     auto app = GetApp();
     if (app.RootMap !is null && app.RootMap.ModPackDesc !is null) {
         Fids::Preload(app.RootMap.ModPackDesc.Fid);
     }
 
+    if (app.PlaygroundScript is null) { return allGhosts; }
+    auto ghosts = GetCurrentGhosts(app);
+
     // sleep(250);
-    // removed yield() from the brackets (I hope it doesn't break anything)
-    while (app.PlaygroundScript is null) {}
-    while (app.PlaygroundScript !is null && GetCurrentGhosts(app) is null) {}
-    while (app.PlaygroundScript !is null && GetCurrentGhosts(app).Length == 0) {}
+    if (ghosts is null || ghosts.Length == 0) {
+        print("No ghosts");
+        return allGhosts;
+    }
 
-    array<CSceneVehicleVis::EntRecordDelta@[]@> allGhosts;
-
-    if (app.PlaygroundScript !is null) {
-        auto ghosts = GetCurrentGhosts(app);
-
-        for (uint i = 0; i < ghosts.Length; i++) {
-            // get the data for every ghost and save in the list
-            allGhosts.InsertLast(GetSamplesFromGhost(ghosts[i]));
-            print("Read ghost " + (i + 1) + "/" + ghosts.Length + ", Name: " + ghosts[i].GhostNickname);
-        }
+    for (uint i = 0; i < ghosts.Length; i++) {
+        // get the data for every ghost and save in the list
+        allGhosts.InsertLast(GetSamplesFromGhost(ghosts[i]));
+        print("Read ghost " + (i + 1) + "/" + ghosts.Length + ", Name: " + ghosts[i].GhostNickname);
     }
 
     return allGhosts;

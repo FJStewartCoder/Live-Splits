@@ -220,9 +220,6 @@ void Update(float dt) {
         print("Track is now track id: " + currentMap);
 
         ResetAllVars();
-
-        // when entering a new track, get new points
-        GetPoints();
     }
 
     // if paused, don't continue
@@ -282,6 +279,16 @@ void Update(float dt) {
         MakeMiscArray(cars, numCars, miscArray);
         // updates the size of the window only once
         updateWindowSize = true;
+    }
+
+    // -------------------------------------------------------------------------
+    // get all ghosts
+
+    // TODO: FIX ERRORS WHEN NO GHOSTS
+    if (!arrayComplete) {
+        // when entering a new track, get new points
+        GetPoints();
+        arrayComplete = true;
     }
 
     // -------------------------------------------------------------------------
