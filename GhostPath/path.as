@@ -37,21 +37,25 @@ int PreloadPoints() {
     // gives 0.010s precision
     InterpolateGhost(ghostPoints, 4);
 
+    // this allows the gaps to be computed so must be before this point
+    arrayComplete = true;
+
+    Miscellaneous miscTemp;
+
     // iterate each other ghost and get the gaps and cache them all
     for (int i = 0; i < allGhosts.Length; i++) {
         Point[] points = GhostSamplesToArray(allGhosts[i]);
+        // InterpolateGhost(points, 4);
 
         for (int p = 0; p < points.Length; p++) {
-            SetGaps::Full(points[p], ghostPoints, miscArray[i], false);
+            SetGaps::Full(points[p], ghostPoints, miscTemp, false);
 
             // great cache items for every point
-            SetCacheItem(miscArray[i].relGap, points[p].timeStamp, i + 1, miscArray[i].lastIdx);
+            SetCacheItem(miscTemp.relGap, points[p].timeStamp, i + 1, miscTemp.lastIdx);
         }
     }
 
     print("Preloading complete");
-
-    arrayComplete = true;
 
     return 0;
 }
@@ -62,6 +66,11 @@ float InterpolationFunc(float num) {
 }
 
 void InterpolateGhost(Point[] @pointArray, uint levels = 4) {
+    // no points so do nothing
+    if (pointArray.IsEmpty()) {
+        return;
+    }
+    
     // adding n number of points between each point
     // we will end up with ((len * 2) - 1)
     // example of 3 x n x n x (x is original, n is new) 3 -> 5

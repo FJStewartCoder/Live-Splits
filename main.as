@@ -54,9 +54,6 @@ void ResetRaceVars() {
         miscArray[i].gap = 0;
         miscArray[i].relGap = 0;
     }
-
-    // reset the misc array (this magically fixes an issue I had where the vehicle IDs keep changing)
-    ResetMiscArray(numCars, miscArray);
 }
 
 // function to reset all variables
