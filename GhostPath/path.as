@@ -8,28 +8,48 @@ void ResizeArrays(uint runLength) {
     ghostPoints.Resize(runLength);
 }
 
-int GetPoints() {
-    auto allGhosts = GetAllGhosts();
+Point[] GhostSamplesToArray(CSceneVehicleVis::EntRecordDelta@[]@ samples) {
+    // create an array of the length of the samples
+    array<Point> pointArray(samples.Length);
+
+    // create new points and add them to the array
+    for (int i = 0; i < samples.Length; i++) {
+        pointArray[i].x = samples[i].position.x;
+        pointArray[i].y = samples[i].position.y;
+        pointArray[i].z = samples[i].position.z;
+
+        pointArray[i].timeStamp = samples[i].time;
+    }
+
+    return pointArray;
+}
+
+int PreloadPoints() {
+    auto allGhosts = GetAllGhostSamples();
 
     if (allGhosts.Length == 0) { return 1; }
 
     ResizeArrays(0);
 
-    for (int i = 0; i < allGhosts[0].Length; i++) {
-        Point newPoint;
-
-        newPoint.x = allGhosts[0][i].position.x;
-        newPoint.y = allGhosts[0][i].position.y;
-        newPoint.z = allGhosts[0][i].position.z;
-
-        newPoint.timeStamp = allGhosts[0][i].time;
-
-        ghostPoints.InsertLast(newPoint);
-    }
+    // get the ghost samples
+    ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
     // gives 0.010s precision
-    InterpolateGhost(4);
-    print("Complete");
+    InterpolateGhost(ghostPoints, 4);
+
+    // iterate each other ghost and get the gaps and cache them all
+    for (int i = 0; i < allGhosts.Length; i++) {
+        Point[] points = GhostSamplesToArray(allGhosts[i]);
+
+        for (int p = 0; p < points.Length; p++) {
+            SetGaps::Full(points[p], ghostPoints, miscArray[i], false);
+
+            // great cache items for every point
+            SetCacheItem(miscArray[i].relGap, points[p].timeStamp, i + 1, miscArray[i].lastIdx);
+        }
+    }
+
+    print("Preloading complete");
 
     arrayComplete = true;
 
@@ -41,16 +61,17 @@ float InterpolationFunc(float num) {
     return num;
 }
 
-void InterpolateGhost(uint levels = 4) {
+void InterpolateGhost(Point[] @pointArray, uint levels = 4) {
     // adding n number of points between each point
     // we will end up with ((len * 2) - 1)
     // example of 3 x n x n x (x is original, n is new) 3 -> 5
     // example of n new ones x nn x nn x 3 -> 7 ((len * (levels + 1)) - levels)
 
-    uint newSize = (ghostPoints.Length * (levels + 1)) - levels;
+    uint newSize = (pointArray.Length * (levels + 1)) - levels;
 
-    print("Converting ghost points of length " + ghostPoints.Length + " into length " + newSize);
-    print((float(ghostPoints[1].timeStamp - ghostPoints[0].timeStamp) / (levels + 1)) / 1000);
+    print("Converting ghost points of length " + pointArray.Length + " into length " + newSize);
+    // gets the precision of the interpolation
+    print((float(pointArray[1].timeStamp - pointArray[0].timeStamp) / (levels + 1)) / 1000);
 
     // make new array of new size
     array<Point> newGhostPoints(newSize);
@@ -58,12 +79,12 @@ void InterpolateGhost(uint levels = 4) {
     uint curPtr = 0;
 
     Point curPoint;
-    Point nextPoint = ghostPoints[0];
+    Point nextPoint = pointArray[0];
 
-    for (uint i = 0; i < ghostPoints.Length - 1; i++) {
+    for (uint i = 0; i < pointArray.Length - 1; i++) {
         // swap the points
         curPoint = nextPoint;
-        nextPoint = ghostPoints[i + 1];
+        nextPoint = pointArray[i + 1];
 
         // add the current point
         newGhostPoints[curPtr++] = curPoint;
@@ -89,5 +110,5 @@ void InterpolateGhost(uint levels = 4) {
     newGhostPoints[newGhostPoints.Length - 1] = nextPoint;
 
     // set ghost points to be new ghost points
-    ghostPoints = newGhostPoints;
+    pointArray = newGhostPoints;
 }

@@ -1,4 +1,7 @@
 class Miscellaneous {
+    // name is the string name
+    // id is a numeric identifier
+    wstring name;
     uint id;
 
     // as milliseconds
@@ -35,7 +38,7 @@ void ResetMiscArray(uint8 numCars, array<Miscellaneous> @miscArray) {
 
 // function that creates the misc array
 // must be called once the race has started once
-void MakeMiscArray(CSceneVehicleVis@[] allCurrentCars, uint8 numCars, array<Miscellaneous> @miscArray) {
+void MakeMiscArray(CGameCtnGhost@[] @allCurrentCars, uint8 numCars, array<Miscellaneous> @miscArray) {
     // don't try to make it if it already exists
     if (isMiscArraySet) {
         return;
@@ -50,12 +53,11 @@ void MakeMiscArray(CSceneVehicleVis@[] allCurrentCars, uint8 numCars, array<Misc
 
     // gets the id for all of the cars
     for (int i = 0; i < smallerNumber; i++) {
-        // sets the id
-        uint id = GetEntityId(allCurrentCars[i]);
-
         // place at one less than the i because i starts at 1
-        miscArray[i].id = id;
-        print("Current Car ID: " + id);
+        miscArray[i].name = allCurrentCars[i].GhostNickname;
+        miscArray[i].id = i + 1;
+
+        print("Current Car ID: " + miscArray[i].id);
     }
 
     isMiscArraySet = true;

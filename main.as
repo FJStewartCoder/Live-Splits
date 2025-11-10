@@ -80,12 +80,6 @@ void ResetAllVars() {
     isSaved = false;
 }
 
-// TODO: fix multilap (it will go completely wrong)
-
-// TODO: fix error where car entity IDs shift when you (the player) finish
-// the cars do however remain the same order despite the shift
-// this is so that the cache array doesn't continue to grow because new IDs keep getting added
-
 void Main() {
     // upon loading sets the current config
     SetConfig();
@@ -95,6 +89,7 @@ void Main() {
     LoadCounters();
 }
 
+// overload thing below
 Point MakePoint(CSceneVehicleVis@ car) {
     Point newPoint;
 
@@ -109,7 +104,21 @@ Point MakePoint(CSceneVehicleVis@ car) {
     return newPoint;
 }
 
-void GetGaps(ISceneVis @scene) {
+Point MakePoint(CSceneVehicleVisState@ car) {
+    Point newPoint;
+
+    // get the point data
+    newPoint.y = car.Position.y;
+    newPoint.x = car.Position.x;
+    newPoint.z = car.Position.z;
+
+    // gets time stamp
+    newPoint.timeStamp = timer.GetTime();
+
+    return newPoint;
+}
+
+void GetGaps() {
     // gap for the user
     int myGap = 0;
 
@@ -121,63 +130,56 @@ void GetGaps(ISceneVis @scene) {
             break;
         }
 
-        CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
+        CSceneVehicleVisState@ playerCar = VehicleState::ViewingPlayerState();
+        Miscellaneous playerItem;
+
+        // no player so return
+        if (playerCar is null) { return; }
+
+        Point thisPoint = MakePoint(playerCar);
+
+        // set the based on the chosen algorithm
+        switch (gapAlg) {
+            case GapAlgorithm::Full:
+                // set the gaps using the linear algorithm
+                SetGaps::Full(thisPoint, ghostPoints, playerItem, useLinearGap);
+                break;
+
+            case GapAlgorithm::Estimation:
+                // set the gaps using the estimation algorithm
+                SetGaps::Estimation(thisPoint, ghostPoints, playerItem, useLinearGap);
+                break;
+        }
+
+        // set the player gap using the original system
+        myGap = playerItem.relGap;
+
 
         // the current gap
         int curGap;
 
         // if there is car calculate new gap
-        if (currentCar !is null) {
-            CacheReturnItem cacheItem;
-            // by default is error so if not using cache will not attempt to use cache
-            cacheItem.isError = true;
-            
-            // only if using cache will the cache be obtained
-            // else it will be error val which skips by default
-            if (useCache) {
-                cacheItem = GetCacheItem(timer.GetTime(), miscArray[i].id, useCacheApproximation);
-            }
+        CacheReturnItem cacheItem;
+        // by default is error so if not using cache will not attempt to use cache
+        cacheItem.isError = true;
+        
+        // only if using cache will the cache be obtained
+        // else it will be error val which skips by default
+        cacheItem = GetCacheItem(timer.GetTime(), miscArray[i].id, useCacheApproximation);
 
-            // only use cache if valid item and not the player car
-            if (!cacheItem.isError && i != 0) {
-                // fill in the cached data
-                miscArray[i].relGap = cacheItem.gap;
-                miscArray[i].lastIdx = cacheItem.idx;
+        // print(cacheItem.Get() + " " + miscArray[i].id);
 
-                // print("Got Cache!");
-            }
-            else {
-                Point thisPoint = MakePoint(currentCar);
+        // only use cache if valid item and not the player car
+        if (!cacheItem.isError) {
+            // fill in the cached data
+            miscArray[i].relGap = cacheItem.gap;
+            miscArray[i].lastIdx = cacheItem.idx;
 
-                // set the based on the chosen algorithm
-                switch (gapAlg) {
-                    case GapAlgorithm::Full:
-                        // set the gaps using the linear algorithm
-                        SetGaps::Full(thisPoint, ghostPoints, miscArray[i], useLinearGap);
-                        break;
-
-                    case GapAlgorithm::Estimation:
-                        // set the gaps using the estimation algorithm
-                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i], useLinearGap);
-                        break;
-                }
-
-                // only if using cache will cache item be added
-                if (useCache) {
-                    // create a new cache item
-                    // only add a cache item if there was not found a cache item
-                    SetCacheItem(miscArray[i].relGap, timer.GetTime(), miscArray[i].id, miscArray[i].lastIdx);
-                }
-            }
+            // print("Got Cache!");
         }
 
         // current gap is relGap regardless of if car exists or not
         curGap = miscArray[i].relGap;
-
-        // user's gap is miscArray at 0
-        if (i == 0) {
-            myGap = curGap;
-        }
 
         // get the gap relative to the ghost
         miscArray[i].gap = myGap - curGap;
@@ -190,12 +192,15 @@ void Update(float dt) {
         return;
     }
 
-    ISceneVis@ scene = GetApp().GameScene;
+    // get the app
+    CGameCtnApp@ app = GetApp();
+
+    ISceneVis@ scene = app.GameScene;
     // if not in game, don't do anything
     if (!IsInGame()) { return; } 
 
     // gets the track
-    CGameCtnChallenge@ track = GetApp().RootMap;
+    CGameCtnChallenge@ track = app.RootMap;
 
     // get all of the cars and ghosts
     // ONLY DO THIS IF SCENE IS NOT NULL
@@ -275,8 +280,10 @@ void Update(float dt) {
     // cars must be greater than one to ensure the cars are included
     // only do this once the race has started (if newPbSet is true the race must be at the end)
     if (cars.Length > 1) {
+        auto ghostCars = GetCurrentGhosts(app);
+
         // make misc array (only does this if not already set)
-        MakeMiscArray(cars, numCars, miscArray);
+        MakeMiscArray(ghostCars, numCars, miscArray);
         // updates the size of the window only once
         updateWindowSize = true;
     }
@@ -287,7 +294,7 @@ void Update(float dt) {
     // TODO: FIX ERRORS WHEN NO GHOSTS
     if (!arrayComplete) {
         // when entering a new track, get new points
-        GetPoints();
+        PreloadPoints();
         arrayComplete = true;
     }
 
@@ -297,7 +304,7 @@ void Update(float dt) {
     // only calculate if the frames between gap requirement is met
     if (framesBetweenGap.GetValue() && (arrayComplete || getGapOverride)) {
         // gets all of the gaps
-        GetGaps(scene);
+        GetGaps();
     }
 
     // -------------------------------------------------------------------------

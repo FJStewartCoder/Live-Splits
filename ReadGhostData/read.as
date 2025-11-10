@@ -174,7 +174,7 @@ array<CGameCtnGhost@>@ GetCurrentGhosts(CGameCtnApp@ app) {
     return ghosts;
 }
 
-CSceneVehicleVis::EntRecordDelta@[]@[] GetAllGhosts() {
+CSceneVehicleVis::EntRecordDelta@[]@[] GetAllGhostSamples() {
     array<CSceneVehicleVis::EntRecordDelta@[]@> allGhosts;
 
     auto app = GetApp();

@@ -11,9 +11,43 @@ class CacheEntry {
 // gap can be error val if error
 class CacheReturnItem {
     bool isError = false;
+    // code for the error for easier diagnosis of errors
+    uint errorCode = 0;
 
     int gap = 0;
     uint idx = 0;
+
+    string GetErrorName() {
+        string errorDesc = "";
+
+        switch (errorCode) {
+            case 1:
+                errorDesc = "This ID was not found";
+                break;
+            case 2:
+                errorDesc = "There are no points";
+                break;
+            case 3:
+                errorDesc = "The timestamp is after the end of the array";
+                break;
+            case 4:
+                errorDesc = "Approximation error";
+                break;
+            default:
+                errorDesc = "Unknown Error";
+                break;
+        }
+
+        return errorDesc;
+    }
+
+    string Get() {
+        if (isError) {
+            return "Error Code " + errorCode + ": " + GetErrorName();
+        }
+
+        return "Gap: " + gap + " Index: " + idx;
+    }
 };
 
 const int errorVal = uint(-1) >> 1;
@@ -178,12 +212,16 @@ CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = fa
     // if not found, return 0
     if (cacheArrayIndex == uint(-1)) {
         item.isError = true;
+        item.errorCode = 1;
+
         return item;
     }
 
     // if there are no entries then return 0 as well
     if (cacheArray[cacheArrayIndex].Length == 1) {
         item.isError = true;
+        item.errorCode = 2;
+
         return item;
     }
 
@@ -199,6 +237,8 @@ CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = fa
 
     if (curArray[curArray.Length - 1].timeStamp < timeStamp) {
         item.isError = true;
+        item.errorCode = 3;
+
         return item;
     }
 
@@ -212,6 +252,8 @@ CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = fa
 
         if (curGap == uint(-1)) {
             item.isError = true;
+            item.errorCode = 4;
+
             return item;
         }
     }

@@ -13,6 +13,7 @@ namespace Render {
 
                 UI::SeparatorText("");
 
+                UI::InputText("NAME", tostring(miscArray[i].name));
                 UI::InputInt("ID", miscArray[i].id);
                 UI::InputInt("GAP", miscArray[i].gap);
                 UI::InputInt("REL GAP", miscArray[i].relGap);
