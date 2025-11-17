@@ -24,40 +24,66 @@ Point[] GhostSamplesToArray(CSceneVehicleVis::EntRecordDelta@[]@ samples) {
     return pointArray;
 }
 
-int PreloadPoints() {
-    auto allGhosts = GetAllGhostSamples();
+class Preloader {
+    CSceneVehicleVis::EntRecordDelta@[]@[] allGhosts;
+    
+    // index of previous ghost
+    int lastGhost;
+    // index of current load
+    int lastIndex;
+    // point array for the previous car
+    Point[] lastPoints;
 
-    if (allGhosts.Length == 0) { return 1; }
+    // is the entire process complete?
+    bool isComplete = false;
 
-    ResizeArrays(0);
-
-    // get the ghost samples
-    ghostPoints = GhostSamplesToArray(allGhosts[0]);
-
-    // gives 0.010s precision
-    InterpolateGhost(ghostPoints, 4);
-
-    // this allows the gaps to be computed so must be before this point
-    arrayComplete = true;
-
-    Miscellaneous miscTemp;
-
-    // iterate each other ghost and get the gaps and cache them all
-    for (int i = 0; i < allGhosts.Length; i++) {
-        Point[] points = GhostSamplesToArray(allGhosts[i]);
-        // InterpolateGhost(points, 4);
-
-        for (int p = 0; p < points.Length; p++) {
-            SetGaps::Full(points[p], ghostPoints, miscTemp, false);
-
-            // great cache items for every point
-            SetCacheItem(miscTemp.relGap, points[p].timeStamp, i + 1, miscTemp.lastIdx);
-        }
+    // set all vars to default
+    void Reset() {
+        lastGhost = 0;
+        lastIndex = 0;
+        lastPoints.Resize(0);
+        isComplete = false;
     }
 
-    print("Preloading complete");
+    // response codes:
+    // 0 - success complete
+    // 1 - no ghosts
+    // 2 - incomplete load
+    int PreloadPoints() {
+        allGhosts = GetAllGhostSamples();
 
-    return 0;
+        if (allGhosts.Length == 0) { return 1; }
+
+        ResizeArrays(0);
+
+        // get the ghost samples
+        ghostPoints = GhostSamplesToArray(allGhosts[0]);
+
+        // gives 0.010s precision
+        InterpolateGhost(ghostPoints, 4);
+
+        // this allows the gaps to be computed so must be before this point
+        arrayComplete = true;
+
+        Miscellaneous miscTemp;
+
+        // iterate each other ghost and get the gaps and cache them all
+        for (int i = 0; i < allGhosts.Length; i++) {
+            lastPoints = GhostSamplesToArray(allGhosts[i]);
+            // InterpolateGhost(points, 4);
+
+            for (int p = 0; p < lastPoints.Length; p++) {
+                SetGaps::Full(lastPoints[p], ghostPoints, miscTemp, false);
+
+                // great cache items for every point
+                SetCacheItem(miscTemp.relGap, lastPoints[p].timeStamp, i + 1, miscTemp.lastIdx);
+            }
+        }
+
+        print("Preloading complete");
+
+        return 0;
+    }
 }
 
 // could use this for a non linear transform to the points

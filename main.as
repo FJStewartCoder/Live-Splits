@@ -32,6 +32,8 @@ bool isSaved = false;
 // the time manager
 Time timer;
 
+Preloader preloader;
+
 void ResetMiscItem(Miscellaneous @miscPtr) {
     // reset the last idx
     miscPtr.lastIdx = 0;
@@ -299,8 +301,19 @@ void Update(float dt) {
     // TODO: FIX ERRORS WHEN NO GHOSTS
     if (!arrayComplete) {
         // when entering a new track, get new points
-        PreloadPoints();
-        arrayComplete = true;
+        int res = preloader.PreloadPoints();
+
+        switch (res) {
+            case 0:
+                arrayComplete = true;
+            case 1:
+                // TODO: implement a variable to identify when there are no ghosts to stop trying this process
+                arrayComplete = false;
+            case 2:
+                print("Still loading...");
+            default:
+                print("How did you even do this?");
+        }
     }
 
     // -------------------------------------------------------------------------
