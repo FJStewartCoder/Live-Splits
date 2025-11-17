@@ -32,6 +32,14 @@ bool isSaved = false;
 // the time manager
 Time timer;
 
+void ResetMiscItem(Miscellaneous @miscPtr) {
+    // reset the last idx
+    miscPtr.lastIdx = 0;
+
+    // reset gaps
+    miscPtr.gap = 0;
+    miscPtr.relGap = 0;
+}
 
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
@@ -47,13 +55,11 @@ void ResetRaceVars() {
             break;
         }
 
-        // reset the last idx
-        miscArray[i].lastIdx = 0;
-
-        // reset gaps
-        miscArray[i].gap = 0;
-        miscArray[i].relGap = 0;
+        ResetMiscItem(miscArray[i]);
     }
+
+    // resets the player misc item as well  
+    ResetMiscItem(miscArray[miscArray.Length - 1]);
 }
 
 // function to reset all variables
@@ -119,7 +125,8 @@ void GetGaps() {
     // gap for the user
     int myGap = 0;
 
-    for (int i = 0; i < miscArray.Length; i++) {
+    // only iterate all regular cars
+    for (int i = 0; i < miscArray.Length - 1; i++) {
         // gets id from misc array
         uint currentId = miscArray[i].id;
 
@@ -128,7 +135,8 @@ void GetGaps() {
         }
 
         CSceneVehicleVisState@ playerCar = VehicleState::ViewingPlayerState();
-        Miscellaneous playerItem;
+        // the player item is the last item in the misc array
+        Miscellaneous @playerItem = miscArray[miscArray.Length - 1];
 
         // no player so return
         if (playerCar is null) { return; }

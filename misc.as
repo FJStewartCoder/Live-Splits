@@ -18,13 +18,14 @@ bool isMiscArraySet = false;
 
 
 // reset the misc array to blank values
+// reset and add an extra space for the player
 void ResetMiscArray(uint8 numCars, array<Miscellaneous> @miscArray) {
     // resize the array to size of numCars to prevent out of bounds
-    miscArray.Resize(numCars);
+    miscArray.Resize(numCars + 1);
 
     isMiscArraySet = false;
 
-    for (uint8 i = 0; i < numCars; i++) {
+    for (uint8 i = 0; i < numCars + 1; i++) {
         miscArray[i].id = 0;
 
         miscArray[i].gap = 0;

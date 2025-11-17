@@ -8,6 +8,8 @@ namespace Render {
             UI::InputInt("SIZE", ghostPoints.Length);
             UI::Checkbox("COMPLETE", arrayComplete);
 
+            UI::InputInt("MISC SIZE", miscArray.Length);
+
             for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);
 
