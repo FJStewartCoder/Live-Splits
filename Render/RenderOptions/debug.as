@@ -16,7 +16,6 @@ namespace Render {
 
             UI::SeparatorText("Interpolater");  // ----------------------------
             UI::InputInt("CURRENT PTR", interpolater.curPtr);
-            UI::InputInt("NEW PTR", interpolater.newPtr);
 
             for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);

@@ -105,14 +105,13 @@ class Preloader {
         }
 
         if (isLoadingGhost) {
-            int res = interpolater.InterpolateGhost();
+            // this also assigns data into the ghost points array
+            int res = interpolater.InterpolateGhost(ghostPoints, 50);
 
             // if still processing, return the still processing warning
             if (res != 0) {
                 return 2;
             }
-
-            ghostPoints = interpolater.resultArray;
 
             // this allows the gaps to be computed so must be before this point
             arrayComplete = true;
@@ -178,15 +177,11 @@ class Interpolater {
     bool isComplete = false;
     bool isProcessing = false;
 
-    Point[] resultArray(1);
-
     Point[] currentArray;
     uint levels = 4;
 
     // the pointer to the current location in the original array
     uint curPtr = 0;
-    // where we are currently processing
-    uint newPtr = 0;
 
     void PassArgs(Point[] @pointArray, uint interpolationLevels = 4) {
         currentArray = pointArray;
@@ -208,7 +203,7 @@ class Interpolater {
     // 0 - complete successful
     // 1 - complete unsuccessful
     // 2 - incomplete
-    int InterpolateGhost(uint pointsPerProcess = 100) {
+    int InterpolateGhost(Point[] @resultArray, uint pointsPerProcess = 10, bool useDithering = true) {
         if (!isProcessing) {
             Reset();
 
@@ -228,6 +223,9 @@ class Interpolater {
             print("Converting ghost points of length " + currentArray.Length + " into length " + newSize);
             // gets the precision of the interpolation
             print((float(currentArray[1].timeStamp - currentArray[0].timeStamp) / (levels + 1)) / 1000);
+
+            // set to length 0
+            resultArray.Resize(0);
 
             // now currently processing
             isProcessing = true;
@@ -254,7 +252,7 @@ class Interpolater {
             nextPoint = currentArray[curPtr + 1];
 
             // add the current point
-            resultArray[newPtr++] = curPoint;
+            resultArray.InsertLast(curPoint);
 
             // get interpolated points
             // if levels = 1 (1 new point) we need the point 1/2
@@ -263,13 +261,12 @@ class Interpolater {
                 // get the multiplier
                 float multiplier = double(j) / (levels + 1);
 
-                resultArray[newPtr].x = ((nextPoint.x - curPoint.x) * multiplier) + curPoint.x;
-                resultArray[newPtr].y = ((nextPoint.y - curPoint.y) * multiplier) + curPoint.y;
-                resultArray[newPtr].z = ((nextPoint.z - curPoint.z) * multiplier) + curPoint.z;
-                resultArray[newPtr].timeStamp = ((nextPoint.timeStamp - curPoint.timeStamp) * multiplier) + curPoint.timeStamp;
+                newPoint.x = ((nextPoint.x - curPoint.x) * multiplier) + curPoint.x;
+                newPoint.y = ((nextPoint.y - curPoint.y) * multiplier) + curPoint.y;
+                newPoint.z = ((nextPoint.z - curPoint.z) * multiplier) + curPoint.z;
+                newPoint.timeStamp = ((nextPoint.timeStamp - curPoint.timeStamp) * multiplier) + curPoint.timeStamp;
 
-                // increment the current pointer once new point has been added
-                newPtr++;
+                resultArray.InsertLast(newPoint);
             }
         }
 
@@ -282,7 +279,7 @@ class Interpolater {
         isProcessing = false;
 
         // add the last point after the loop
-        resultArray[resultArray.Length - 1] = nextPoint;
+        resultArray.InsertLast(nextPoint);
 
         return 0;
     }
