@@ -36,6 +36,10 @@ class Preloader {
 
     // is the entire process complete?
     bool isComplete = false;
+    // is currently processing
+    bool isProcessing = false;
+
+    Miscellaneous miscTemp;
 
     // set all vars to default
     void Reset() {
@@ -49,26 +53,35 @@ class Preloader {
     // 0 - success complete
     // 1 - no ghosts
     // 2 - incomplete load
-    int PreloadPoints() {
-        allGhosts = GetAllGhostSamples();
+    int PreloadPoints(uint pointsPerProcess = 10) {
+        // startup processes
+        if (!isProcessing) {
+            // reset
+            Reset();
+    
+            allGhosts = GetAllGhostSamples();
 
-        if (allGhosts.Length == 0) { return 1; }
+            if (allGhosts.Length == 0) { return 1; }
 
-        ResizeArrays(0);
+            isProcessing = true;
 
-        // get the ghost samples
-        ghostPoints = GhostSamplesToArray(allGhosts[0]);
+            ResizeArrays(0);
 
-        // gives 0.010s precision
-        InterpolateGhost(ghostPoints, 4);
+            // get the ghost samples
+            ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
-        // this allows the gaps to be computed so must be before this point
-        arrayComplete = true;
+            // gives 0.010s precision
+            InterpolateGhost(ghostPoints, 4);
 
-        Miscellaneous miscTemp;
+            // this allows the gaps to be computed so must be before this point
+            arrayComplete = true;
+        }
 
         // iterate each other ghost and get the gaps and cache them all
         for (int i = 0; i < allGhosts.Length; i++) {
+            // reset the misc item for each ghost
+            ResetMiscItem(miscTemp);
+
             lastPoints = GhostSamplesToArray(allGhosts[i]);
             // InterpolateGhost(points, 4);
 

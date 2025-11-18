@@ -32,6 +32,7 @@ bool isSaved = false;
 // the time manager
 Time timer;
 
+// the ghost preloader
 Preloader preloader;
 
 void ResetMiscItem(Miscellaneous @miscPtr) {
