@@ -35,15 +35,6 @@ Time timer;
 // the ghost preloader
 Preloader preloader;
 
-void ResetMiscItem(Miscellaneous @miscPtr) {
-    // reset the last idx
-    miscPtr.lastIdx = 0;
-
-    // reset gaps
-    miscPtr.gap = 0;
-    miscPtr.relGap = 0;
-}
-
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
     // reset the current log number to 0
@@ -84,6 +75,9 @@ void ResetAllVars() {
 
     // on longer saved
     isSaved = false;
+
+    // reset the preloader
+    preloader.Reset();
 }
 
 void Main() {
@@ -302,7 +296,7 @@ void Update(float dt) {
     // TODO: FIX ERRORS WHEN NO GHOSTS
     if (!preloader.isComplete) {
         // when entering a new track, get new points
-        int res = preloader.PreloadPoints(100);
+        int res = preloader.PreloadPoints(10000);
 
         switch (res) {
             case 0:
@@ -313,10 +307,10 @@ void Update(float dt) {
                 print("No ghosts!");
                 break;
             case 2:
-                print("Still loading...");
+                // print("Still loading...");
                 break;
             default:
-                print("How did you even do this?");
+                // print("How did you even do this?");
                 break;
         }
     }

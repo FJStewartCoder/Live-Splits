@@ -2,6 +2,8 @@
 array<Point> ghostPoints(0);
 bool arrayComplete = false;
 
+Interpolater interpolater;
+
 
 void ResizeArrays(uint runLength) {
     // resize the main array
@@ -38,6 +40,8 @@ class Preloader {
     bool isComplete = false;
     // is currently processing
     bool isProcessing = false;
+    // is loading the ghost points
+    bool isLoadingGhost = false;
 
     Miscellaneous miscTemp;
 
@@ -45,8 +49,11 @@ class Preloader {
     void Reset() {
         lastGhost = 0;
         lastIndex = 0;
+
         lastPoints.Resize(0);
+
         isComplete = false;
+        isProcessing = false;
     }
 
     bool NextGhost() {
@@ -84,16 +91,34 @@ class Preloader {
 
             isProcessing = true;
 
+            // allows begining the next section
+            isLoadingGhost = true;
+
+            // begin the processing
             ResizeArrays(0);
 
             // get the ghost samples
             ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
             // gives 0.010s precision
-            // InterpolateGhost(ghostPoints, 4);
+            interpolater.PassArgs(ghostPoints, 49);
+        }
+
+        if (isLoadingGhost) {
+            int res = interpolater.InterpolateGhost();
+
+            // if still processing, return the still processing warning
+            if (res != 0) {
+                return 2;
+            }
+
+            ghostPoints = interpolater.resultArray;
 
             // this allows the gaps to be computed so must be before this point
             arrayComplete = true;
+
+            // no longer loading so will not loop this
+            isLoadingGhost = false;
         }
 
         // if the this is the first time preocessing this ghost
@@ -125,7 +150,7 @@ class Preloader {
         // iterate n number of times until end idx
         // increment last index
         for (; lastIndex < endIdx; lastIndex++) {
-            SetGaps::Full(lastPoints[lastIndex], ghostPoints, miscTemp, false);
+            SetGaps::Estimation(lastPoints[lastIndex], ghostPoints, miscTemp, false);
 
             // great cache items for every point
             SetCacheItem(miscTemp.relGap, lastPoints[lastIndex].timeStamp, lastGhost + 1, miscTemp.lastIdx);
@@ -148,64 +173,117 @@ class Preloader {
     }
 }
 
-// could use this for a non linear transform to the points
-float InterpolationFunc(float num) {
-    return num;
-}
+class Interpolater {
+    // basic vars to decide state
+    bool isComplete = false;
+    bool isProcessing = false;
 
-void InterpolateGhost(Point[] @pointArray, uint levels = 4) {
-    // no points so do nothing
-    if (pointArray.IsEmpty()) {
-        return;
-    }
-    
-    // adding n number of points between each point
-    // we will end up with ((len * 2) - 1)
-    // example of 3 x n x n x (x is original, n is new) 3 -> 5
-    // example of n new ones x nn x nn x 3 -> 7 ((len * (levels + 1)) - levels)
+    Point[] resultArray(1);
 
-    uint newSize = (pointArray.Length * (levels + 1)) - levels;
+    Point[] currentArray;
+    uint levels = 4;
 
-    print("Converting ghost points of length " + pointArray.Length + " into length " + newSize);
-    // gets the precision of the interpolation
-    print((float(pointArray[1].timeStamp - pointArray[0].timeStamp) / (levels + 1)) / 1000);
-
-    // make new array of new size
-    array<Point> newGhostPoints(newSize);
-
+    // the pointer to the current location in the original array
     uint curPtr = 0;
+    // where we are currently processing
+    uint newPtr = 0;
 
-    Point curPoint;
-    Point nextPoint = pointArray[0];
-
-    for (uint i = 0; i < pointArray.Length - 1; i++) {
-        // swap the points
-        curPoint = nextPoint;
-        nextPoint = pointArray[i + 1];
-
-        // add the current point
-        newGhostPoints[curPtr++] = curPoint;
-
-        // get interpolated points
-        // if levels = 1 (1 new point) we need the point 1/2
-        // levels = 2, we need points 1/3 and 2/3
-        for (uint j = 1; j < levels + 1; j++) {
-            // get the multiplier
-            float multiplier = double(j) / (levels + 1);
-
-            newGhostPoints[curPtr].x = ((nextPoint.x - curPoint.x) * multiplier) + curPoint.x;
-            newGhostPoints[curPtr].y = ((nextPoint.y - curPoint.y) * multiplier) + curPoint.y;
-            newGhostPoints[curPtr].z = ((nextPoint.z - curPoint.z) * multiplier) + curPoint.z;
-            newGhostPoints[curPtr].timeStamp = ((nextPoint.timeStamp - curPoint.timeStamp) * multiplier) + curPoint.timeStamp;
-
-            // increment the current pointer once new point has been added
-            curPtr++;
-        }
+    void PassArgs(Point[] @pointArray, uint interpolationLevels = 4) {
+        currentArray = pointArray;
+        levels = interpolationLevels;
     }
 
-    // add the last point after the loop
-    newGhostPoints[newGhostPoints.Length - 1] = nextPoint;
+    // could use this for a non linear transform to the points
+    float InterpolationFunc(float num) {
+        return num;
+    }
 
-    // set ghost points to be new ghost points
-    pointArray = newGhostPoints;
+    void Reset() {
+        isComplete = false;
+        isProcessing = false;
+        curPtr = 0;
+    }
+
+    // codes
+    // 0 - complete successful
+    // 1 - complete unsuccessful
+    // 2 - incomplete
+    int InterpolateGhost(uint pointsPerProcess = 100) {
+        if (!isProcessing) {
+            Reset();
+
+            // no points so do nothing
+            if (currentArray.IsEmpty()) {
+                isComplete = true;
+                return 0;
+            }
+            
+            // adding n number of points between each point
+            // we will end up with ((len * 2) - 1)
+            // example of 3 x n x n x (x is original, n is new) 3 -> 5
+            // example of n new ones x nn x nn x 3 -> 7 ((len * (levels + 1)) - levels)
+
+            uint newSize = (currentArray.Length * (levels + 1)) - levels;
+
+            print("Converting ghost points of length " + currentArray.Length + " into length " + newSize);
+            // gets the precision of the interpolation
+            print((float(currentArray[1].timeStamp - currentArray[0].timeStamp) / (levels + 1)) / 1000);
+
+            // now currently processing
+            isProcessing = true;
+        }
+
+        Point curPoint;
+        Point nextPoint = currentArray[curPtr];
+        
+        // used to determine the finished state of the loop
+        bool isFinished = false;
+        uint endPtr = curPtr + pointsPerProcess;
+
+        // ensure we only loop to the end
+        if (endPtr > currentArray.Length - 1) {
+            endPtr = currentArray.Length - 1;
+            isFinished = true;
+        }
+
+        Point newPoint;
+
+        for (; curPtr < endPtr; curPtr++) {
+            // swap the points
+            curPoint = nextPoint;
+            nextPoint = currentArray[curPtr + 1];
+
+            // add the current point
+            resultArray[newPtr++] = curPoint;
+
+            // get interpolated points
+            // if levels = 1 (1 new point) we need the point 1/2
+            // levels = 2, we need points 1/3 and 2/3
+            for (uint j = 1; j < levels + 1; j++) {
+                // get the multiplier
+                float multiplier = double(j) / (levels + 1);
+
+                resultArray[newPtr].x = ((nextPoint.x - curPoint.x) * multiplier) + curPoint.x;
+                resultArray[newPtr].y = ((nextPoint.y - curPoint.y) * multiplier) + curPoint.y;
+                resultArray[newPtr].z = ((nextPoint.z - curPoint.z) * multiplier) + curPoint.z;
+                resultArray[newPtr].timeStamp = ((nextPoint.timeStamp - curPoint.timeStamp) * multiplier) + curPoint.timeStamp;
+
+                // increment the current pointer once new point has been added
+                newPtr++;
+            }
+        }
+
+        if (!isFinished) {
+            return 2;
+        }
+
+        // result passing
+        isComplete = true;
+        isProcessing = false;
+
+        // add the last point after the loop
+        resultArray[resultArray.Length - 1] = nextPoint;
+
+        return 0;
+    }
 }

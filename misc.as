@@ -63,3 +63,13 @@ void MakeMiscArray(CGameCtnGhost@[] @allCurrentCars, uint8 numCars, array<Miscel
 
     isMiscArraySet = true;
 }
+
+
+void ResetMiscItem(Miscellaneous @miscPtr) {
+    // reset the last idx
+    miscPtr.lastIdx = 0;
+
+    // reset gaps
+    miscPtr.gap = 0;
+    miscPtr.relGap = 0;
+}

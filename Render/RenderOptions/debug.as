@@ -14,6 +14,10 @@ namespace Render {
             UI::InputInt("LAST GHOST", preloader.lastGhost);
             UI::InputInt("LAST IDX", preloader.lastIndex);
 
+            UI::SeparatorText("Interpolater");  // ----------------------------
+            UI::InputInt("CURRENT PTR", interpolater.curPtr);
+            UI::InputInt("NEW PTR", interpolater.newPtr);
+
             for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);
 
