@@ -10,6 +10,10 @@ namespace Render {
 
             UI::InputInt("MISC SIZE", miscArray.Length);
 
+            UI::SeparatorText("Preloader");  // ----------------------------
+            UI::InputInt("LAST GHOST", preloader.lastGhost);
+            UI::InputInt("LAST IDX", preloader.lastIndex);
+
             for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);
 

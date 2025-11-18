@@ -49,6 +49,21 @@ class Preloader {
         isComplete = false;
     }
 
+    bool NextGhost() {
+        // increment number of ghosts
+        lastGhost++;
+
+        // if already finished processing all ghosts, then return 0
+        // else return 2 for more processing needed
+        if (lastGhost == allGhosts.Length) {
+            // no more ghosts
+            return true;
+        }
+
+        // there are more ghosts
+        return false;
+    }
+
     // response codes:
     // 0 - success complete
     // 1 - no ghosts
@@ -61,7 +76,11 @@ class Preloader {
     
             allGhosts = GetAllGhostSamples();
 
-            if (allGhosts.Length == 0) { return 1; }
+            // technically has complete the job but no ghosts
+            if (allGhosts.Length == 0) { 
+                isComplete = true;
+                return 1;
+            }
 
             isProcessing = true;
 
@@ -71,29 +90,59 @@ class Preloader {
             ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
             // gives 0.010s precision
-            InterpolateGhost(ghostPoints, 4);
+            // InterpolateGhost(ghostPoints, 4);
 
             // this allows the gaps to be computed so must be before this point
             arrayComplete = true;
         }
 
-        // iterate each other ghost and get the gaps and cache them all
-        for (int i = 0; i < allGhosts.Length; i++) {
+        // if the this is the first time preocessing this ghost
+        // configure the setup for this ghost
+        if (lastIndex == 0) {
             // reset the misc item for each ghost
             ResetMiscItem(miscTemp);
 
-            lastPoints = GhostSamplesToArray(allGhosts[i]);
+            // get the array of points
+            lastPoints = GhostSamplesToArray(allGhosts[lastGhost]);
+
+            // optionally interpolate the points
             // InterpolateGhost(points, 4);
+        }
 
-            for (int p = 0; p < lastPoints.Length; p++) {
-                SetGaps::Full(lastPoints[p], ghostPoints, miscTemp, false);
+        // stores if currently finished with this ghost
+        bool isFinishedThisGhost = false;
 
-                // great cache items for every point
-                SetCacheItem(miscTemp.relGap, lastPoints[p].timeStamp, i + 1, miscTemp.lastIdx);
-            }
+        // get the end idx
+        int endIdx = lastIndex + pointsPerProcess;
+
+        // some processing for if at the end
+        if (endIdx > lastPoints.Length) {
+            isFinishedThisGhost = true;
+            endIdx = lastPoints.Length;
+        }
+
+        // begin at the last index
+        // iterate n number of times until end idx
+        // increment last index
+        for (; lastIndex < endIdx; lastIndex++) {
+            SetGaps::Full(lastPoints[lastIndex], ghostPoints, miscTemp, false);
+
+            // great cache items for every point
+            SetCacheItem(miscTemp.relGap, lastPoints[lastIndex].timeStamp, lastGhost + 1, miscTemp.lastIdx);
+        }
+
+        // if not finished simply return 2 (more processing needed)
+        if (!isFinishedThisGhost) { return 2; }
+
+        // if next ghost didn't fail (not finished)
+        if (!NextGhost()) {
+            // there are more ghosts so set lastIndex to 0 to reset the value
+            lastIndex = 0;
+            return 2;
         }
 
         print("Preloading complete");
+        isComplete = true;
 
         return 0;
     }

@@ -300,20 +300,24 @@ void Update(float dt) {
     // get all ghosts
 
     // TODO: FIX ERRORS WHEN NO GHOSTS
-    if (!arrayComplete) {
+    if (!preloader.isComplete) {
         // when entering a new track, get new points
-        int res = preloader.PreloadPoints();
+        int res = preloader.PreloadPoints(100);
 
         switch (res) {
             case 0:
+                print("Success!");
                 arrayComplete = true;
+                break;
             case 1:
-                // TODO: implement a variable to identify when there are no ghosts to stop trying this process
-                arrayComplete = false;
+                print("No ghosts!");
+                break;
             case 2:
                 print("Still loading...");
+                break;
             default:
                 print("How did you even do this?");
+                break;
         }
     }
 
