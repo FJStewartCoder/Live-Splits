@@ -101,12 +101,12 @@ class Preloader {
             ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
             // gives 0.010s precision
-            interpolater.PassArgs(ghostPoints, 49);
+            interpolater.PassArgs(ghostPoints, 4);
         }
 
         if (isLoadingGhost) {
             // this also assigns data into the ghost points array
-            int res = interpolater.InterpolateGhost(ghostPoints, 50);
+            int res = interpolater.InterpolateGhost(ghostPoints, 50, false);
 
             // if still processing, return the still processing warning
             if (res != 0) {
@@ -236,7 +236,11 @@ class Interpolater {
         
         // used to determine the finished state of the loop
         bool isFinished = false;
-        uint endPtr = curPtr + pointsPerProcess;
+
+        // the end pointer (if 0 just assume full length)
+        uint endPtr;
+        if (pointsPerProcess == 0) { endPtr = currentArray.Length; }
+        else { endPtr = curPtr + pointsPerProcess; }
 
         // ensure we only loop to the end
         if (endPtr > currentArray.Length - 1) {
@@ -254,12 +258,20 @@ class Interpolater {
             // add the current point
             resultArray.InsertLast(curPoint);
 
+            const float unitMultiplier = 1.0f / (levels + 1);
+
             // get interpolated points
             // if levels = 1 (1 new point) we need the point 1/2
             // levels = 2, we need points 1/3 and 2/3
             for (uint j = 1; j < levels + 1; j++) {
                 // get the multiplier
-                float multiplier = double(j) / (levels + 1);
+                float multiplier = double(j) * unitMultiplier;
+
+                if (useDithering) {
+                    // dither the multiplier using random between -+ half one unit (prevents overlapping)
+                    float ditherAmount = Math::Rand(unitMultiplier / -2, unitMultiplier / 2);
+                    multiplier += ditherAmount;
+                }
 
                 newPoint.x = ((nextPoint.x - curPoint.x) * multiplier) + curPoint.x;
                 newPoint.y = ((nextPoint.y - curPoint.y) * multiplier) + curPoint.y;
