@@ -18,16 +18,10 @@ string currentMap;
 
 // arraySize is not in here
 // create a miscellaneous array for each ghost
-array<Miscellaneous> miscArray(numCars);
-
-// stores the number of where to log the value
-uint32 currentLogIndex = 0;
+array<Miscellaneous> miscArray;
 
 // ensure data is only reset once every cycle
 bool startDataSet = false;
-
-// bool to store if already saved the points
-bool isSaved = false;
 
 // the time manager
 Time timer;
@@ -37,9 +31,6 @@ Preloader preloader;
 
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
-    // reset the current log number to 0
-    currentLogIndex = 0;
-
     // reset current time
     timer.SetStartTime();
 
@@ -52,8 +43,11 @@ void ResetRaceVars() {
         ResetMiscItem(miscArray[i]);
     }
 
-    // resets the player misc item as well  
-    ResetMiscItem(miscArray[miscArray.Length - 1]);
+    // only clear last if the misc array exists
+    if (!miscArray.IsEmpty()) {
+        // resets the player misc item as well  
+        ResetMiscItem(miscArray[miscArray.Length - 1]);
+    } 
 }
 
 // function to reset all variables
@@ -65,16 +59,13 @@ void ResetAllVars() {
     arrayComplete = false;
 
     // reset the misc array
-    ResetMiscArray(numCars, miscArray);
+    ResetMiscArray(miscArray);
 
     // optimise for the current track
     SetGaps::Optimise(expectedFrameRate, modLinResolution);
 
     // reset the cache
     ResetCacheArray();
-
-    // on longer saved
-    isSaved = false;
 
     // reset the preloader
     preloader.Reset();
@@ -285,7 +276,7 @@ void Update(float dt) {
         auto ghostCars = GetCurrentGhosts(app);
 
         // make misc array (only does this if not already set)
-        MakeMiscArray(ghostCars, numCars, miscArray);
+        MakeMiscArray(ghostCars, miscArray);
         // updates the size of the window only once
         updateWindowSize = true;
     }
@@ -319,14 +310,8 @@ void Update(float dt) {
     // calculate the gaps
 
     // only calculate if the frames between gap requirement is met
-    if (framesBetweenGap.GetValue() && (arrayComplete || getGapOverride)) {
+    if (framesBetweenGap.GetValue() && arrayComplete) {
         // gets all of the gaps
         GetGaps();
     }
-
-    // -------------------------------------------------------------------------
-    // housekeeping
-
-    // increment currentLogIndex
-    currentLogIndex++;
 }

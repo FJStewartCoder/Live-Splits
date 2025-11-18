@@ -50,12 +50,6 @@ float FloatInput(const string&in name, float value, float min, float max, float 
 
 void AllSettings() {
     // --------------------------------------------------------------------
-    // numCars
-
-    // get number of cars using custom wrapper thing
-    numCars = IntInput("Number of Cars", numCars, 1, 20);
-
-    // --------------------------------------------------------------------
     // arrayMaxSize
 
     // get array max size using custom wrapper thing
@@ -116,12 +110,8 @@ void GapSettings() {
 }
 
 void CacheSettings() {
-    useCache = UI::Checkbox("Enable Cache", useCache);
-
-    if (useCache) {
-        // cache max size
-        maxCacheSize = IntInput("Max Cache Size", maxCacheSize, 100, 25000 );
-    }
+    // cache max size
+    maxCacheSize = IntInput("Max Cache Size", maxCacheSize, 100, 25000 );
 
     useCacheApproximation = UI::Checkbox("Enable Cache Approximation", useCacheApproximation);
 }

@@ -1,16 +1,5 @@
 // ---------------------------------------------------------
-// save settings
-
-[Setting hidden]
-bool useSave = true;
-
-// ---------------------------------------------------------
 // gap settings
-
-// show gap even if not array complete (for long maps)
-// WILL NOT SHOW GAP IF YOU ARE AHEAD
-[Setting hidden]
-bool getGapOverride = false;
 
 [Setting hidden]
 uint searchRangeSeconds = 1;
@@ -26,9 +15,6 @@ bool useLinearGap = false;
 [Setting hidden]
 uint32 arrayMaxSize = 1000000;  // 1,000,000
 
-[Setting hidden]
-// max number of ghost cars 
-uint8 numCars = 3;
 
 // --------------------------------------------------------
 // other settings
@@ -71,11 +57,6 @@ int yOffset = 0;
 
 // --------------------------------------------------------
 // cache settings
-
-// toggle for if you want to use the cache or not
-// will allow for support of multiplayer
-[Setting hidden]
-bool useCache = true;
 
 // the max size of the cache per cache list
 [Setting hidden]

@@ -111,7 +111,7 @@ namespace SetGaps {
     void Full(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr, bool useLinear = false) {
         // if array not complete don't calculate gap
         // unless overridden
-        if (!arrayComplete && !getGapOverride) {
+        if (!arrayComplete) {
             return;
         }
             
@@ -155,7 +155,7 @@ namespace SetGaps {
     void Estimation(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr, bool useLinear = false) {
         // if array not complete don't calculate gap
         // unless overridden
-        if (!arrayComplete && !getGapOverride) {
+        if (!arrayComplete) {
             return;
         }
             

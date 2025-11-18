@@ -3,7 +3,6 @@ namespace Render {
         // creates window
         if (UI::Begin("Debug Menu")) {
             // ONLY FOR DEBUGGING
-            UI::InputInt("LOG", currentLogIndex);
             UI::InputInt("TIME", timer.GetTime());
             UI::InputInt("SIZE", ghostPoints.Length);
             UI::Checkbox("COMPLETE", arrayComplete);

@@ -5,7 +5,7 @@ namespace Render {
         // gets the number of valid cars
         int validCars;
 
-        for (validCars = 1; validCars < numCars; validCars++) {
+        for (validCars = 0; validCars < miscArray.Length; validCars++) {
             if (miscArray[validCars].id == 0) {
                 break;
             }

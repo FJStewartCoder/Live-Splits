@@ -29,7 +29,6 @@ void SetConfig() {
 
             // 5 minutes at frame rate
             arrayMaxSize = expectedFrameRate * 60 * 5;
-            numCars = 3;
 
             // sets new counts
             // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
@@ -51,7 +50,6 @@ void SetConfig() {
 
             // 10 minutes at frame rate
             arrayMaxSize = expectedFrameRate * 60 * 10;
-            numCars = 4;
 
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
             SetGapValue(uint(Math::Round(expectedFrameRate / 8, 0)));
@@ -68,7 +66,6 @@ void SetConfig() {
 
             // 20 minutes
             arrayMaxSize = expectedFrameRate * 60 * 20;
-            numCars = 5;
 
             // sets new counts
             SetGapValue(12);
@@ -84,7 +81,6 @@ void SetConfig() {
             print("Setting: High");
 
             arrayMaxSize = expectedFrameRate * 60 * 45;
-            numCars = 7;
             useLinearGap = true;
 
             // sets new counts
@@ -101,7 +97,6 @@ void SetConfig() {
             print("Setting: Very High");
 
             arrayMaxSize = expectedFrameRate * 60 * 120;
-            numCars = 10;
             useLinearGap = true;
 
             // sets new counts
@@ -169,10 +164,4 @@ void BasicSettings() {
 
         UI::EndCombo();
     }
-
-    // checkbox for getGapOverride;
-    getGapOverride = UI::Checkbox("Show Gap While Logging", getGapOverride);
-
-    // save toggle
-    useSave = UI::Checkbox("Enable Saving", useSave);
 }

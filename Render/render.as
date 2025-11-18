@@ -114,11 +114,6 @@ void RenderMenu() {
         // render the menu to render options
         RenderOptionsMenu();
 
-        // toggle for gap override
-        if (UI::MenuItem("Gap While Log", "", getGapOverride)) {
-            getGapOverride = !getGapOverride;
-        }  
-
         UI::EndMenu();
     }
 }
