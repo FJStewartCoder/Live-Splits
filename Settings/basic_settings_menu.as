@@ -27,9 +27,6 @@ void SetConfig() {
             // prints setting name
             print("Setting: Very Fast");
 
-            // 5 minutes at frame rate
-            arrayMaxSize = expectedFrameRate * 60 * 5;
-
             // sets new counts
             // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
             SetGapValue(uint(Math::Round(expectedFrameRate / 4, 0)));
@@ -48,9 +45,6 @@ void SetConfig() {
             // prints setting name
             print("Setting: Fast");
 
-            // 10 minutes at frame rate
-            arrayMaxSize = expectedFrameRate * 60 * 10;
-
             // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
             SetGapValue(uint(Math::Round(expectedFrameRate / 8, 0)));
 
@@ -63,9 +57,6 @@ void SetConfig() {
         case 2:
             // prints setting name
             print("Setting: Default");
-
-            // 20 minutes
-            arrayMaxSize = expectedFrameRate * 60 * 20;
 
             // sets new counts
             SetGapValue(12);
@@ -80,7 +71,6 @@ void SetConfig() {
             // prints setting name
             print("Setting: High");
 
-            arrayMaxSize = expectedFrameRate * 60 * 45;
             useLinearGap = true;
 
             // sets new counts
@@ -96,7 +86,6 @@ void SetConfig() {
             // prints setting name
             print("Setting: Very High");
 
-            arrayMaxSize = expectedFrameRate * 60 * 120;
             useLinearGap = true;
 
             // sets new counts

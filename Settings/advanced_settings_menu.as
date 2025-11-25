@@ -50,21 +50,15 @@ float FloatInput(const string&in name, float value, float min, float max, float 
 
 void AllSettings() {
     // --------------------------------------------------------------------
-    // arrayMaxSize
-
-    // get array max size using custom wrapper thing
-    arrayMaxSize = IntInput("Array Max Size", arrayMaxSize, 500, 10000000, 100);  // 500 - 10_000_000
-
-    // --------------------------------------------------------------------
     // framesBetweenGap
 
     // reuses value
     int value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
     // set both the stored value and the actual value to the same number to preserve sync
     SetGapValue(value);
-}
 
-void GapSettings() {
+    UI::Separator();
+
     // --------------------------------------------------------------------
     // gapAlg
 
@@ -113,19 +107,5 @@ void GapSettings() {
 
 [SettingsTab name="Advanced" order="1"]
 void AdvancedSettings() {
-    UI::BeginTabBar("AdvancedTabBar");
-
-    if (UI::BeginTabItem("All")) {
-        AllSettings();
-
-        UI::EndTabItem();
-    }
-
-    if (UI::BeginTabItem("Gap")) {
-        GapSettings();
-
-        UI::EndTabItem();
-    }
-
-    UI::EndTabBar();
+    AllSettings();
 }

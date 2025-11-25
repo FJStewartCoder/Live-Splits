@@ -8,14 +8,6 @@ uint searchRangeSeconds = 1;
 [Setting hidden]
 bool useLinearGap = false;
 
-// ---------------------------------------------------------
-// main settings
-
-// hard limit on the array size
-[Setting hidden]
-uint32 arrayMaxSize = 1000000;  // 1,000,000
-
-
 // --------------------------------------------------------
 // other settings
 

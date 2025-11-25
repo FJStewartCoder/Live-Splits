@@ -3,19 +3,13 @@ bool updateWindowSize = false;
 namespace Render {
     void Normal() {
         // gets the number of valid cars
-        int validCars;
-
-        for (validCars = 0; validCars < miscArray.Length; validCars++) {
-            if (miscArray[validCars].id == 0) {
-                break;
-            }
-        }
+        int validCars = miscArray.Length - 1;
 
         // --------------------------------------------------------
         // styling
 
         if (updateWindowSize) {
-            int height = (FONT_SIZE * (validCars - 1)) + (TEXT_SPACING * (validCars - 2)) + (FRAME_PADDING * 2);
+            int height = (FONT_SIZE * validCars) + (TEXT_SPACING * (validCars - 1)) + (FRAME_PADDING * 2);
 
             // get the string width of placeholder amount using this function
             vec2 textSize = Draw::MeasureString("+99.999", null, FONT_SIZE);
@@ -43,7 +37,7 @@ namespace Render {
         // creates window
         if (UI::Begin("Live Splits", flags)) {
             // show gaps for all cars except the current car
-            for (int i = 1; i < validCars; i++) {
+            for (int i = 0; i < validCars; i++) {
                 int curGap = miscArray[i].gap;
 
                 // includes "+" if greater than 0
