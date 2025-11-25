@@ -170,7 +170,7 @@ void GetGaps() {
         
         // only if using cache will the cache be obtained
         // else it will be error val which skips by default
-        cacheItem = GetCacheItem(timer.GetTime(), miscArray[i].id, useCacheApproximation);
+        cacheItem = GetCacheItem(timer.GetTime(), miscArray[i].id);
 
         // print(cacheItem.Get() + " " + miscArray[i].id);
 

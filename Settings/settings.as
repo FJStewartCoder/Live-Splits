@@ -56,17 +56,6 @@ int xOffset = 0;
 int yOffset = 0;
 
 // --------------------------------------------------------
-// cache settings
-
-// the max size of the cache per cache list
-[Setting hidden]
-uint maxCacheSize = 10000;
-
-// used to increase the likelihood of cache hits with a smaller cache size my guessing the gap
-[Setting hidden]
-bool useCacheApproximation = false;
-
-// --------------------------------------------------------
 // specialised gapAlg scripts
 
 // which algorithm to use for the gap

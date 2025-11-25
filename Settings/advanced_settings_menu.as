@@ -109,13 +109,6 @@ void GapSettings() {
     }
 }
 
-void CacheSettings() {
-    // cache max size
-    maxCacheSize = IntInput("Max Cache Size", maxCacheSize, 100, 25000 );
-
-    useCacheApproximation = UI::Checkbox("Enable Cache Approximation", useCacheApproximation);
-}
-
 // ACCESS TO EVERY SETTING IN DETAIL
 
 [SettingsTab name="Advanced" order="1"]
@@ -130,12 +123,6 @@ void AdvancedSettings() {
 
     if (UI::BeginTabItem("Gap")) {
         GapSettings();
-
-        UI::EndTabItem();
-    }
-
-    if (UI::BeginTabItem("Cache")) {
-        CacheSettings();
 
         UI::EndTabItem();
     }

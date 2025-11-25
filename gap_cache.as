@@ -203,7 +203,7 @@ uint ApproximateGap(uint arrayIdx, uint cacheIdx, uint timeStamp) {
 }
 
 // tolerance is the number of milliseconds difference that the gap can be for a cache to be denied
-CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = false) {
+CacheReturnItem GetCacheItem(uint timeStamp, uint id) {
     CacheReturnItem item;
 
     // get the index of the array based on id
@@ -244,23 +244,7 @@ CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = fa
 
     // --------------------------------------------------------------------------------
 
-    uint curGap;
-
-    // if using approx, use the approx func
-    if (useApproximation) {
-        curGap = ApproximateGap(cacheArrayIndex, closestIdx, timeStamp);
-
-        if (curGap == uint(-1)) {
-            item.isError = true;
-            item.errorCode = 4;
-
-            return item;
-        }
-    }
-    // else get the gap of the closest index
-    else {
-        curGap = cacheArray[cacheArrayIndex][closestIdx].gap;
-    }
+    uint curGap = cacheArray[cacheArrayIndex][closestIdx].gap;
 
     // fill in the data of the return item
     item.isError = false;
@@ -291,10 +275,6 @@ void SetCacheItem(int gap, uint timeStamp, uint id, uint idx) {
     // if no entries insert last the new entry
     if (arrayPtr.Length == 1) {
         arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp, idx));
-        return;
-    }
-
-    if (arrayPtr.Length > maxCacheSize) {
         return;
     }
 
