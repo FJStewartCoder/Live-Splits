@@ -1,156 +1,23 @@
-array<string> performanceOptions = {
-    "Very Fast",
-    "Fast",
-    "Default",
-    "High",
-    "Very High",
-    "Custom"  // does nothing
-};
-
-// having as a setting will save when reload
-[Setting hidden]
-uint performanceChoice = 2;
-
 // used to calculate each setting's performance degree
-[Setting hidden]
 uint expectedFrameRate = 60;
-
-
-// sets the current settings config
-void SetConfig() {
-    switch (performanceChoice) {
-        // very fast
-        // AIM FOR 5 MINUTES OF LOG AT FRAME RATE
-        // LOG EVERY 1 FRAMES
-        // SHOW GAP 4 TIMES PER SECOND
-        case 0:
-            // prints setting name
-            print("Setting: Very Fast");
-
-            // sets new counts
-            // sets the gap to the integer version of expectedFrameRate / 4 to get 4 times per second
-            SetGapValue(uint(Math::Round(expectedFrameRate / 4, 0)));
-
-            // estimation is the absolute fastest availible
-            SetGapAlg(GapAlgorithm::Estimation);
-
-            break;
-
-        // fast
-        // SUITABLE FOR 10 MINUTES AT FRAME RATE
-        // UPDATES LOG EVERY 2 FRAMES
-        // JUST OVER 100 CHECKS PER GAP
-        // 10 UPDATES PER SECOND
-        case 1:
-            // prints setting name
-            print("Setting: Fast");
-
-            // sets the gap to the integer version of expectedFrameRate / 10 to get 10 times per second
-            SetGapValue(uint(Math::Round(expectedFrameRate / 8, 0)));
-
-            SetGapAlg(GapAlgorithm::Full);
-
-            break;
-
-        // default
-        // 20 MINUTES AT FRAME RATE
-        case 2:
-            // prints setting name
-            print("Setting: Default");
-
-            // sets new counts
-            SetGapValue(12);
-
-            SetGapAlg(GapAlgorithm::Full);
-
-            break;
-
-        // high
-        // SUITABLE FOR 45 MINUTES HOUR AT FRAME RATE
-        case 3:
-            // prints setting name
-            print("Setting: High");
-
-            useLinearGap = true;
-
-            // sets new counts
-            SetGapValue(8);
-
-            SetGapAlg(GapAlgorithm::Full);
-
-            break;
-
-        // very high
-        // SUITABLE FOR 2 HOUR AT FRAME RATE
-        case 4:
-            // prints setting name
-            print("Setting: Very High");
-
-            useLinearGap = true;
-
-            // sets new counts
-            SetGapValue(4);
-
-            SetGapAlg(GapAlgorithm::Full);
-
-            break;
-        
-        // none
-        default:
-            // prints setting name
-            print("Setting: Other");
-
-            // invalid so do nothing
-            break;
-    }
-
-    // resets everything to prevent issues
-    ResetAllVars();
-}
-
 
 // ON OR OFF
 // PERFORMANCE MODE
 // SHOW GAP WHILE LOGGING
 
-[SettingsTab name="Basic" order="0"]
+[SettingsTab name="Main" order="0"]
 void BasicSettings() {
     // create a checkbox to say if the plugin is enabled
     isEnabled = UI::Checkbox("Enable Plugin", isEnabled);
 
-    // gets expectedFrameRate
-    expectedFrameRate = UI::InputInt("Frame Rate", expectedFrameRate, 5);
+    // --------------------------------------------------------------------
+    // framesBetweenGap
 
-    // max frame rate is 100
-    if (expectedFrameRate > 500) {
-        expectedFrameRate = 500;
-    }
+    // reuses value
+    int value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
+    // set both the stored value and the actual value to the same number to preserve sync
+    SetGapValue(value);
 
-    // min frame rate is 10
-    if (expectedFrameRate < 10) {
-        expectedFrameRate = 10;
-    }
-    
-    // creates a combo box
-    if (UI::BeginCombo("Performance Option", performanceOptions[performanceChoice])) {
-        // iterate all options and include them as selectables
-        for (uint i = 0; i < performanceOptions.Length; i++) {
-            // get the current value
-            bool value = (performanceChoice == i);
-
-            // if clicked, set the new selected option
-            if (UI::Selectable(performanceOptions[i], value)) {
-                // set the performance choice
-                performanceChoice = i;
-
-                // updatge the config
-                SetConfig();
-
-                // print changed 
-                print("changed.");
-            }
-        }
-
-        UI::EndCombo();
-    }
+    UI::Separator();
+    AllSettings();
 }

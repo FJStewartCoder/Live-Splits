@@ -14,7 +14,7 @@ int IntInput(const string&in name, int value, int min, int max, int step = 1) {
     newValue = UI::InputInt(name, value, step);
 
     // if changed, set performance choice to custom
-    if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
+    // if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
 
     // set numCars to the value
     value = newValue;
@@ -34,7 +34,7 @@ float FloatInput(const string&in name, float value, float min, float max, float 
     newValue = UI::InputFloat(name, value, step, step_fast, fmt);
 
     // if changed, set performance choice to custom
-    if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
+    // if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
 
     // set numCars to the value
     value = newValue;
@@ -49,16 +49,6 @@ float FloatInput(const string&in name, float value, float min, float max, float 
 // -----------------------------------------------------------------------------------------------
 
 void AllSettings() {
-    // --------------------------------------------------------------------
-    // framesBetweenGap
-
-    // reuses value
-    int value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
-    // set both the stored value and the actual value to the same number to preserve sync
-    SetGapValue(value);
-
-    UI::Separator();
-
     // --------------------------------------------------------------------
     // gapAlg
 
@@ -79,28 +69,9 @@ void AllSettings() {
                 // sets the new gap alg to the one defined by index
                 // need to use this function to prevent unusual desync
                 SetGapAlg(intToEnum(i));
-
-                // if selected, set setting to custom
-                performanceChoice = performanceOptions.Length - 1;
             }
         }
 
         UI::EndCombo();
     }
-
-    // --------------------------------------------------------------------
-    // searchRangeSeconds
-
-    // only allow for changing this if using mod lin
-    if (gapAlg == GapAlgorithm::Full && !useLinearGap) {
-        // get array max size using custom wrapper thing
-        modLinResolution = IntInput("Search Resolution", modLinResolution, 2, 30, 1);
-    }
-}
-
-// ACCESS TO EVERY SETTING IN DETAIL
-
-[SettingsTab name="Advanced" order="1"]
-void AdvancedSettings() {
-    AllSettings();
 }
