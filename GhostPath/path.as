@@ -89,6 +89,7 @@ class Preloader {
                 return 1;
             }
 
+            // ensures we know therer is currently processing
             isProcessing = true;
 
             // allows begining the next section
@@ -166,7 +167,9 @@ class Preloader {
         }
 
         print("Preloading complete");
+        // set variables to reflect completeness
         isComplete = true;
+        isProcessing = false;
 
         return 0;
     }

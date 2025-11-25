@@ -29,6 +29,10 @@ Time timer;
 // the ghost preloader
 Preloader preloader;
 
+// variables related to ghost loading
+bool checkedGhosts = false;
+uint lastNumGhosts = 0;
+
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
     // reset current time
@@ -47,7 +51,10 @@ void ResetRaceVars() {
     if (!miscArray.IsEmpty()) {
         // resets the player misc item as well  
         ResetMiscItem(miscArray[miscArray.Length - 1]);
-    } 
+    }
+
+    // makes sure the ghosts are checked again
+    checkedGhosts = false;
 }
 
 // function to reset all variables
@@ -69,6 +76,9 @@ void ResetAllVars() {
 
     // reset the preloader
     preloader.Reset();
+
+    // in case there are the same number of ghosts
+    lastNumGhosts = uint(-1);
 }
 
 void Main() {
@@ -270,24 +280,43 @@ void Update(float dt) {
     // increment all rotating counters
     framesBetweenGap.Increment();
 
-    // cars must be greater than one to ensure the cars are included
-    // only do this once the race has started (if newPbSet is true the race must be at the end)
-    if (cars.Length > 1) {
+    // ---------------------------------------------------------------------------
+    // ghost related functions
+
+    bool reloadGhosts = false;
+
+    // this is run everytime there is a reset
+    if (!checkedGhosts) {
         auto ghostCars = GetCurrentGhosts(app);
 
-        // make misc array (only does this if not already set)
-        MakeMiscArray(ghostCars, miscArray);
-        // updates the size of the window only once
-        updateWindowSize = true;
+        // if there is a new number of ghosts, then reset the ghosts
+        if (lastNumGhosts != ghostCars.Length) {
+            // reset to ensure we can make
+            ResetMiscArray(miscArray);
+
+            // make misc array (only does this if not already set)
+            MakeMiscArray(ghostCars, miscArray);
+
+            // resets the cache array as well
+            ResetCacheArray();
+
+            // updates the size of the window only once
+            updateWindowSize = true;
+
+            // reload all of the ghosts
+            reloadGhosts = true;
+        }
+
+        // set the last num ghosts
+        lastNumGhosts = ghostCars.Length;
+
+        // don't need to do this process again until reset
+        checkedGhosts = true;
     }
 
-    // -------------------------------------------------------------------------
-    // get all ghosts
-
-    // TODO: FIX ERRORS WHEN NO GHOSTS
-    if (!preloader.isComplete) {
+    if (!preloader.isComplete || reloadGhosts) {
         // when entering a new track, get new points
-        int res = preloader.PreloadPoints(10000);
+        int res = preloader.PreloadPoints(100);
 
         switch (res) {
             case 0:
