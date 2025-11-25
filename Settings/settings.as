@@ -1,9 +1,6 @@
 // ---------------------------------------------------------
 // gap settings
 
-[Setting hidden]
-uint searchRangeSeconds = 1;
-
 // bool to use linear gap or not
 [Setting hidden]
 bool useLinearGap = false;
@@ -95,15 +92,3 @@ void SetGapValue(uint value) {
 void LoadCounters() {
     framesBetweenGap.SetCount(framesBetweenGapValue);
 }
-
-// --------------------------------------------------------
-// preloading variables
-
-[Setting hidden]
-uint pointsPerProcess = 10;
-
-[Setting hidden]
-uint interpolationLevels = 4;
-
-[Setting hidden]
-uint pointsPerInterpolateProcess = 50;

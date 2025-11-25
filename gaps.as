@@ -100,11 +100,6 @@ namespace SetGaps {
         
         // sets the checkIntervals
         checkIntervals = {gapBetweenChecks, optimalSecondGap, 1};
-        // ------------------------------------------------------------------------------------------
-
-        // set search radius for estimation to some number of seconds
-        // currently searchs 2 seconds either side
-        searchRadius = logsPerSecond * searchRangeSeconds;
     }
 
     // current position and array of points

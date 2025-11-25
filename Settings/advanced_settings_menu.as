@@ -91,13 +91,8 @@ void AllSettings() {
     // --------------------------------------------------------------------
     // searchRangeSeconds
 
-    // only allow for changing this if using estimation algorithm
-    if (gapAlg == GapAlgorithm::Estimation) {
-        // get array max size using custom wrapper thing
-        searchRangeSeconds = IntInput("Search Radius (Seconds)", searchRangeSeconds, 1, 60, 1);
-    }
     // only allow for changing this if using mod lin
-    else if (gapAlg == GapAlgorithm::Full) {
+    if (gapAlg == GapAlgorithm::Full && !useLinearGap) {
         // get array max size using custom wrapper thing
         modLinResolution = IntInput("Search Resolution", modLinResolution, 2, 30, 1);
     }
