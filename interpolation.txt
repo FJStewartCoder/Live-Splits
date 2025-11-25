@@ -1,0 +1,5 @@
+RESEARCH FOR BEST INTERPOLATION VALUES
+
+POINTS PER INTERPOLATION:
+smaller number = greater lag duration but can prevent crashes
+no change makes this any more bareable

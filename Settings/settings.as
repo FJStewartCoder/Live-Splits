@@ -102,7 +102,6 @@ uint framesBetweenGapValue = 1;
 // optimisation settings to change rate of variety of things
 RotatingCounter framesBetweenGap(1);
 
-
 void SetGapValue(uint value) {
     // fixes a bug where gap doesn't update in settings
     if (value == framesBetweenGapValue) { return; }
@@ -115,3 +114,15 @@ void SetGapValue(uint value) {
 void LoadCounters() {
     framesBetweenGap.SetCount(framesBetweenGapValue);
 }
+
+// --------------------------------------------------------
+// preloading variables
+
+[Setting hidden]
+uint pointsPerProcess = 10;
+
+[Setting hidden]
+uint interpolationLevels = 4;
+
+[Setting hidden]
+uint pointsPerInterpolateProcess = 50;

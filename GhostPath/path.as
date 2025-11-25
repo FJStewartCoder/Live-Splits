@@ -42,6 +42,8 @@ class Preloader {
     bool isProcessing = false;
     // is loading the ghost points
     bool isLoadingGhost = false;
+    // is the current ghost being interpolated
+    bool isInterpolating = false;
 
     Miscellaneous miscTemp;
 
@@ -101,13 +103,14 @@ class Preloader {
             // get the ghost samples
             ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
-            // gives 0.010s precision
-            interpolater.PassArgs(ghostPoints, 4);
+            // gives 0.010s precision with 9
+            interpolater.PassArgs(ghostPoints, 9);
         }
 
         if (isLoadingGhost) {
             // this also assigns data into the ghost points array
-            int res = interpolater.InterpolateGhost(ghostPoints, 50, false);
+            // pass in the arguments from this function
+            int res = interpolater.InterpolateGhost(ghostPoints, 100, true);
 
             // if still processing, return the still processing warning
             if (res != 0) {
@@ -130,8 +133,32 @@ class Preloader {
             // get the array of points
             lastPoints = GhostSamplesToArray(allGhosts[lastGhost]);
 
-            // optionally interpolate the points
-            // InterpolateGhost(points, 4);
+            // begin interpolating process
+            isInterpolating = true;
+            interpolater.PassArgs(lastPoints, 2);
+        }
+
+        if (isInterpolating) {
+            int res = interpolater.InterpolateGhost(lastPoints, 100, true);
+
+            switch (res) {
+                case 0:
+                    // complete
+                    isInterpolating = false;
+                    break;
+                case 1:
+                    print("Failure");
+                    break;
+                case 2:
+                    // print("Incomplete");
+                    break;
+                default:
+                    // print("How did you even do this?");
+                    break;
+            }
+
+            // if still interpolating return incomplete status
+            if (isInterpolating) { return 2; }
         }
 
         // stores if currently finished with this ghost

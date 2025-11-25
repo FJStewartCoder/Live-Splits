@@ -74,14 +74,14 @@ namespace Render {
         float maxGap;
 
         // iterate miscArray to draw the largest bars only
-        for (int i = 1; i < miscArray.Length; i++) {
+        for (int i = 0; i < miscArray.Length - 1; i++) {
             if (miscArray[i].id == 0) {
                 break;
             }
 
             int curGap = miscArray[i].gap;
 
-            if (i == 1) {
+            if (i == 0) {
                 minGap = curGap;
                 maxGap = curGap;
 
@@ -124,7 +124,7 @@ namespace Render {
         }
 
         // iterate miscArray to draw in each point that a car is gaining
-        for (int i = 1; i < miscArray.Length; i++) {
+        for (int i = 0; i < miscArray.Length - 1; i++) {
             if (miscArray[i].id == 0) {
                 break;
             }
