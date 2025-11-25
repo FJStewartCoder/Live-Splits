@@ -104,13 +104,13 @@ class Preloader {
             ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
             // gives 0.010s precision with 9
-            interpolater.PassArgs(ghostPoints, 9);
+            interpolater.PassArgs(ghostPoints, 4);
         }
 
         if (isLoadingGhost) {
             // this also assigns data into the ghost points array
             // pass in the arguments from this function
-            int res = interpolater.InterpolateGhost(ghostPoints, 100, true);
+            int res = interpolater.InterpolateGhost(ghostPoints, 1000, false);
 
             // if still processing, return the still processing warning
             if (res != 0) {
@@ -126,7 +126,8 @@ class Preloader {
 
         // if the this is the first time preocessing this ghost
         // configure the setup for this ghost
-        if (lastIndex == 0) {
+        // if is interpolating then dont remake the array each time
+        if (lastIndex == 0 && !isInterpolating) {
             // reset the misc item for each ghost
             ResetMiscItem(miscTemp);
 
@@ -135,11 +136,11 @@ class Preloader {
 
             // begin interpolating process
             isInterpolating = true;
-            interpolater.PassArgs(lastPoints, 2);
+            interpolater.PassArgs(lastPoints, 0);
         }
 
         if (isInterpolating) {
-            int res = interpolater.InterpolateGhost(lastPoints, 100, true);
+            int res = interpolater.InterpolateGhost(lastPoints, 1000, false);
 
             switch (res) {
                 case 0:
@@ -324,5 +325,21 @@ class Interpolater {
         resultArray.InsertLast(nextPoint);
 
         return 0;
+    }
+}
+
+void TestInterpolation() {
+    Point[] points;
+    for (int i = 0; i < 100; i++) {
+        Point newPoint;
+        newPoint.x = i; newPoint.y = i; newPoint.z = i;
+        points.InsertLast(newPoint);
+    }
+    
+    interpolater.PassArgs(points, 2);
+    interpolater.InterpolateGhost(points, points.Length + 1, false);
+
+    for (int i = 0; i < points.Length; i++) {
+        print(points[i].Get());
     }
 }

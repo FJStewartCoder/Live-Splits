@@ -88,6 +88,8 @@ void Main() {
     // load values that need syncing
     LoadAlg();
     LoadCounters();
+
+    // TestInterpolation();
 }
 
 // overload thing below

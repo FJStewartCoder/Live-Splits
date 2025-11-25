@@ -1,5 +1,38 @@
 RESEARCH FOR BEST INTERPOLATION VALUES
 
 POINTS PER INTERPOLATION:
-smaller number = greater lag duration but can prevent crashes
-no change makes this any more bareable
+No noticable impact after fixes
+
+INTERPOLATION LEVELS:
+
+SCHEME = (ghostPointsLevel, singleGhostLevel)
+0, 0 -> Not really at all possible to even figure out the gap
+4, 0 -> A little bit jittery. More possible than before but still difficult
+9, 0 -> breifly can jitter but if not staring, its fine
+14, 0 -> can barely see any jitter, would be ideal
+24, 0 -> no noticable jitter, can very rarely flicker
+49, 0 -> you wouldn't be able to differentiate between this and 24
+99, 0 -> feels slightly more accurate than 49
+
+Take away 1 -> you need slightly more than you need to feel like it is more accurate. So, for best 0.001s experience we need more than 49
+Take away 2 -> the gaps feel slow to update if the ghost points are not interpolated
+
+99, 4 -> still feels slow to update
+99, 49 -> doesn't make a noticable difference
+
+the singleGhostLevel doesn't make any noticable impact on feel
+
+DITHER TESTS:
+SCHEME (level)
+1 -> no difference between undithered
+4 -> seems a little more decisive at times (not much better)
+9 -> undithered feels like it jitters between a more consitent range
+14 -> still feels unsure of a gap
+24 -> causes still increased jitter
+49 -> feels worse
+
+Take away 3 -> dither makes the jitter feel worse when getting gap often
+
+dither makes jittering worse even at lower speeds
+
+ON LONGER TRACKS 14 takes a long time to interpolate
