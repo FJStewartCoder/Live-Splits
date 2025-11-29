@@ -44,13 +44,13 @@ void ResetRaceVars() {
             break;
         }
 
-        ResetMiscItem(miscArray[i]);
+        ResetMiscItem(miscArray[i], false);
     }
 
     // only clear last if the misc array exists
     if (!miscArray.IsEmpty()) {
         // resets the player misc item as well  
-        ResetMiscItem(miscArray[miscArray.Length - 1]);
+        ResetMiscItem(miscArray[miscArray.Length - 1], false);
     }
 
     // makes sure the ghosts are checked again

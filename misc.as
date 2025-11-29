@@ -17,19 +17,28 @@ class Miscellaneous {
 bool isMiscArraySet = false;
 
 
+void ResetMiscItem(Miscellaneous @miscPtr, bool resetIdentifiers = true) {
+    if (resetIdentifiers) {
+        miscPtr.name = "";
+        miscPtr.id = 0;
+    }
+
+    // reset the last idx
+    miscPtr.lastIdx = 0;
+
+    // reset gaps
+    miscPtr.gap = 0;
+    miscPtr.relGap = 0;
+}
+
+
 // reset the misc array to blank values
 // reset and add an extra space for the player
 void ResetMiscArray(array<Miscellaneous> @miscArray) {
     isMiscArraySet = false;
 
     for (uint i = 0; i < miscArray.Length; i++) {
-        miscArray[i].id = 0;
-
-        miscArray[i].gap = 0;
-        miscArray[i].relGap = 0;
-
-        // reset last index
-        miscArray[i].lastIdx = 0;
+        ResetMiscItem(miscArray[i]);
     }
 }
 
@@ -54,16 +63,4 @@ void MakeMiscArray(CGameCtnGhost@[] @allCurrentCars, array<Miscellaneous> @miscA
     }
 
     isMiscArraySet = true;
-}
-
-
-void ResetMiscItem(Miscellaneous @miscPtr) {
-    miscPtr.name = "";
-
-    // reset the last idx
-    miscPtr.lastIdx = 0;
-
-    // reset gaps
-    miscPtr.gap = 0;
-    miscPtr.relGap = 0;
 }
