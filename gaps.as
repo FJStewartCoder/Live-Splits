@@ -83,16 +83,30 @@ namespace SetGaps {
         return 0;
     }
 
-    // function to optimise the intervals arrays based on the frame rate and logs per second
+    // function to optimise the intervals array based on the seconds between each gap and a desired resolution
     // resolution defines how many checks per second should be done
-    void Optimise(uint frameRate, uint resolution) {
+    void Optimise(float secondsBetweenGap, uint resolution) {
+        // must be less than 1 and greater than 0
+        if (secondsBetweenGap > 1 || secondsBetweenGap < 0) {
+            print("Can not optimise for this value");
+            return;
+        }
+
         // get the number of logs per seconds and use it to get more accurate and optimised results
 
+        // in order to calculate the intervals needed so we check resolution number times per second worth of gaps
+        // STEP 1: how many gaps are there calculated per second
+        // STEP 2: what interval do we need to check resolution number of times e.g 10 gaps per second, resolution = 2. We need to check every 5.
+        // STEP 3: basically done
+
         // ------------------------------------------------------------------------------------------
-        // +1 in case truncates
-        int logsPerSecond = (frameRate / 1) + 1;
+        // STEP 1
+        int logsPerSecond = 1 / secondsBetweenGap;
+        
+        // STEP 2
         // defines how many points are between each check (logs per second / resolution) e.g 100 per second, res = 2. So, check each 50 logs
         int gapBetweenChecks = (logsPerSecond / resolution) + 1;
+
         // based on the formula x/n + 2n (logs / checkInterval + 2 * checkInterval), which tells how many logs will be taken in total, we can calculate the optimal check interval for the smallest number of checks
         // THE BELOW FORMULA (DEFIINED IN OPTIMISATIONS.txt) is the least number of checks possible
         // +1 just in case
