@@ -312,7 +312,15 @@ void Update(float dt) {
 
     if (!preloader.isComplete || reloadGhosts) {
         // when entering a new track, get new points
-        int res = preloader.PreloadPoints(100);
+        int res;
+        
+        // if we are reloading the ghosts, then we don't need to reprocess the ghost points
+        if (reloadGhosts) {
+            res = preloader.PreloadPoints(100, true);
+        }
+        else {
+            res = preloader.PreloadPoints(100, false);
+        }
 
         switch (res) {
             case 0:

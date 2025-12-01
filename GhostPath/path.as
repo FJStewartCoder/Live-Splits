@@ -77,11 +77,13 @@ class Preloader {
     // 0 - success complete
     // 1 - no ghosts
     // 2 - incomplete load
-    int PreloadPoints(uint pointsPerProcess = 10) {
+    int PreloadPoints(uint pointsPerProcess = 10, bool ignoreGhostPoints = false) {
         // startup processes
         if (!isProcessing) {
             // reset
             Reset();
+            // reset the cache array
+            ResetCacheArray();
     
             allGhosts = GetAllGhostSamples();
 
@@ -97,15 +99,18 @@ class Preloader {
             // allows begining the next section
             isLoadingGhost = true;
 
-            // begin the processing
-            ResizeArrays(0);
+            // if ghost points already exist, we can optionally ignore reprocessing them
+            if (!(ignoreGhostPoints && ghostPoints.Length > 0)) {
+                // begin the processing
+                ResizeArrays(0);
 
-            // get the ghost samples
-            ghostPoints = GhostSamplesToArray(allGhosts[0]);
+                // get the ghost samples
+                ghostPoints = GhostSamplesToArray(allGhosts[0]);
 
-            // gives 0.010s precision with 9
-            interpolater.PassArgs(ghostPoints, 4);
-            SetGaps::Optimise(interpolater.GetExpectedPrecision(), modLinResolution);
+                // gives 0.010s precision with 9
+                interpolater.PassArgs(ghostPoints, 4);
+                SetGaps::Optimise(interpolater.GetExpectedPrecision(), modLinResolution);
+            }
         }
 
         if (isLoadingGhost) {
