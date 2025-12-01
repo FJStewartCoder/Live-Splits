@@ -105,6 +105,7 @@ class Preloader {
 
             // gives 0.010s precision with 9
             interpolater.PassArgs(ghostPoints, 4);
+            SetGaps::Optimise(interpolater.GetExpectedPrecision(), modLinResolution);
         }
 
         if (isLoadingGhost) {
@@ -219,6 +220,11 @@ class Interpolater {
         levels = interpolationLevels;
     }
 
+    float GetExpectedPrecision() {
+        // gets the precision of the interpolation
+        return (float(currentArray[1].timeStamp - currentArray[0].timeStamp) / (levels + 1)) / 1000;
+    }
+
     // could use this for a non linear transform to the points
     float InterpolationFunc(float num) {
         return num;
@@ -252,8 +258,7 @@ class Interpolater {
             uint newSize = (currentArray.Length * (levels + 1)) - levels;
 
             print("Converting ghost points of length " + currentArray.Length + " into length " + newSize);
-            // gets the precision of the interpolation
-            print((float(currentArray[1].timeStamp - currentArray[0].timeStamp) / (levels + 1)) / 1000);
+            print(GetExpectedPrecision());
 
             // set to length 0
             resultArray.Resize(0);

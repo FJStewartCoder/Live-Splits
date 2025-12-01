@@ -68,10 +68,6 @@ void ResetAllVars() {
     // reset the misc array
     ResetMiscArray(miscArray);
 
-    // optimise for the current track
-    // TODO: THIS NEEDS A VARIABLE
-    SetGaps::Optimise(0.01, modLinResolution);
-
     // reset the cache
     ResetCacheArray();
 
