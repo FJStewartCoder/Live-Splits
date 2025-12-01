@@ -179,7 +179,18 @@ class Preloader {
         // iterate n number of times until end idx
         // increment last index
         for (; lastIndex < endIdx; lastIndex++) {
-            SetGaps::Estimation(lastPoints[lastIndex], ghostPoints, miscTemp, false);
+            // based on the algorithm choice, get the gaps
+            switch (gapAlg) {
+                case GapAlgorithm::Full:
+                    // set the gaps using the linear algorithm
+                    SetGaps::Full(lastPoints[lastIndex], ghostPoints, miscTemp, useLinearGap);
+                    break;
+
+                case GapAlgorithm::Estimation:
+                    // set the gaps using the estimation algorithm
+                    SetGaps::Estimation(lastPoints[lastIndex], ghostPoints, miscTemp, useLinearGap);
+                    break;
+            }
 
             // great cache items for every point
             SetCacheItem(miscTemp.relGap, lastPoints[lastIndex].timeStamp, lastGhost + 1, miscTemp.lastIdx);

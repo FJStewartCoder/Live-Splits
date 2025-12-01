@@ -102,6 +102,9 @@ namespace SetGaps {
         // ------------------------------------------------------------------------------------------
         // STEP 1
         int logsPerSecond = 1 / secondsBetweenGap;
+
+        // search size worth of 4 seconds
+        searchRadius = logsPerSecond * 4;
         
         // STEP 2
         // defines how many points are between each check (logs per second / resolution) e.g 100 per second, res = 2. So, check each 50 logs
