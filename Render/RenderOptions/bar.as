@@ -1,6 +1,6 @@
 vec2 GetScreenCentre() {
-    int gameWidth = Draw::GetWidth();
-    int gameHeight = Draw::GetHeight();
+    int gameWidth = Display::GetWidth();
+    int gameHeight = Display::GetHeight();
 
     return vec2(gameWidth / 2, gameHeight / 2);
 }
@@ -22,8 +22,8 @@ float GetLineOffset(int gap, float maxGap, float totalWidth) {
 }
 
 vec2 CalculateMaxOffsets(float barWidth, float barHeight) {
-    int width = Draw::GetWidth();
-    int height = Draw::GetHeight();
+    int width = Display::GetWidth();
+    int height = Display::GetHeight();
 
     return vec2((width - barWidth) / 2, (height - barHeight) / 2);
 }
@@ -43,9 +43,9 @@ void EnsureOffsets(float width, float height) {
 namespace Render {
     void Bar() {
         // quarter screen width
-        float width = Draw::GetWidth() / 4;
+        float width = Display::GetWidth() / 4;
         // 16th screen height
-        float height = Draw::GetHeight() / 16;
+        float height = Display::GetHeight() / 16;
 
         // ensure the offsets
         EnsureOffsets(width, height);
@@ -109,7 +109,7 @@ namespace Render {
             string text = GapToString(minGap);
 
             // write the gap the side
-            drawList.AddText(vec2(centrePos.x + (width / 2) - Draw::MeasureString(text).x, centrePos.y + (height / 2)), vec4(1, 1, 1, barTransparency), text);
+            drawList.AddText(vec2(centrePos.x + (width / 2) - UI::MeasureString(text).x, centrePos.y + (height / 2)), vec4(1, 1, 1, barTransparency), text);
         }
 
         // only draw max offset if actually positive

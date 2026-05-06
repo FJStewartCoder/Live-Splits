@@ -43,9 +43,8 @@ void ResetRaceVars() {
 
     // iterate miscArray and set last idx to 0
     for (int i = 0; i < miscArray.Length; i++) {
-        if (miscArray[i].id == 0) {
-            break;
-        }
+        const bool noMorePlayers = miscArray[i].id == 0;
+        if (noMorePlayers) { break; }
 
         // reset the last idx
         miscArray[i].lastIdx = 0;
@@ -90,6 +89,7 @@ void ResetAllVars() {
 // this is so that the cache array doesn't continue to grow because new IDs keep getting added
 
 // TODO: fix car finishing early bug as well
+// seems to be related to having a ghost already and resetting
 
 void Main() {
     // upon loading sets the current config
@@ -125,14 +125,14 @@ void GetGaps(ISceneVis @scene) {
         // gets id from misc array
         uint currentId = miscArray[i].id;
 
-        if (currentId == 0) {
-            break;
-        }
+        const bool noMorePlayers = currentId == 0;
+        if (noMorePlayers) { break; }
 
         CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
 
         // the current gap
         int curGap;
+        const bool isPlayer = i == 0;
 
         // if there is car calculate new gap
         if (currentCar !is null) {
@@ -147,7 +147,7 @@ void GetGaps(ISceneVis @scene) {
             }
 
             // only use cache if valid item and not the player car
-            if (!cacheItem.isError && i != 0) {
+            if (!cacheItem.isError && !isPlayer) {
                 // fill in the cached data
                 miscArray[i].relGap = cacheItem.gap;
                 miscArray[i].lastIdx = cacheItem.idx;
@@ -183,9 +183,7 @@ void GetGaps(ISceneVis @scene) {
         curGap = miscArray[i].relGap;
 
         // user's gap is miscArray at 0
-        if (i == 0) {
-            myGap = curGap;
-        }
+        if (isPlayer) { myGap = curGap; }
 
         // get the gap relative to the ghost
         miscArray[i].gap = myGap - curGap;
@@ -223,8 +221,10 @@ void Update(float dt) {
         currentMap = track.EdChallengeId;
     }
 
+    const bool switchedTrack = lastMap != currentMap;
+
     // only set certain values upon switching track to reduce processing
-    if (lastMap != currentMap) {
+    if (switchedTrack) {
         print("Track is now track id: " + currentMap);
 
         ResetAllVars();
@@ -241,10 +241,10 @@ void Update(float dt) {
     // this will then set arrayComplete to true so won't reoccur
     // only load if using saving
     if (useSave && !arrayComplete) {
+        auto res = LoadPoints(currentMap);
+
         // prevent saving the same points
-        if (LoadPoints(currentMap) == 0) {
-            isSaved = true;
-        }
+        isSaved = res == 0;
     }
 
     // -------------------------------------------------------------------------
@@ -252,13 +252,18 @@ void Update(float dt) {
 
     // if the currently viewing car is null (the player has finished)
     // return
-    if (thisCar is null) {
+
+    const bool playerFinished = thisCar is null;
+
+    if (playerFinished) {
         // print("Player has finished");
         return;
     }
 
+    const bool playerAtStart = cars[0].AsyncState.RaceStartTime == 4294967295;
+
     // check if the first vehicle (you) have a race start time of this specific value which shows when you are at the start
-    if (cars[0].AsyncState.RaceStartTime == 4294967295) {
+    if (playerAtStart) {
         if (startDataSet) {
             return;
         }

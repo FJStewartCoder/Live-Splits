@@ -12,13 +12,11 @@ void ResizeArrays(uint runLength) {
 // function to log the points
 void LogPoints(ISceneVis@ scene) {
     // only log points if not complete
-    if (arrayComplete) {
-        return;
-    }
+    if (arrayComplete) { return; }
 
     // check for size greater or equal to the hard limit
     if (currentLogIndex >= arrayMaxSize) {
-        // print("Max array size hit");
+        warn("Max array size hit");
 
         // if at limit the array must be complete
         arrayComplete = true;
@@ -29,18 +27,26 @@ void LogPoints(ISceneVis@ scene) {
     uint currentId = miscArray[1].id;
 
     // not a valid id
-    if (currentId == 0) {
-        return;
-    }
+    const bool isPlayerOrGhost = currentId != 0;
+    if (!isPlayerOrGhost) { return; }
 
     // gets current car based on entity ID with native functions
     CSceneVehicleVis@ currentCar = VehicleState::GetVisFromId(scene, currentId);
 
+    const bool carExists = currentCar !is null;
+
+    trace(currentId + " " + !carExists);
+
     // if is null, must have finished or is gone
-    if (currentCar is null) {
+    if (!carExists) {
         // if current log index is greater than the size + 2, the array must have stopped tracking so must have finished
         // + 2 simply for safety
-        if (ghostPoints.Length + 2 < currentLogIndex) {
+
+        // ghostPoints is the list of samples
+        // if the list of samples is ever less 
+        const bool isFinished = currentLogIndex > ghostPoints.Length + 0;
+
+        if (isFinished) {
             print("Logging finished");
             arrayComplete = true;
         }
