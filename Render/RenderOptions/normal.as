@@ -12,7 +12,7 @@ namespace Render {
             int height = (FONT_SIZE * validCars) + (TEXT_SPACING * (validCars - 1)) + (FRAME_PADDING * 2);
 
             // get the string width of placeholder amount using this function
-            vec2 textSize = Draw::MeasureString("+99.999", null, FONT_SIZE);
+            vec2 textSize = UI::MeasureString("+99.999", null, FONT_SIZE);
             int width = textSize.x + (FRAME_PADDING * 2);
 
             // set window height
