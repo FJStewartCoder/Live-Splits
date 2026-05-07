@@ -1,17 +1,3 @@
-class Point {
-    // stores the x, y, z coordinates
-    double x, y, z;
-    // stores the timeStamp of these coordinates
-    // used to calculate the split
-    // int but miliseconds
-    uint timeStamp;
-
-    string Get() {
-        return "x = " + x + ", y = " + y + ", z = " + z + ", time = " + timeStamp;
-    }
-}
-
-
 // map id
 string lastMap;
 string currentMap;
@@ -19,9 +5,6 @@ string currentMap;
 // arraySize is not in here
 // create a miscellaneous array for each ghost
 array<Miscellaneous> miscArray(numCars);
-
-// stores the number of where to log the value
-uint32 currentLogIndex = 0;
 
 // ensure data is only reset once every cycle
 bool startDataSet = false;
@@ -31,6 +14,7 @@ bool isSaved = false;
 
 // the time manager
 Time timer;
+LogMgr logger;
 
 
 // reset only the vars relevant to the current race
@@ -65,9 +49,8 @@ void ResetRaceVars() {
 void ResetAllVars() {
     ResetRaceVars();
 
-    // empty the arrays
-    ResizeArrays(0);
-    arrayComplete = false;
+    // reset the logger
+    logger.Reset();
 
     // reset the misc array
     ResetMiscArray(numCars, miscArray);
@@ -101,20 +84,6 @@ void Main() {
 
     // create the dist cache array
     MakeDistCacheArray();
-}
-
-Point MakePoint(CSceneVehicleVis@ car) {
-    Point newPoint;
-
-    // get the point data
-    newPoint.y = car.AsyncState.Position.y;
-    newPoint.x = car.AsyncState.Position.x;
-    newPoint.z = car.AsyncState.Position.z;
-
-    // gets time stamp
-    newPoint.timeStamp = timer.GetTime();
-
-    return newPoint;
 }
 
 void GetGaps(ISceneVis @scene) {
@@ -155,7 +124,7 @@ void GetGaps(ISceneVis @scene) {
                 // print("Got Cache!");
             }
             else {
-                Point thisPoint = MakePoint(currentCar);
+                Point thisPoint(currentCar.AsyncState);
 
                 // set the based on the chosen algorithm
                 switch (gapAlg) {
