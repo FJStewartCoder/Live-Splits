@@ -14,13 +14,13 @@ bool isSaved = false;
 
 // the time manager
 Time timer;
-ReferenceMgrMgr reference;
+ReferenceMgr reference;
 
 
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
-    // reset the current log number to 0
-    currentLogIndex = 0;
+    // reset the current log index
+    reference.logMgr.currentLogIndex = 0;
 
     // reset current time
     timer.SetStartTime();
@@ -50,7 +50,7 @@ void ResetAllVars() {
     ResetRaceVars();
 
     // reset the logger
-    reference.LogMgr.Reset();
+    reference.logMgr.Reset();
 
     // reset the misc array
     ResetMiscArray(numCars, miscArray);
@@ -124,7 +124,8 @@ void GetGaps(ISceneVis @scene) {
                 // print("Got Cache!");
             }
             else {
-                Point thisPoint(currentCar.AsyncState);
+                Point thisPoint;
+                thisPoint.LoadFromState(currentCar.AsyncState);
 
                 // set the based on the chosen algorithm
                 switch (gapAlg) {

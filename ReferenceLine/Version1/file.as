@@ -1,7 +1,7 @@
 namespace V1 {
-    int SavePoints(const string&in id) {
+    int SavePoints(const string&in id, SampleArray@ sampleArray) {
         // only save is array is complete
-        if (!arrayComplete) {
+        if (!sampleArray.isComplete) {
             return 1;
         }
 
@@ -9,14 +9,17 @@ namespace V1 {
         IO::File saveFile(filePath, IO::FileMode::Write);
 
         // write the number of points
-        saveFile.Write(ghostPoints.Length);
+        saveFile.Write(sampleArray.samples.Length);
 
         // write each point
-        for (int i = 0; i < ghostPoints.Length; i++) {
-            saveFile.Write(ghostPoints[i].timeStamp);
-            saveFile.Write(ghostPoints[i].x);
-            saveFile.Write(ghostPoints[i].y);
-            saveFile.Write(ghostPoints[i].z);
+        for (int i = 0; i < sampleArray.samples.Length; i++) {
+            // create a reference to the current point to save
+            Point@ sample = sampleArray.samples[i];
+
+            saveFile.Write(sample.timeStamp);
+            saveFile.Write(sample.x);
+            saveFile.Write(sample.y);
+            saveFile.Write(sample.z);
         }
 
         // DONT FORGET TO CLOSE THE FILE
@@ -27,7 +30,7 @@ namespace V1 {
         return 0;
     }
 
-    int LoadPoints(const string&in id) {
+    int LoadPoints(const string&in id, SampleArray @sampleArray) {
         string filePath = IO::FromStorageFolder(id);
 
         // don't try open the file if it doesn't exist
@@ -50,9 +53,10 @@ namespace V1 {
             return 1;
         }
 
-        print("Found " + points + " ghost points.");
+        trace("Found " + points + " ghost points.");
 
-        ResizeArrays(0);
+        sampleArray.defaultSize = 0;
+        sampleArray.Reset();
 
         MemoryBuffer @data = saveFile.Read(points * (4 + 8 + 8 + 8));
 
@@ -65,14 +69,14 @@ namespace V1 {
             newPoint.y = data.ReadDouble();
             newPoint.z = data.ReadDouble();
 
-            ghostPoints.InsertLast(newPoint);
+            sampleArray.samples.InsertLast(newPoint);
         }
 
         // need to close the file if opened
         saveFile.Close();
 
         // when loaded, the array must be complete
-        arrayComplete = true;
+        sampleArray.SetComplete(true);
         return 0;
     }
 }

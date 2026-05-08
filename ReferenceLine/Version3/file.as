@@ -239,7 +239,7 @@ namespace V3 {
         return buf;
     }
 
-    int SavePoints(const string&in id) {
+    int SavePoints(const string&in id, SampleArray @sampleArray) {
         // only save is array is complete
         if (!arrayComplete) {
             print("Points array not complete!");
@@ -331,7 +331,7 @@ namespace V3 {
         return num;
     }
 
-    int LoadPoints(const string&in id) {
+    int LoadPoints(const string&in id, SampleArray @sampleArray) {
         string filePath = IO::FromStorageFolder(id);
 
         // don't try open the file if it doesn't exist

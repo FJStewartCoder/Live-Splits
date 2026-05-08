@@ -3,11 +3,11 @@ class LogMgr {
     private SampleArray@ sampleArray;
 
     // the current index to be logged
-    private uint currentLogIndex = 0;
+    uint currentLogIndex = 0;
 
 
     bool IsFinished() {
-        return currentLogIndex > ghostPoints.Length + 0;
+        return currentLogIndex > sampleArray.samples.Length + 0;
     }  
 
     void LogPoint(CSceneVehicleVisState @car) {
@@ -20,19 +20,19 @@ class LogMgr {
             warn("Max array size hit");
 
             // if at limit the array must be complete
-            SampleArray.SetComplete(true);
+            sampleArray.SetComplete(true);
             return;
         }
 
         if (IsFinished()) {
             print("Logging finished");
-            SampleArray.SetComplete(true);
+            sampleArray.SetComplete(true);
             return;
         }
 
         // create the new point
         Point currentPoint;
-        currentPoint.LoadFromState(currentCar);
+        currentPoint.LoadFromState(car);
 
         // reassign a point if there is space for it else insert at the end the new point
         if (currentLogIndex >= sampleArray.samples.Length) {
