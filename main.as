@@ -14,7 +14,7 @@ bool isSaved = false;
 
 // the time manager
 Time timer;
-LogMgr logger;
+ReferenceMgrMgr reference;
 
 
 // reset only the vars relevant to the current race
@@ -50,7 +50,7 @@ void ResetAllVars() {
     ResetRaceVars();
 
     // reset the logger
-    logger.Reset();
+    reference.LogMgr.Reset();
 
     // reset the misc array
     ResetMiscArray(numCars, miscArray);

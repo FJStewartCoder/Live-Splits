@@ -1,21 +1,10 @@
 class LogMgr {
-    // array of the main ghost's points
-    private array<Point@> loggedPoints(0); 
-    // store the number of valid points
-    private uint actualSize = 0;
-    // have all of the points been logged
-    private bool arrayComplete = false;
+    // the list of samples
+    private SampleArray@ sampleArray;
 
     // the current index to be logged
     private uint currentLogIndex = 0;
 
-    void SetArrayComplete(bool value) {
-        // set array complete to true or false based on the input
-        arrayComplete = value;
-
-        // if value is true, actualSize is the current log index, otherwise set to 0
-        actualSize = (value) ? currentLogIndex : 0;
-    }
 
     bool IsFinished() {
         return currentLogIndex > ghostPoints.Length + 0;
@@ -23,7 +12,7 @@ class LogMgr {
 
     void LogPoint(CSceneVehicleVisState @car) {
         // only log points if not complete
-        if (arrayComplete) { return; }
+        if (sampleArray.isComplete) { return; }
         if (car is null) { return; }
 
         // check for size greater or equal to the hard limit
@@ -31,25 +20,27 @@ class LogMgr {
             warn("Max array size hit");
 
             // if at limit the array must be complete
-            SetArrayComplete(true);
+            SampleArray.SetComplete(true);
             return;
         }
 
         if (IsFinished()) {
             print("Logging finished");
-            SetArrayComplete(true);
+            SampleArray.SetComplete(true);
             return;
         }
 
-        Point currentPoint(currentCar);
+        // create the new point
+        Point currentPoint;
+        currentPoint.LoadFromState(currentCar);
 
         // reassign a point if there is space for it else insert at the end the new point
-        if (currentLogIndex >= ghostPoints.Length) {
+        if (currentLogIndex >= sampleArray.samples.Length) {
             // set last point
-            ghostPoints.InsertLast(currentPoint);
+            sampleArray.samples.InsertLast(currentPoint);
         }
         else {
-            ghostPoints[currentLogIndex] = currentPoint;
+            sampleArray.samples[currentLogIndex] = currentPoint;
         }
 
         // increment the log index
@@ -60,13 +51,14 @@ class LogMgr {
     }
 
     void Reset() {
-        // delete all points
-        loggedPoints.Resize(0);
-
-        // set incomplete
-        SetArrayComplete(false);
+        // reset the sample array
+        sampleArray.Reset();
 
         // reset log index
         currentLogIndex = 0;
+    }
+
+    LogMgr(SampleArray @sampleArray) {
+        this.sampleArray = sampleArray;
     }
 };

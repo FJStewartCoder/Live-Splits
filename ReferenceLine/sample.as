@@ -24,3 +24,28 @@ class Point {
         timeStamp = timer.GetTime();
     }
 }
+
+class SampleArray {
+    // a list of samples
+    array<Point> samples;
+    // the size of the samples
+    bool isComplete = false;
+
+    // the default size of the samples array
+    uint defaultSize = 0;
+
+
+    void SetComplete(bool value) {
+        // set array complete to true or false based on the input
+        isComplete = value;
+    }
+
+    void Reset() {
+        samples.Resize(defaultSize);
+        SetComplete(false);
+    }
+
+    SampleArray() {
+        samples.Reserve(defaultSize);
+    }
+}

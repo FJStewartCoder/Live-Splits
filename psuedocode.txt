@@ -1,0 +1,20 @@
+ReferenceManager
+    SampleArray
+
+    NetGhostMgr
+    LocalGhostMgr
+    LogMgr
+
+
+SampleArray
+    ...
+
+
+LogMgr
+    Reference to SampleArray
+
+NetGhostMgr
+    Reference to SampleArray
+
+LocalGhostMgr
+    Reference to SampleArray
