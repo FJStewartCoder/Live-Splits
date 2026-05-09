@@ -62,3 +62,8 @@ class LogMgr {
         this.sampleArray = sampleArray;
     }
 };
+
+
+
+// TODO:
+// implement the frames between log in the logmgr class
