@@ -1,5 +1,5 @@
 class LocalGhostMgr {
-    private SampleArray@ sampleArray;
+    SampleArray@ sampleArray;
     bool isSaved = false;
 
 
@@ -23,7 +23,7 @@ class LocalGhostMgr {
 
         // determine version and read based on version
         if (vNum == 3) {
-            loadRes = V3::LoadPoints(id, sampleArray);
+            // loadRes = V3::LoadPoints(id, sampleArray);
         }
         else if (vNum == 2) {
             print("Version 2 files are not supported due to bugs.");
@@ -36,7 +36,8 @@ class LocalGhostMgr {
     }
 
     void SavePoints(const string&in id) {
-        int res = V3::SavePoints(id, sampleArray);
+        // TODO: replace this with V3 once V3 is fixed
+        int res = V1::SavePoints(id, sampleArray);
         isSaved = res == 0;
     }
 
@@ -66,4 +67,10 @@ class LocalGhostMgr {
             isSaved = false;
         }
     }
+
+    LocalGhostMgr(SampleArray @sampleArray) {
+        this.sampleArray = sampleArray;
+    }
+
+    LocalGhostMgr() {}
 }

@@ -470,14 +470,18 @@ namespace V3 {
     // 40 second track (the time went wrong)
     // 0 -> 0.99 dev, 28kb
     void FileTest() {
+        /*
         array<Point> testPoints(ghostPoints.Length);
 
         for (int i = 0; i < testPoints.Length; i++) {
             testPoints[i] = ghostPoints[i];
         }
+        */
 
-        SavePoints("test");
-        LoadPoints("test");
+        array<Point>@ testPoints = reference.sampleArray.samples;
+
+        SavePoints("test", reference.sampleArray);
+        LoadPoints("test", reference.sampleArray);
 
         double maxXDiff = 0;
         double maxYDiff = 0;

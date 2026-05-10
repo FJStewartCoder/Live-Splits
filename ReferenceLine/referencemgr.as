@@ -9,11 +9,12 @@ enum UpdateState {
 class ReferenceMgr {
     SampleArray sampleArray;
 
-    LogMgr logMgr(sampleArray);
+    LogMgr logMgr;
     LocalGhostMgr localGhostMgr;
     NetGhostMgr netGhostMgr;
 
     private UpdateState state;
+
     
     private bool DoingNothing() {
         return state == UpdateState::NONE;
@@ -58,7 +59,7 @@ class ReferenceMgr {
         if ( state != requiredState ) { return; }
 
         // try to load a local ghost
-        localGhostMgr.LoadPoints();
+        localGhostMgr.LoadPoints( currentMap );
 
         // determine the new state
         if ( sampleArray.isComplete ) {
@@ -101,12 +102,17 @@ class ReferenceMgr {
         // call the state functions
         GetNetworkGhost();
         GetLocalGhost();
-        LogSamples();
+        LogSamples(car);
     }
 
     void OnChangeTrack() {
         // reset states and reset the array
         state = UpdateState::NONE;
         sampleArray.Reset();
+    }
+
+    ReferenceMgr() {
+        logMgr.sampleArray = sampleArray;
+        localGhostMgr.sampleArray = sampleArray;
     }
 }

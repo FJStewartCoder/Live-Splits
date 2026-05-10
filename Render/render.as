@@ -121,7 +121,7 @@ void RenderMenu() {
 
         // deletes all ghost point saves from this map
         if (UI::MenuItem("Delete Saved Ghost", "")) {
-            DeleteById(currentMap);
+            reference.localGhostMgr.DeleteById(currentMap);
         }        
 
         UI::EndMenu();

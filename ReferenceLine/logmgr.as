@@ -1,6 +1,6 @@
 class LogMgr {
     // the list of samples
-    private SampleArray@ sampleArray;
+    SampleArray@ sampleArray;
 
     // the current index to be logged
     uint currentLogIndex = 0;
@@ -22,7 +22,7 @@ class LogMgr {
         framesBetweenLog.Increment();
 
         // check if we need to perform a log
-        const bool performLog = framesBetweenLog.GetValue() == 0;
+        const bool performLog = framesBetweenLog.GetValue();
         if ( !performLog ) { return; }
 
         // check for size greater or equal to the hard limit
@@ -74,6 +74,8 @@ class LogMgr {
     LogMgr(SampleArray @sampleArray) {
         this.sampleArray = sampleArray;
     }
+
+    LogMgr() {}
 };
 
 

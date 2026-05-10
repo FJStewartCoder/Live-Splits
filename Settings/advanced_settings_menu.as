@@ -136,7 +136,7 @@ void CacheSettings() {
 void FileSettings() {
     // deletes all ghost point saves
     if (UI::Button("Delete All Saved Ghosts")) {
-        DeleteAll();
+        reference.localGhostMgr.DeleteAll();
     }
 }
 

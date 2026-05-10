@@ -131,12 +131,12 @@ void GetGaps(ISceneVis @scene) {
                 switch (gapAlg) {
                     case GapAlgorithm::Full:
                         // set the gaps using the linear algorithm
-                        SetGaps::Full(thisPoint, ghostPoints, miscArray[i], useLinearGap);
+                        SetGaps::Full(thisPoint, reference.sampleArray.samples, miscArray[i], useLinearGap);
                         break;
 
                     case GapAlgorithm::Estimation:
                         // set the gaps using the estimation algorithm
-                        SetGaps::Estimation(thisPoint, ghostPoints, miscArray[i], useLinearGap);
+                        SetGaps::Estimation(thisPoint, reference.sampleArray.samples, miscArray[i], useLinearGap);
                         break;
                 }
 
@@ -207,16 +207,6 @@ void Update(float dt) {
         return;
     }
 
-    // only if the array is not complete, load points
-    // this will then set arrayComplete to true so won't reoccur
-    // only load if using saving
-    if (useSave && !arrayComplete) {
-        auto res = LoadPoints(currentMap);
-
-        // prevent saving the same points
-        isSaved = res == 0;
-    }
-
     // -------------------------------------------------------------------------
     // checks to ensure we can proceed
 
@@ -263,7 +253,6 @@ void Update(float dt) {
     // pre-log housekeeping and checks
 
     // increment all rotating counters
-    framesBetweenLog.Increment();
     framesBetweenGap.Increment();
 
     // cars must be greater than one to ensure the cars are included
@@ -278,17 +267,13 @@ void Update(float dt) {
     // -------------------------------------------------------------------------
     // adding points scripts
 
-    // only log frames if frame number is 0
-    // unless you are at the start
-    if (framesBetweenLog.GetValue() || currentLogIndex == 0) {
-        LogPoints(scene);
-    }
+    reference.OnUpdate(thisCar);
 
     // -------------------------------------------------------------------------
     // calculate the gaps
 
     // only calculate if the frames between gap requirement is met
-    if (framesBetweenGap.GetValue() && (arrayComplete || getGapOverride)) {
+    if (framesBetweenGap.GetValue() && (reference.sampleArray.isComplete || getGapOverride)) {
         // gets all of the gaps
         GetGaps(scene);
     }
@@ -296,16 +281,6 @@ void Update(float dt) {
     // -------------------------------------------------------------------------
     // housekeeping
 
-    // increment currentLogIndex
-    currentLogIndex++;
-
-    // if complete, save the points if using save
-    if (useSave && arrayComplete && !isSaved) {
-        if (V3::SavePoints(currentMap) == 0) {
-            isSaved = true;
-        }
-
-        // FOR DEBUG
-        // V3::FileTest();
-    }
+    // FOR DEBUG
+    // V3::FileTest();
 }

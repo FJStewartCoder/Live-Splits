@@ -3,10 +3,10 @@ namespace Render {
         // creates window
         if (UI::Begin("Debug Menu")) {
             // ONLY FOR DEBUGGING
-            UI::InputInt("LOG", currentLogIndex);
+            UI::InputInt("LOG", reference.logMgr.currentLogIndex);
             UI::InputInt("TIME", timer.GetTime());
-            UI::InputInt("SIZE", ghostPoints.Length);
-            UI::Checkbox("COMPLETE", arrayComplete);
+            UI::InputInt("SIZE", reference.sampleArray.samples.Length);
+            UI::Checkbox("COMPLETE", reference.sampleArray.isComplete);
 
             for (int i = 0; i < miscArray.Length; i++) {
                 UI::PushID(i);
