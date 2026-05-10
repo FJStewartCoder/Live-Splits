@@ -5,6 +5,9 @@ class LogMgr {
     // the current index to be logged
     uint currentLogIndex = 0;
 
+    // a counter that is the number of frames between logging
+    RotatingCounter framesBetweenLog(6);
+
 
     bool IsFinished() {
         return currentLogIndex > sampleArray.samples.Length + 0;
@@ -14,6 +17,13 @@ class LogMgr {
         // only log points if not complete
         if (sampleArray.isComplete) { return; }
         if (car is null) { return; }
+
+        // increment the counter
+        framesBetweenLog.Increment();
+
+        // check if we need to perform a log
+        const bool performLog = framesBetweenLog.GetValue() == 0;
+        if ( !performLog ) { return; }
 
         // check for size greater or equal to the hard limit
         if (currentLogIndex >= arrayMaxSize) {
@@ -56,6 +66,9 @@ class LogMgr {
 
         // reset log index
         currentLogIndex = 0;
+
+        // reset the rotating counter
+        framesBetweenLog.Reset();
     }
 
     LogMgr(SampleArray @sampleArray) {
