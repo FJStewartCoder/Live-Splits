@@ -9,8 +9,9 @@ class LogMgr {
     RotatingCounter framesBetweenLog(6);
 
 
-    bool IsFinished() {
-        return currentLogIndex > sampleArray.samples.Length + 0;
+    bool IsFinished(CSceneVehicleVisState@ car) {
+        return GetApp().CurrentPlayground.GameTerminals[0].UISequence_Current == SGamePlaygroundUIConfig::EUISequence::Finish;
+        // return currentLogIndex > sampleArray.samples.Length + 0;
     }  
 
     void LogPoint(CSceneVehicleVisState @car) {
@@ -34,7 +35,7 @@ class LogMgr {
             return;
         }
 
-        if (IsFinished()) {
+        if (IsFinished(car)) {
             print("Logging finished");
             sampleArray.SetComplete(true);
             return;
@@ -72,7 +73,7 @@ class LogMgr {
     }
 
     LogMgr(SampleArray @sampleArray) {
-        this.sampleArray = sampleArray;
+        @this.sampleArray = sampleArray;
     }
 
     LogMgr() {}

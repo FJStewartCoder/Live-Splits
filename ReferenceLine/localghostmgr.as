@@ -9,6 +9,7 @@ class LocalGhostMgr {
         // don't try open the file if it doesn't exist
         if (!IO::FileExists(filePath)) { 
             isSaved = false;
+            return;
         }
 
         IO::File saveFile(filePath, IO::FileMode::Read);
@@ -69,7 +70,7 @@ class LocalGhostMgr {
     }
 
     LocalGhostMgr(SampleArray @sampleArray) {
-        this.sampleArray = sampleArray;
+        @this.sampleArray = sampleArray;
     }
 
     LocalGhostMgr() {}

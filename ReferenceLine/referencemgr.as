@@ -9,8 +9,8 @@ enum UpdateState {
 class ReferenceMgr {
     SampleArray sampleArray;
 
-    LogMgr logMgr;
-    LocalGhostMgr localGhostMgr;
+    LogMgr logMgr(sampleArray);
+    LocalGhostMgr localGhostMgr(sampleArray);
     NetGhostMgr netGhostMgr;
 
     private UpdateState state;
@@ -109,10 +109,5 @@ class ReferenceMgr {
         // reset states and reset the array
         state = UpdateState::NONE;
         sampleArray.Reset();
-    }
-
-    ReferenceMgr() {
-        logMgr.sampleArray = sampleArray;
-        localGhostMgr.sampleArray = sampleArray;
     }
 }
