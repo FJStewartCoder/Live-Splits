@@ -49,8 +49,8 @@ void ResetRaceVars() {
 void ResetAllVars() {
     ResetRaceVars();
 
-    // reset the logger
-    reference.logMgr.Reset();
+    // set change track / reset
+    reference.OnChangeTrack();
 
     // reset the misc array
     ResetMiscArray(numCars, miscArray);
@@ -73,6 +73,10 @@ void ResetAllVars() {
 
 // TODO: fix car finishing early bug as well
 // seems to be related to having a ghost already and resetting
+
+// TODO:
+// fix ghost replays not finishing in the gap manager leading to the ghost not properly showing gap at finish because it does not
+// know that the ghost has finished (only applies if you are slower than a ghost)
 
 void Main() {
     // upon loading sets the current config

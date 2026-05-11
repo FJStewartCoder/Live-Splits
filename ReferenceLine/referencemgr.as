@@ -109,5 +109,6 @@ class ReferenceMgr {
         // reset states and reset the array
         state = UpdateState::NONE;
         sampleArray.Reset();
+        logMgr.Reset();
     }
 }
