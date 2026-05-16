@@ -11,7 +11,7 @@ class ReferenceMgr {
 
     LogMgr logMgr(sampleArray);
     LocalGhostMgr localGhostMgr(sampleArray);
-    NetGhostMgr netGhostMgr;
+    NetGhostMgr netGhostMgr(sampleArray);
 
     private UpdateState state;
 
@@ -112,3 +112,25 @@ class ReferenceMgr {
         logMgr.Reset();
     }
 }
+
+
+// every sub manager for the reference manager needs to inherit this
+class SubReferenceMgr {
+    SampleArray @sampleArray;
+
+    // called when the track changes
+    void OnTrackChange() {
+    }
+
+    // called when the player returns to the start of the track
+    void OnRestart() {
+    }
+
+    // reset the manager to the default state
+    void Reset() {
+    }
+
+    SubReferenceMgr(SampleArray @sampleArray) {
+        @this.sampleArray = sampleArray;
+    }
+} 

@@ -1,12 +1,9 @@
-class LogMgr {
-    // the list of samples
-    SampleArray@ sampleArray;
-
+class LogMgr : SubReferenceMgr {
     // the current index to be logged
     uint currentLogIndex = 0;
 
     // a counter that is the number of frames between logging
-    RotatingCounter framesBetweenLog(6);
+    RotatingCounter framesBetweenLog(2);
 
 
     bool IsFinished(CSceneVehicleVisState@ car) {
@@ -61,7 +58,7 @@ class LogMgr {
         // print(car + " " + currentPoint.Get());
     }
 
-    void Reset() {
+    void Reset() override {
         // reset the sample array
         sampleArray.Reset();
 
@@ -73,10 +70,8 @@ class LogMgr {
     }
 
     LogMgr(SampleArray @sampleArray) {
-        @this.sampleArray = sampleArray;
+        super(sampleArray);
     }
-
-    LogMgr() {}
 };
 
 

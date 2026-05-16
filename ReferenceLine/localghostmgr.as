@@ -1,5 +1,4 @@
-class LocalGhostMgr {
-    SampleArray@ sampleArray;
+class LocalGhostMgr : SubReferenceMgr {
     bool isSaved = false;
 
 
@@ -70,8 +69,6 @@ class LocalGhostMgr {
     }
 
     LocalGhostMgr(SampleArray @sampleArray) {
-        @this.sampleArray = sampleArray;
+        super(sampleArray);
     }
-
-    LocalGhostMgr() {}
 }
