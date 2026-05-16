@@ -25,6 +25,9 @@ class Point {
     }
 }
 
+// TODO: update sample array to store seperate samples per checkpoint and lap
+// should fix issue with respawns and stuff
+
 class SampleArray {
     // a list of samples
     array<Point> samples;
