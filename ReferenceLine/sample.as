@@ -28,9 +28,27 @@ class Point {
 // TODO: update sample array to store seperate samples per checkpoint and lap
 // should fix issue with respawns and stuff
 
+class SubSamples {
+    array<Point> samples;
+
+    uint lap;
+    uint checkpoint;
+
+    void Reset() {
+        samples.Resize(0);
+    }
+
+    SubSamples(uint lap, uint checkpoint) {
+        this.lap = lap;
+        this.checkpoint = checkpoint;
+    }
+
+    SubSamples() {}
+}
+
 class SampleArray {
     // a list of samples
-    array<Point> samples;
+    array<SubSamples> samples;
     // the size of the samples
     bool isComplete = false;
 

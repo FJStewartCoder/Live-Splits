@@ -29,7 +29,7 @@ class LocalGhostMgr : SubReferenceMgr {
             print("Version 2 files are not supported due to bugs.");
         }
         else {
-            loadRes = V1::LoadPoints(id, sampleArray);
+            // loadRes = V1::LoadPoints(id, sampleArray);
         }
 
         isSaved = loadRes == 0;
@@ -37,8 +37,8 @@ class LocalGhostMgr : SubReferenceMgr {
 
     void SavePoints(const string&in id) {
         // TODO: replace this with V3 once V3 is fixed
-        int res = V1::SavePoints(id, sampleArray);
-        isSaved = res == 0;
+        // int res = V1::SavePoints(id, sampleArray);
+        // isSaved = res == 0;
     }
 
     void DeleteAll() {

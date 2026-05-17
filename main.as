@@ -130,17 +130,18 @@ void GetGaps(ISceneVis @scene) {
             else {
                 Point thisPoint;
                 thisPoint.LoadFromState(currentCar.AsyncState);
+                SubSamples@ curSamples = reference.sampleArray.samples[0];
 
                 // set the based on the chosen algorithm
                 switch (gapAlg) {
                     case GapAlgorithm::Full:
                         // set the gaps using the linear algorithm
-                        SetGaps::Full(thisPoint, reference.sampleArray.samples, miscArray[i], useLinearGap);
+                        SetGaps::Full(thisPoint, curSamples.samples, miscArray[i], useLinearGap);
                         break;
 
                     case GapAlgorithm::Estimation:
                         // set the gaps using the estimation algorithm
-                        SetGaps::Estimation(thisPoint, reference.sampleArray.samples, miscArray[i], useLinearGap);
+                        SetGaps::Estimation(thisPoint, curSamples.samples, miscArray[i], useLinearGap);
                         break;
                 }
 

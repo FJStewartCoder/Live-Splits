@@ -16,6 +16,10 @@ class LogMgr : SubReferenceMgr {
         if (sampleArray.isComplete) { return; }
         if (car is null) { return; }
 
+        if (sampleArray.samples.Length == 0) {
+            sampleArray.samples.InsertLast(SubSamples(0, 0));
+        }
+
         // increment the counter
         framesBetweenLog.Increment();
 
@@ -45,10 +49,11 @@ class LogMgr : SubReferenceMgr {
         // reassign a point if there is space for it else insert at the end the new point
         if (currentLogIndex >= sampleArray.samples.Length) {
             // set last point
-            sampleArray.samples.InsertLast(currentPoint);
+            sampleArray.samples[0].samples.InsertLast(currentPoint);
         }
         else {
-            sampleArray.samples[currentLogIndex] = currentPoint;
+            // TODO: this no longer works
+            sampleArray.samples[0].samples[currentLogIndex] = currentPoint;
         }
 
         // increment the log index
