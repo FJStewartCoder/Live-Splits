@@ -272,7 +272,7 @@ void Update(float dt) {
     // -------------------------------------------------------------------------
     // adding points scripts
 
-    reference.OnUpdate(thisCar);
+    reference.OnUpdate();
 
     // -------------------------------------------------------------------------
     // calculate the gaps

@@ -27,15 +27,42 @@ class LogMgr : SubReferenceMgr {
     RotatingCounter framesBetweenLog(2);
 
 
-    bool IsFinished(CSceneVehicleVisState@ car) {
+    bool IsFinished() {
         return GetApp().CurrentPlayground.GameTerminals[0].UISequence_Current == SGamePlaygroundUIConfig::EUISequence::Finish;
         // return currentLogIndex > sampleArray.samples.Length + 0;
-    }  
+    }
 
-    void LogPoint(CSceneVehicleVisState @car) {
+    void LogPoint() {
         // only log points if not complete
         if (sampleArray.isComplete) { return; }
+
+        CSceneVehicleVisState@ car = VehicleState::ViewingPlayerState();
         if (car is null) { return; }
+
+
+        // we need a and b
+        /*
+        CSmPlayer@ a = GetApp().CurrentPlayground.Players[0];
+        CSmScriptPlayer@ b = a.ScriptAPI;
+
+        for (uint i = 0; i < b.LapWaypointTimes.Length; i++) {
+            print(b.LapWaypointTimes[i]);
+        }
+        */
+
+        CSmPlayer@ a = cast<CSmPlayer@>(GetApp().CurrentPlayground.GameTerminals[0].GUIPlayer);
+        CSmScriptPlayer@ b = cast<CSmScriptPlayer>(a.ScriptAPI);
+        auto c = a.Score;
+
+        // counts the number of respawns
+        c.NbRespawnsRequested;
+
+        for (uint i = 0; i < b.LapWaypointTimes.Length; i++) {
+            print(b.LapWaypointTimes[i]);
+        }
+
+        return;
+
 
         if (sampleArray.samples.Length == 0) {
             sampleArray.samples.InsertLast(SubSamples(0, 0));
@@ -57,7 +84,7 @@ class LogMgr : SubReferenceMgr {
             return;
         }
 
-        if (IsFinished(car)) {
+        if (IsFinished()) {
             print("Logging finished");
             sampleArray.SetComplete(true);
             return;

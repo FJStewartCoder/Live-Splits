@@ -70,7 +70,7 @@ class ReferenceMgr {
         }
     }
 
-    void LogSamples(CSceneVehicleVisState@ car) {
+    void LogSamples() {
         // the state that we need to set or be in order to do this action
         const UpdateState requiredState = UpdateState::LOGGING;
 
@@ -82,7 +82,7 @@ class ReferenceMgr {
         // (would allow for processing over several gameloops)
         if ( state != requiredState ) { return; }
 
-        logMgr.LogPoint(car);
+        logMgr.LogPoint();
 
         // if complete, set state to complete, otherwise remain in the logging state
         if ( sampleArray.isComplete ) {
@@ -93,7 +93,7 @@ class ReferenceMgr {
         }
     }
 
-    void OnUpdate(CSceneVehicleVisState@ car) {
+    void OnUpdate() {
         // don't need to do anything if the array is complete
         if ( sampleArray.isComplete || state == UpdateState::COMPLETE ) {
             return;
@@ -102,7 +102,7 @@ class ReferenceMgr {
         // call the state functions
         GetNetworkGhost();
         GetLocalGhost();
-        LogSamples(car);
+        LogSamples();
     }
 
     void OnChangeTrack() {
