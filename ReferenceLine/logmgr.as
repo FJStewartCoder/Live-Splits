@@ -1,3 +1,24 @@
+/*
+SYSTEM:
+Log the player car's points per checkpoint and lap
+If the player respawns, reset the current lap-checkpoint samples
+
+STEPS:
+Get the current sample list based on checkpoint and lap
+Check respawn status
+
+IF respawned
+    reset current sample list
+
+append current point to the current sample list
+*/
+
+/*
+TODO:
+- implement the frames between log in the logmgr class
+- implement log per s seconds rather than per frames
+*/
+
 class LogMgr : SubReferenceMgr {
     // the current index to be logged
     uint currentLogIndex = 0;
@@ -78,8 +99,3 @@ class LogMgr : SubReferenceMgr {
         super(sampleArray);
     }
 };
-
-
-
-// TODO:
-// implement the frames between log in the logmgr class
