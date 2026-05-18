@@ -1,5 +1,20 @@
+class GhostGapData {
+    uint id;
+    string ghostName;
+
+    // as milliseconds
+    int gap;
+    // gap relative to ghost points
+    int relGap; 
+
+    // index of the previous gap
+    uint lastIdx;
+}
+
+
 class Miscellaneous {
     uint id;
+    string ghostName;
 
     // as milliseconds
     int gap;

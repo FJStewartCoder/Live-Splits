@@ -37,7 +37,7 @@ class LogMgr : SubReferenceMgr {
         CSceneVehicleVisState@ car = VehicleState::ViewingPlayerState();
         if (car is null) { return; }
 
-        print(PlayerData::lap + " " + PlayerData::cp);
+        // print(PlayerData::lap + " " + PlayerData::cp);
 
         SubSamples@ subSamples = sampleArray.GetLapAndCP(PlayerData::lap, PlayerData::cp);
 

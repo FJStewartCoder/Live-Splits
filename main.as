@@ -274,6 +274,9 @@ void Update(float dt) {
     PlayerData::Update();
     reference.OnUpdate();
 
+    GapMgr gapMgr;
+    gapMgr.OnUpdate();
+
     // -------------------------------------------------------------------------
     // calculate the gaps
 

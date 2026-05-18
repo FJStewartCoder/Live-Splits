@@ -54,6 +54,39 @@ GapAlgorithm intToEnum(int value) {
     return enumValue;
 }
 
+namespace GetGap {
+    Point@ Full(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
+        return null;
+    }
+
+    Point@ Estimation(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
+        return null;
+    }
+
+    Point@ Simple(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
+        Point@ closest = null;
+        float closestDist = 0xffffffff;
+
+        for (int i = 0; i < samples.samples.Length; i++) {
+            SubSamples@ subSamples = samples.samples[i];
+
+            for (int j = 0; j < subSamples.samples.Length; i++) {
+                Point@ point = subSamples.samples[j];
+
+                float dist = GetDist(currentPoint, point);
+
+                if (dist < closestDist) {
+                    closest = point;
+                    closestDist = dist;
+                }
+            }
+        }
+
+        return closest;
+    }
+}
+
+
 namespace SetGaps {
     // intervals in which the MODIFIED LINEAR algorithm will check
     // intervals between distance checks (reduces overall number of checks)
