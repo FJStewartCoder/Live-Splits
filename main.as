@@ -19,8 +19,7 @@ ReferenceMgr reference;
 
 // reset only the vars relevant to the current race
 void ResetRaceVars() {
-    // reset the current log index
-    reference.logMgr.currentLogIndex = 0;
+    reference.OnRestart();
 
     // reset current time
     timer.SetStartTime();
@@ -272,6 +271,7 @@ void Update(float dt) {
     // -------------------------------------------------------------------------
     // adding points scripts
 
+    PlayerData::Update();
     reference.OnUpdate();
 
     // -------------------------------------------------------------------------

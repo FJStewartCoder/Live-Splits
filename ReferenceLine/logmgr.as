@@ -19,10 +19,8 @@ TODO:
 - implement log per s seconds rather than per frames
 */
 
-class LogMgr : SubReferenceMgr {
-    // the current index to be logged
-    uint currentLogIndex = 0;
 
+class LogMgr : SubReferenceMgr {
     // a counter that is the number of frames between logging
     RotatingCounter framesBetweenLog(2);
 
@@ -30,20 +28,6 @@ class LogMgr : SubReferenceMgr {
     bool IsFinished() {
         return GetApp().CurrentPlayground.GameTerminals[0].UISequence_Current == SGamePlaygroundUIConfig::EUISequence::Finish;
         // return currentLogIndex > sampleArray.samples.Length + 0;
-    }
-    
-    uint GetLapNumber() {
-        auto a = MLFeed::GetRaceData_V4();
-        auto b = a.get_LocalPlayer();
-
-        return b.CurrentLap; 
-    }
-
-    uint GetCPNumber() {
-        auto a = MLFeed::GetRaceData_V4();
-        auto b = a.get_LocalPlayer();
-
-        return b.spawnIndex; 
     }
 
     void LogPoint() {
@@ -53,34 +37,13 @@ class LogMgr : SubReferenceMgr {
         CSceneVehicleVisState@ car = VehicleState::ViewingPlayerState();
         if (car is null) { return; }
 
-        print(GetLapNumber() + " " + GetCPNumber());
+        print(PlayerData::lap + " " + PlayerData::cp);
 
-        // we need a and b
-        /*
-        CSmPlayer@ a = GetApp().CurrentPlayground.Players[0];
-        CSmScriptPlayer@ b = a.ScriptAPI;
+        SubSamples@ subSamples = sampleArray.GetLapAndCP(PlayerData::lap, PlayerData::cp);
 
-        for (uint i = 0; i < b.LapWaypointTimes.Length; i++) {
-            print(b.LapWaypointTimes[i]);
-        }
-        */
-
-        CSmPlayer@ a = cast<CSmPlayer@>(GetApp().CurrentPlayground.GameTerminals[0].GUIPlayer);
-        CSmScriptPlayer@ b = cast<CSmScriptPlayer>(a.ScriptAPI);
-        auto c = a.Score;
-
-        // counts the number of respawns
-        c.NbRespawnsRequested;
-
-        for (uint i = 0; i < b.LapWaypointTimes.Length; i++) {
-            print(b.LapWaypointTimes[i]);
-        }
-
-        return;
-
-
-        if (sampleArray.samples.Length == 0) {
-            sampleArray.samples.InsertLast(SubSamples(0, 0));
+        if (PlayerData::hasRespawned) {
+            print('Player has respawned; deleting current samples');
+            subSamples.Reset();
         }
 
         // increment the counter
@@ -90,6 +53,7 @@ class LogMgr : SubReferenceMgr {
         const bool performLog = framesBetweenLog.GetValue();
         if ( !performLog ) { return; }
 
+        /*
         // check for size greater or equal to the hard limit
         if (currentLogIndex >= arrayMaxSize) {
             warn("Max array size hit");
@@ -98,6 +62,7 @@ class LogMgr : SubReferenceMgr {
             sampleArray.SetComplete(true);
             return;
         }
+        */
 
         if (IsFinished()) {
             print("Logging finished");
@@ -109,18 +74,8 @@ class LogMgr : SubReferenceMgr {
         Point currentPoint;
         currentPoint.LoadFromState(car);
 
-        // reassign a point if there is space for it else insert at the end the new point
-        if (currentLogIndex >= sampleArray.samples.Length) {
-            // set last point
-            sampleArray.samples[0].samples.InsertLast(currentPoint);
-        }
-        else {
-            // TODO: this no longer works
-            sampleArray.samples[0].samples[currentLogIndex] = currentPoint;
-        }
-
-        // increment the log index
-        currentLogIndex++;
+        // insert the new sample
+        subSamples.samples.InsertLast(currentPoint);
 
         // debug print
         // print(car + " " + currentPoint.Get());
@@ -130,11 +85,14 @@ class LogMgr : SubReferenceMgr {
         // reset the sample array
         sampleArray.Reset();
 
-        // reset log index
-        currentLogIndex = 0;
-
         // reset the rotating counter
         framesBetweenLog.Reset();
+    }
+
+    void OnRestart() override {
+        if (!sampleArray.isComplete) {
+            Reset();
+        }
     }
 
     LogMgr(SampleArray @sampleArray) {

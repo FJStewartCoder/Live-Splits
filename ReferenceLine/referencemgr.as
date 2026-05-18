@@ -111,6 +111,12 @@ class ReferenceMgr {
         sampleArray.Reset();
         logMgr.Reset();
     }
+
+    void OnRestart() {
+        logMgr.OnRestart();
+        netGhostMgr.OnRestart();
+        localGhostMgr.OnRestart();
+    }
 }
 
 

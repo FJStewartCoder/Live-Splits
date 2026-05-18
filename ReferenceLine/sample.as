@@ -66,6 +66,29 @@ class SampleArray {
         SetComplete(false);
     }
 
+    SubSamples@ FindLapAndCP(uint lap, uint cp) {
+        for (int i = 0; i < samples.Length; i++) {
+            SubSamples@ subSample = samples[i];
+
+            if (subSample.lap == lap && subSample.checkpoint == cp) {
+                return subSample;
+            }
+        }
+
+        return null;
+    }
+
+    SubSamples@ GetLapAndCP(uint lap, uint cp) {
+        const bool exists = FindLapAndCP(lap, cp) !is null;
+
+        if (exists) { return FindLapAndCP(lap, cp); }
+
+        SubSamples subSamples(lap, cp);
+        samples.InsertLast(subSamples);
+
+        return subSamples;
+    }
+
     SampleArray() {
         samples.Reserve(defaultSize);
     }
