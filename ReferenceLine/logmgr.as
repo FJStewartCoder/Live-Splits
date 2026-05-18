@@ -31,6 +31,20 @@ class LogMgr : SubReferenceMgr {
         return GetApp().CurrentPlayground.GameTerminals[0].UISequence_Current == SGamePlaygroundUIConfig::EUISequence::Finish;
         // return currentLogIndex > sampleArray.samples.Length + 0;
     }
+    
+    uint GetLapNumber() {
+        auto a = MLFeed::GetRaceData_V4();
+        auto b = a.get_LocalPlayer();
+
+        return b.CurrentLap; 
+    }
+
+    uint GetCPNumber() {
+        auto a = MLFeed::GetRaceData_V4();
+        auto b = a.get_LocalPlayer();
+
+        return b.spawnIndex; 
+    }
 
     void LogPoint() {
         // only log points if not complete
@@ -39,6 +53,7 @@ class LogMgr : SubReferenceMgr {
         CSceneVehicleVisState@ car = VehicleState::ViewingPlayerState();
         if (car is null) { return; }
 
+        print(GetLapNumber() + " " + GetCPNumber());
 
         // we need a and b
         /*
