@@ -1,0 +1,10 @@
+Create a GhostInfo_V2 thing that allows you to calculate the lap and checkpoint of a ghost and if they have finished.
+Use above tool to stop gap for ghosts being updated once they finish
+Re-implement cache
+Improve efficiency of gap algorithms
+Fix all gap algorithms (mostly just the estimation one)
+Re-implement save
+Come up with a new storage system of each of the points because the current one is bad
+Fix point overlap when respawning (just take into account the respawn animation)
+Fix settings (gap between log and stuff)
+Improve rendering settings (percentage location of bar rather than pixel based + ensure consistent text sizing of gap on bar between resolutions)

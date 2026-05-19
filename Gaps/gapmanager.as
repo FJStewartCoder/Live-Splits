@@ -114,10 +114,17 @@ class GapMgr {
     void OnRestart() {
         isGhostsSet = false;
         framesBetweenGap.Reset();
+
+        for (int i = 0; i < ghosts.Length; i++) {
+            ghosts[i].ResetGaps();
+        }
+
+        playerData.ResetGaps();
     }
 
     void OnChangeTrack() {
         OnRestart();
+        ghosts.Resize(0);
     }
 }
 
