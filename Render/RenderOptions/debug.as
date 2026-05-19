@@ -17,15 +17,20 @@ namespace Render {
                 UI::InputInt("Size", samples.samples.Length);
             }
 
-            for (int i = 0; i < miscArray.Length; i++) {
+            for (int i = 0; i < gapMgr.ghosts.Length; i++) {
+                GhostGapData@ ghost = gapMgr.ghosts[i];
+
                 UI::PushID(i);
 
                 UI::SeparatorText("");
 
-                UI::InputInt("ID", miscArray[i].id);
-                UI::InputInt("GAP", miscArray[i].gap);
-                UI::InputInt("REL GAP", miscArray[i].relGap);
-                UI::InputInt("LAST IDX", miscArray[i].lastIdx);
+                UI::InputText("NAME", ghost.ghostName);
+                UI::InputInt("GHOST ID", ghost.ghostId);
+                UI::InputInt("ENTITY ID", ghost.entityId);
+
+                UI::InputInt("GAP", ghost.gap);
+                UI::InputInt("REL GAP", ghost.relGap);
+                UI::InputInt("LAST IDX", ghost.lastIdx);
 
                 UI::PopID();
             }

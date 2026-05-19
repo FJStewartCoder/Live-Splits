@@ -1,41 +1,90 @@
+void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
+    while (true) {
+        bool swapped = false;
+
+        for (uint i = 0; i < arr.Length - 1; i++) {
+            MLFeed::GhostInfo_V2@ temp = null;
+            MLFeed::GhostInfo_V2@ cur = arr[i];
+            MLFeed::GhostInfo_V2@ next = arr[i + 1];
+
+            if (cur.IdUint > next.IdUint) {
+                @temp = cur;
+
+                @arr[i] = next;
+                @arr[i + 1] = temp;
+
+                swapped = true;
+            }
+        }
+
+        if (!swapped) { break; }
+    }
+}
+
 class GapMgr {
     GhostGapData[] ghosts;
 
-    void OnUpdate() {
-        // currently super dodgy system to get the position pair with the ghost thing
-
+    void CreateGhostsArray() {
         // TODO: fix the dodgy system
-        // the ordering is the same but the indexing idea is not correct
-        // somehow need to index them in the correct order then get the values back
-        // there could be possibility to use other vehicle state functions like GetByID
-        // we know the minimum vehicle state id and can probably do more maths and stuff
+        // when adding more ghosts, your own state gets duplicated which causes errors
+        // it mostly works
 
         // get the loaded ghosts
         // the ids are in the same order as the vehicle state vis
-        auto b = MLFeed::GetGhostData().LoadedGhosts;
+        array<MLFeed::GhostInfo_V2@> mlGhosts = MLFeed::GetGhostData().LoadedGhosts;
+        SortGhostInfo(mlGhosts);
+
+        // reset the ghosts array
+        ghosts.Resize(0);
 
         // get those vis
-        CSceneVehicleVis@[] d = VehicleState::GetAllVis(GetApp().GameScene);
+        CSceneVehicleVis@[] vehicleStates = VehicleState::GetAllVis(GetApp().GameScene);
 
-        // get the smallest ghost id
-        uint smallestGhostId = -1;
+        // iterate the vehicle visibilities and relate them to the ghost 
+        for (int i = 1; i < vehicleStates.Length; i++) {
+            CSceneVehicleVis@ vis = vehicleStates[i];
 
-        for (int i = 0; i < b.Length; i++) {
-            auto c = b[i];
+            GhostGapData data;
 
-            if (c.IdUint < smallestGhostId) { smallestGhostId = c.IdUint; }
+            @data.entityVis = vis;
+            data.entityId = GetEntityId(vis);
+
+            @data.ghostData = mlGhosts[i - 1];
+            data.ghostId = data.ghostData.IdUint;
+            data.ghostName = data.ghostData.Nickname;
+
+            ghosts.InsertLast(data);
         }
+    }
 
-        // the (ghost id - smallest) + 1 gives the index in the vehicle vis array to the vis
-        // +1 because idx 0 is the player
+    uint EvaluateGap(CSceneVehicleVisState@ state) {
+        Point p;
+        p.LoadFromState(state);
 
-        // iterate all ghosts and apply above knowledge
-        for (int i = 0; i < b.Length; i++) {
-            auto c = b[i];
+        Point@ p2 = GetGap::Simple(p, reference.sampleArray);
+        return timer.GetTime() - p2.timeStamp;
+    }
 
-            CSceneVehicleVis@ thisVis = d[(c.IdUint - smallestGhostId) + 1];
+    void UpdateGaps() {
+        auto a = VehicleState::ViewingPlayerState();
 
-            print(c.Nickname + " " + thisVis.AsyncState.Position.ToString());
+        uint playerGap = EvaluateGap(a);
+        
+        // iterate the ghosts in the ghost list
+        for (int i = 0; i < ghosts.Length; i++) {
+            GhostGapData@ data = ghosts[i];
+
+            data.relGap = EvaluateGap(data.entityVis.AsyncState);
+            data.gap = playerGap - data.gap;
+
+            // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
+        }
+    }
+
+    void OnUpdate() {
+        if (reference.sampleArray.isComplete) {
+            CreateGhostsArray();
+            UpdateGaps();
         }
     }
 

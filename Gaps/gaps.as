@@ -70,13 +70,13 @@ namespace GetGap {
         for (int i = 0; i < samples.samples.Length; i++) {
             SubSamples@ subSamples = samples.samples[i];
 
-            for (int j = 0; j < subSamples.samples.Length; i++) {
+            for (int j = 0; j < subSamples.samples.Length; j++) {
                 Point@ point = subSamples.samples[j];
 
                 float dist = GetDist(currentPoint, point);
 
                 if (dist < closestDist) {
-                    closest = point;
+                    @closest = point;
                     closestDist = dist;
                 }
             }

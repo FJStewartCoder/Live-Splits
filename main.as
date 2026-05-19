@@ -2,10 +2,6 @@
 string lastMap;
 string currentMap;
 
-// arraySize is not in here
-// create a miscellaneous array for each ghost
-array<Miscellaneous> miscArray(numCars);
-
 // ensure data is only reset once every cycle
 bool startDataSet = false;
 
@@ -15,6 +11,7 @@ bool isSaved = false;
 // the time manager
 Time timer;
 ReferenceMgr reference;
+GapMgr gapMgr;
 
 
 // reset only the vars relevant to the current race
@@ -24,24 +21,8 @@ void ResetRaceVars() {
     // reset current time
     timer.SetStartTime();
 
-    // iterate miscArray and set last idx to 0
-    for (int i = 0; i < miscArray.Length; i++) {
-        const bool noMorePlayers = miscArray[i].id == 0;
-        if (noMorePlayers) { break; }
-
-        // reset the last idx
-        miscArray[i].lastIdx = 0;
-
-        // reset gaps
-        miscArray[i].gap = 0;
-        miscArray[i].relGap = 0;
-    }
-
     // reset currentFrameNumber just so always starts at 0
     framesBetweenLog.Reset();
-
-    // reset the misc array (this magically fixes an issue I had where the vehicle IDs keep changing)
-    ResetMiscArray(numCars, miscArray);
 }
 
 // function to reset all variables
@@ -50,9 +31,6 @@ void ResetAllVars() {
 
     // set change track / reset
     reference.OnChangeTrack();
-
-    // reset the misc array
-    ResetMiscArray(numCars, miscArray);
 
     // optimise for the current track
     SetGaps::Optimise(expectedFrameRate, modLinResolution);
@@ -273,8 +251,6 @@ void Update(float dt) {
 
     PlayerData::Update();
     reference.OnUpdate();
-
-    GapMgr gapMgr;
     gapMgr.OnUpdate();
 
     // -------------------------------------------------------------------------
