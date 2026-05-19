@@ -23,8 +23,14 @@ void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
 
 class GapMgr {
     GhostGapData[] ghosts;
+    bool isGhostsSet = false;
+
+    RotatingCounter framesBetweenGap(9);
 
     void CreateGhostsArray() {
+        // reset the ghosts array
+        ghosts.Resize(0);
+
         // TODO: fix the dodgy system
         // when adding more ghosts, your own state gets duplicated which causes errors
         // it mostly works
@@ -33,9 +39,6 @@ class GapMgr {
         // the ids are in the same order as the vehicle state vis
         array<MLFeed::GhostInfo_V2@> mlGhosts = MLFeed::GetGhostData().LoadedGhosts;
         SortGhostInfo(mlGhosts);
-
-        // reset the ghosts array
-        ghosts.Resize(0);
 
         // get those vis
         CSceneVehicleVis@[] vehicleStates = VehicleState::GetAllVis(GetApp().GameScene);
@@ -57,24 +60,40 @@ class GapMgr {
         }
     }
 
-    uint EvaluateGap(CSceneVehicleVisState@ state) {
+    void EvaluateGap(GhostGapData@ data) {
+        Point p;
+        p.LoadFromState(data.entityVis.AsyncState);
+
+        PointLocation loc = GetGap::Full(p, reference.sampleArray);
+        Point@ p2 = reference.sampleArray.FindLapAndCP(loc.lap, loc.cp).samples[loc.idx];
+
+        data.relGap = timer.GetTime() - p2.timeStamp;
+        data.lastPointLoc = loc;
+    }
+
+    int EvaluateGap(CSceneVehicleVisState@ state) {
         Point p;
         p.LoadFromState(state);
 
-        Point@ p2 = GetGap::Simple(p, reference.sampleArray);
+        PointLocation loc = GetGap::Full(p, reference.sampleArray);
+        Point@ p2 = reference.sampleArray.FindLapAndCP(loc.lap, loc.cp).samples[loc.idx];
+
         return timer.GetTime() - p2.timeStamp;
     }
 
     void UpdateGaps() {
-        auto a = VehicleState::ViewingPlayerState();
+        // increment and evaluate the framesBetweenGap counter
+        framesBetweenGap.Increment();
+        if (!framesBetweenGap.GetValue()) { return; }
 
-        uint playerGap = EvaluateGap(a);
+        auto a = VehicleState::ViewingPlayerState();
+        int playerGap = EvaluateGap(a);
         
         // iterate the ghosts in the ghost list
         for (int i = 0; i < ghosts.Length; i++) {
             GhostGapData@ data = ghosts[i];
 
-            data.relGap = EvaluateGap(data.entityVis.AsyncState);
+            EvaluateGap(data);
             data.gap = playerGap - data.gap;
 
             // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
@@ -83,15 +102,24 @@ class GapMgr {
 
     void OnUpdate() {
         if (reference.sampleArray.isComplete) {
-            CreateGhostsArray();
             UpdateGaps();
+
+            if (!isGhostsSet && timer.GetTime() > 100) {
+                trace("Resetting ghost array");
+ 
+                CreateGhostsArray();
+                isGhostsSet = true;
+            }
         }
     }
 
     void OnRestart() {
+        isGhostsSet = false;
+        framesBetweenGap.Reset();
     }
 
     void OnChangeTrack() {
+        OnRestart();
     }
 }
 

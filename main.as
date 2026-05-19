@@ -15,8 +15,9 @@ GapMgr gapMgr;
 
 
 // reset only the vars relevant to the current race
-void ResetRaceVars() {
+void OnRestart() {
     reference.OnRestart();
+    gapMgr.OnRestart();
 
     // reset current time
     timer.SetStartTime();
@@ -26,14 +27,16 @@ void ResetRaceVars() {
 }
 
 // function to reset all variables
-void ResetAllVars() {
-    ResetRaceVars();
+void OnChangeTrack() {
+    OnRestart();
 
     // set change track / reset
     reference.OnChangeTrack();
+    gapMgr.OnChangeTrack();
 
     // optimise for the current track
-    SetGaps::Optimise(expectedFrameRate, modLinResolution);
+    // TODO: re-implement
+    // SetGaps::Optimise(expectedFrameRate, modLinResolution);
 
     // reset the cache
     ResetCacheArray();
@@ -67,6 +70,7 @@ void Main() {
     MakeDistCacheArray();
 }
 
+/*
 void GetGaps(ISceneVis @scene) {
     // gap for the user
     int myGap = 0;
@@ -141,6 +145,7 @@ void GetGaps(ISceneVis @scene) {
         miscArray[i].gap = myGap - curGap;
     }
 }
+*/
 
 void Update(float dt) {
     // if the plugin is off don't do anything
@@ -179,7 +184,7 @@ void Update(float dt) {
     if (switchedTrack) {
         print("Track is now track id: " + currentMap);
 
-        ResetAllVars();
+        OnChangeTrack();
     }
 
     // if paused, don't continue
@@ -214,7 +219,7 @@ void Update(float dt) {
         print("reset");
 
         // reset all vars related to the current race
-        ResetRaceVars();
+        OnRestart();
 
         // the data is now set
         startDataSet = true;
@@ -241,7 +246,8 @@ void Update(float dt) {
     // only do this once the race has started (if newPbSet is true the race must be at the end)
     if (cars.Length > 1) {
         // make misc array (only does this if not already set)
-        MakeMiscArray(cars, numCars, miscArray);
+        // MakeMiscArray(cars, numCars, miscArray);
+
         // updates the size of the window only once
         updateWindowSize = true;
     }
@@ -252,15 +258,6 @@ void Update(float dt) {
     PlayerData::Update();
     reference.OnUpdate();
     gapMgr.OnUpdate();
-
-    // -------------------------------------------------------------------------
-    // calculate the gaps
-
-    // only calculate if the frames between gap requirement is met
-    if (framesBetweenGap.GetValue() && (reference.sampleArray.isComplete || getGapOverride)) {
-        // gets all of the gaps
-        GetGaps(scene);
-    }
 
     // -------------------------------------------------------------------------
     // housekeeping

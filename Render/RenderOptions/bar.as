@@ -74,12 +74,8 @@ namespace Render {
         float maxGap;
 
         // iterate miscArray to draw the largest bars only
-        for (int i = 1; i < miscArray.Length; i++) {
-            if (miscArray[i].id == 0) {
-                break;
-            }
-
-            int curGap = miscArray[i].gap;
+        for (int i = 0; i < gapMgr.ghosts.Length; i++) {
+            int curGap = gapMgr.ghosts[i].gap;
 
             if (i == 1) {
                 minGap = curGap;
@@ -124,13 +120,11 @@ namespace Render {
         }
 
         // iterate miscArray to draw in each point that a car is gaining
-        for (int i = 1; i < miscArray.Length; i++) {
-            if (miscArray[i].id == 0) {
-                break;
-            }
+        for (int i = 0; i < gapMgr.ghosts.Length; i++) {
+            int curGap = gapMgr.ghosts[i].gap;
 
             // draw a line per car
-            drawLength = GetLineOffset(miscArray[i].gap, barGapRange, width);
+            drawLength = GetLineOffset(curGap, barGapRange, width);
             drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, barTransparency), thickness / 2);
         }
 

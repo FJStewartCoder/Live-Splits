@@ -22,7 +22,7 @@ TODO:
 
 class LogMgr : SubReferenceMgr {
     // a counter that is the number of frames between logging
-    RotatingCounter framesBetweenLog(2);
+    RotatingCounter framesBetweenLog(1);
 
 
     bool IsFinished() {

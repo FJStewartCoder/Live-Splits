@@ -1,0 +1,24 @@
+ASSUME THAT LOGGING IS FINISHED
+
+On player restart:
+    Get all cars and store them in a list
+
+On update:
+    // the rotating counter thing
+    Check if wanting to get the gap
+    if not: return
+
+    Get player gap to reference
+
+    Iterate each car
+        VAR gap
+        
+        Cache results
+        Check for cache item
+
+        if found
+            gap = cache item
+        else
+            get gap and store new cache item
+        
+        evaluate final gap based on player gap and this gap

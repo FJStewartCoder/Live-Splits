@@ -30,7 +30,7 @@ namespace Render {
 
                 UI::InputInt("GAP", ghost.gap);
                 UI::InputInt("REL GAP", ghost.relGap);
-                UI::InputInt("LAST IDX", ghost.lastIdx);
+                UI::InputText("LAST IDX", ghost.lastPointLoc.ToString());
 
                 UI::PopID();
             }

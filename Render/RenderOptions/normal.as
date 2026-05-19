@@ -3,13 +3,7 @@ bool updateWindowSize = false;
 namespace Render {
     void Normal() {
         // gets the number of valid cars
-        int validCars;
-
-        for (validCars = 1; validCars < numCars; validCars++) {
-            if (miscArray[validCars].id == 0) {
-                break;
-            }
-        }
+        uint validCars = gapMgr.ghosts.Length;
 
         // --------------------------------------------------------
         // styling
@@ -43,8 +37,8 @@ namespace Render {
         // creates window
         if (UI::Begin("Live Splits", flags)) {
             // show gaps for all cars except the current car
-            for (int i = 1; i < validCars; i++) {
-                int curGap = miscArray[i].gap;
+            for (int i = 0; i < validCars; i++) {
+                int curGap = gapMgr.ghosts[i].gap;
 
                 // includes "+" if greater than 0
                 string curGapString = GapToString(curGap);

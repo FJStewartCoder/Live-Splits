@@ -1,33 +1,66 @@
 // TODO: improve gap algorithm
 
-int GetMinDistIndex(Point@ currentPoint, Point[]@ points, int minCheckIdx, int maxCheckIdx, uint interval) {
-    // dont allow min idx less than 0
-    if (minCheckIdx < 0) {
-        minCheckIdx = 0;
+bool MeetsCheckLocationCriteria(SubSamples@ subSamples, PointLocation@ minCheckLoc, PointLocation@ maxCheckLoc) {
+    // check if the subsamples are from after this location
+    // either greater lap or same lap greater checkpoint
+    if (minCheckLoc !is null) {
+        bool smallerLap = subSamples.lap < minCheckLoc.lap;
+        bool sameLapSmallerCP = (subSamples.lap == minCheckLoc.lap) && (subSamples.checkpoint < minCheckLoc.cp);
+
+        if (smallerLap || sameLapSmallerCP) { return false; }
     }
 
-    // dont let max greater than length
-    if (maxCheckIdx > points.Length) {
-        maxCheckIdx = points.Length;
+    // check if the subsamples are from before this location
+    // either smaller lap or same lap smaller checkpoint
+    if (maxCheckLoc !is null) {
+        bool greaterLap = subSamples.lap > minCheckLoc.lap;
+        bool sameLapGreaterCP = (subSamples.lap == minCheckLoc.lap) && (subSamples.checkpoint > minCheckLoc.cp);
+
+        if (greaterLap || sameLapGreaterCP) { return false; }
     }
 
-    float curDist = 0;
-    float minDist = 0;
-    float minIdx = minCheckIdx;
+    return true;
+}
 
-    for (int p = minCheckIdx; p < maxCheckIdx; p += interval) {
-        curDist = GetDist(points[p], currentPoint);
-        // print(curDist);
+PointLocation GetMinDistIndex(
+    Point@ currentPoint,
+    SampleArray@ samples,
+    PointLocation@ minCheckLoc = null,
+    PointLocation@ maxCheckLoc = null,
+    uint interval = 1
+) {
+    // the location of the point closest to currentPoint
+    PointLocation closest;
+    // the distance from closest to currentPoint
+    float closestDist = 0xffff;
 
-        // if the current distance is less or at the start of loop
-        if (curDist < minDist || p == minCheckIdx) {
-            minDist = curDist;
-            minIdx = p;
+    // iterate each sample in the sample array
+    for (int i = 0; i < samples.samples.Length; i++) {
+        SubSamples@ subSamples = samples.samples[i];
+
+        // check if the sample meets the critera for the min and max check location
+        if (!MeetsCheckLocationCriteria(subSamples, minCheckLoc, maxCheckLoc)) {
+            continue;
+        }
+
+        // iterate all point with interval interval
+        for (int j = 0; j < subSamples.samples.Length; j += interval) {
+            Point@ point = subSamples.samples[j];
+
+            float dist = GetDist(currentPoint, point);
+
+            // if point is closest, then set current point location to be that location
+            if (dist < closestDist) {
+                closest.cp = subSamples.checkpoint;
+                closest.lap = subSamples.lap;
+                closest.idx = j;
+
+                closestDist = dist;
+            }
         }
     }
 
-    // returns the minIdx
-    return minIdx;
+    return closest;
 }
 
 // used to specify in main which algorithm to use
@@ -55,38 +88,24 @@ GapAlgorithm intToEnum(int value) {
 }
 
 namespace GetGap {
-    Point@ Full(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
-        return null;
-    }
-
-    Point@ Estimation(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
-        return null;
-    }
-
-    Point@ Simple(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
-        Point@ closest = null;
-        float closestDist = 0xffffffff;
-
-        for (int i = 0; i < samples.samples.Length; i++) {
-            SubSamples@ subSamples = samples.samples[i];
-
-            for (int j = 0; j < subSamples.samples.Length; j++) {
-                Point@ point = subSamples.samples[j];
-
-                float dist = GetDist(currentPoint, point);
-
-                if (dist < closestDist) {
-                    @closest = point;
-                    closestDist = dist;
-                }
-            }
+    PointLocation Full(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
+        if (useLinear) {
+            return GetMinDistIndex(currentPoint, samples);
         }
 
-        return closest;
+        // non-linear approach
+        // TODO:
+        return GetMinDistIndex(currentPoint, samples);
+    }
+
+    PointLocation Estimation(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
+        PointLocation res;
+        return res;
     }
 }
 
 
+/*
 namespace SetGaps {
     // intervals in which the MODIFIED LINEAR algorithm will check
     // intervals between distance checks (reduces overall number of checks)
@@ -222,3 +241,4 @@ namespace SetGaps {
         miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
     }
 }
+*/

@@ -127,7 +127,7 @@ void SetConfig() {
     }
 
     // resets everything to prevent issues
-    ResetAllVars();
+    OnChangeTrack();
 }
 
 
