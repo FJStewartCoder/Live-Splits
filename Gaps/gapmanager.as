@@ -23,6 +23,8 @@ void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
 
 class GapMgr {
     GhostGapData[] ghosts;
+    GhostGapData playerData;
+
     bool isGhostsSet = false;
 
     RotatingCounter framesBetweenGap(4);
@@ -60,25 +62,21 @@ class GapMgr {
         }
     }
 
-    void EvaluateGap(GhostGapData@ data) {
-        Point p;
-        p.LoadFromState(data.entityVis.AsyncState);
-
-        PointLocation loc = GetGap::Full(p, reference.sampleArray);
-        Point@ p2 = reference.sampleArray.FindLapAndCP(loc.lap, loc.cp).samples[loc.idx];
-
-        data.relGap = timer.GetTime() - p2.timeStamp;
-        data.lastPointLoc = loc;
-    }
-
-    int EvaluateGap(CSceneVehicleVisState@ state) {
+    int EvaluateGapFromState(CSceneVehicleVisState@ state) {
         Point p;
         p.LoadFromState(state);
 
-        PointLocation loc = GetGap::Full(p, reference.sampleArray);
-        Point@ p2 = reference.sampleArray.FindLapAndCP(loc.lap, loc.cp).samples[loc.idx];
+        Point@ p2 = GetGap::Full(p, reference.sampleArray, false);
 
         return timer.GetTime() - p2.timeStamp;
+    }
+
+    void EvaluateGap(GhostGapData@ data) {
+        int gap = EvaluateGapFromState(data.entityVis.AsyncState);
+
+        data.relGap = gap;
+        // TODO: fix once it is fixed
+        // data.lastPointLoc = 0;
     }
 
     void UpdateGaps() {
@@ -87,14 +85,14 @@ class GapMgr {
         if (!framesBetweenGap.GetValue()) { return; }
 
         auto a = VehicleState::ViewingPlayerState();
-        int playerGap = EvaluateGap(a);
+        playerData.relGap = EvaluateGapFromState(a);
         
         // iterate the ghosts in the ghost list
         for (int i = 0; i < ghosts.Length; i++) {
             GhostGapData@ data = ghosts[i];
 
             EvaluateGap(data);
-            data.gap = playerGap - data.gap;
+            data.gap = playerData.relGap - data.relGap;
 
             // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
         }

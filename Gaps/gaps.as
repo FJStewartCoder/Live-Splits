@@ -22,45 +22,40 @@ bool MeetsCheckLocationCriteria(SubSamples@ subSamples, PointLocation@ minCheckL
     return true;
 }
 
-PointLocation GetMinDistIndex(
+uint GetMinDistIndex(
     Point@ currentPoint,
-    SampleArray@ samples,
-    PointLocation@ minCheckLoc = null,
-    PointLocation@ maxCheckLoc = null,
+    array<Point@>@ points,
+    int minCheckIdx,
+    int maxCheckIdx,
     uint interval = 1
 ) {
-    // the location of the point closest to currentPoint
-    PointLocation closest;
-    // the distance from closest to currentPoint
-    float closestDist = 0xffff;
+    // dont allow min idx less than 0
+    if (minCheckIdx < 0) {
+        minCheckIdx = 0;
+    }
 
-    // iterate each sample in the sample array
-    for (int i = 0; i < samples.samples.Length; i++) {
-        SubSamples@ subSamples = samples.samples[i];
+    // dont let max greater than length
+    if (maxCheckIdx > points.Length) {
+        maxCheckIdx = points.Length;
+    }
 
-        // check if the sample meets the critera for the min and max check location
-        if (!MeetsCheckLocationCriteria(subSamples, minCheckLoc, maxCheckLoc)) {
-            continue;
-        }
+    float curDist = 0;
+    float minDist = 0;
+    float minIdx = minCheckIdx;
 
-        // iterate all point with interval interval
-        for (int j = 0; j < subSamples.samples.Length; j += interval) {
-            Point@ point = subSamples.samples[j];
+    for (int p = minCheckIdx; p < maxCheckIdx; p += interval) {
+        curDist = GetDist(points[p], currentPoint);
+        // print(curDist);
 
-            float dist = GetDist(currentPoint, point);
-
-            // if point is closest, then set current point location to be that location
-            if (dist < closestDist) {
-                closest.cp = subSamples.checkpoint;
-                closest.lap = subSamples.lap;
-                closest.idx = j;
-
-                closestDist = dist;
-            }
+        // if the current distance is less or at the start of loop
+        if (curDist < minDist || p == minCheckIdx) {
+            minDist = curDist;
+            minIdx = p;
         }
     }
 
-    return closest;
+    // returns the minIdx
+    return minIdx;
 }
 
 // used to specify in main which algorithm to use
@@ -88,25 +83,6 @@ GapAlgorithm intToEnum(int value) {
 }
 
 namespace GetGap {
-    PointLocation Full(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
-        if (useLinear) {
-            return GetMinDistIndex(currentPoint, samples);
-        }
-
-        // non-linear approach
-        // TODO:
-        return GetMinDistIndex(currentPoint, samples);
-    }
-
-    PointLocation Estimation(Point@ currentPoint, SampleArray@ samples, bool useLinear = false) {
-        PointLocation res;
-        return res;
-    }
-}
-
-
-/*
-namespace SetGaps {
     // intervals in which the MODIFIED LINEAR algorithm will check
     // intervals between distance checks (reduces overall number of checks)
     // increasing this will improve efficiency but decrease accuracy
@@ -160,7 +136,7 @@ namespace SetGaps {
     }
 
     // current position and array of points
-    void Full(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr, bool useLinear = false) {
+    Point@ Full(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
         // if array not complete don't calculate gap
         // unless overridden
         // if (!arrayComplete && !getGapOverride) { return; }
@@ -168,20 +144,22 @@ namespace SetGaps {
         // ------------------------------------------------------------------------------------
         // get min index
 
+        array<Point@>@ samples = reference.fullSamples;
+
         // define some variables to start
         int minIdx = 0;
         int checkStart = 0;
-        int checkEnd = ghostPoints.Length;
+        int checkEnd = samples.Length;
 
         // if linear, do a linear search
         if (useLinear) {
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, 1);
+            minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd);
         }
         else {
             // iterate all intervals in checkIntervals
             for (int interval = 0; interval < checkIntervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, checkIntervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
@@ -189,20 +167,15 @@ namespace SetGaps {
                 checkEnd = minIdx + checkIntervals[interval];
             }
         }
-        
-        // -----------------------------------------------------------------------------------
 
-        // set the last index to the index we found the min value
-        // SET THIS ANYWAY EVEN IF NOT USED INCASE SWITCHING BETWEEN ALGORITHMS
-        // THIS WILL FIX ISSUES OF SWITCHING FROM FULL TO ESTIMATION
-        miscPtr.lastIdx = minIdx;
-
-        // set the gap based on the timestamps
-        miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
+        // TODO:
+        // replace this with the location instead once I figure out how to do that    
+        return samples[minIdx];
     }
 
     // need the misc array, current position and array of points
-    void Estimation(Point @currentPoint, Point[]@ ghostPoints, Miscellaneous @miscPtr, bool useLinear = false) {
+    Point@ OriginalEstimation(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
+        /*
         // if array not complete don't calculate gap
         // unless overridden
         // if (!arrayComplete && !getGapOverride) { return; }
@@ -239,6 +212,45 @@ namespace SetGaps {
 
         // set the gap based on the timestamps
         miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
+        */
+
+        return null;
+    }
+
+    Point@ Best(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
+        array<Point@>@ samples = reference.fullSamples;
+
+        PointLocation loc;
+        loc.cp = PlayerData::cp;
+        loc.lap = PlayerData::lap;
+
+        ArrayRange range = reference.GetSampleRange(loc, loc);
+
+        // define some variables to start
+        int minIdx = 0;
+        int checkStart = range.min;
+        int checkEnd = range.max;
+
+        // if linear, do a linear search
+        if (useLinear) {
+            minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd);
+        }
+        else {
+            // iterate all intervals in checkIntervals
+            for (int interval = 0; interval < checkIntervals.Length; interval++) {
+                // gets the min idx from the start to the end in intervals of interval
+                minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, checkIntervals[interval]);
+
+                // set the check start and check end for the next loop using the current interval
+                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
+                checkStart = minIdx - checkIntervals[interval];
+                checkEnd = minIdx + checkIntervals[interval];
+            }
+        }
+
+        // TODO:
+        // replace this with the location instead once I figure out how to do that    
+        return samples[minIdx];
+        return null;
     }
 }
-*/

@@ -1,4 +1,16 @@
 namespace Render {
+    void DebugRenderGhost(GhostGapData@ ghost) {
+        UI::SeparatorText("");
+
+        UI::InputText("NAME", ghost.ghostName);
+        UI::InputInt("GHOST ID", ghost.ghostId);
+        UI::InputInt("ENTITY ID", ghost.entityId);
+
+        UI::InputInt("GAP", ghost.gap);
+        UI::InputInt("REL GAP", ghost.relGap);
+        UI::InputText("LAST IDX", ghost.lastPointLoc.ToString());
+    }
+
     void Debug() {
         // creates window
         if (UI::Begin("Debug Menu")) {
@@ -17,20 +29,14 @@ namespace Render {
                 UI::InputInt("Size", samples.samples.Length);
             }
 
+            DebugRenderGhost(gapMgr.playerData);
+
             for (int i = 0; i < gapMgr.ghosts.Length; i++) {
                 GhostGapData@ ghost = gapMgr.ghosts[i];
 
                 UI::PushID(i);
 
-                UI::SeparatorText("");
-
-                UI::InputText("NAME", ghost.ghostName);
-                UI::InputInt("GHOST ID", ghost.ghostId);
-                UI::InputInt("ENTITY ID", ghost.entityId);
-
-                UI::InputInt("GAP", ghost.gap);
-                UI::InputInt("REL GAP", ghost.relGap);
-                UI::InputText("LAST IDX", ghost.lastPointLoc.ToString());
+                DebugRenderGhost(ghost);
 
                 UI::PopID();
             }
