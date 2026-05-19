@@ -25,7 +25,7 @@ class GapMgr {
     GhostGapData[] ghosts;
     bool isGhostsSet = false;
 
-    RotatingCounter framesBetweenGap(9);
+    RotatingCounter framesBetweenGap(4);
 
     void CreateGhostsArray() {
         // reset the ghosts array
