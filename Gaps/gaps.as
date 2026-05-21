@@ -221,12 +221,18 @@ namespace GetGap {
         return null;
     }
 
-    Point@ Best(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
+    Point@ Best(
+        Point @currentPoint,
+        SampleArray@ reference,
+        uint cp,
+        uint lap,
+        bool useLinear = false
+    ) {
         auto samples = reference.samples;
 
         PointLocation loc;
-        loc.cp = PlayerData::cp;
-        loc.lap = PlayerData::lap;
+        loc.cp = cp;
+        loc.lap = lap;
 
         ArrayRange range = reference.GetSampleRange(loc, loc);
 
