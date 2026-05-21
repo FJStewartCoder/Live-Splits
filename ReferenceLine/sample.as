@@ -37,8 +37,23 @@ class SubSampleDefinition {
     uint lap = 0;
     uint checkpoint = 0;
 
+    // is used for when a function needs it
+    // it is certainly not accurate unless set after a function call
     uint startIdx = 0;
+
+    // the number of samples in this definition
     uint length = 0;
+
+    uint CalculateEndIndex() {
+        return startIdx + length;
+    }
+
+    SubSampleDefinition(uint lap, uint cp) {
+        this.lap = lap;
+        this.checkpoint = cp;
+    }
+
+    SubSampleDefinition() {}
 }
 
 class SampleArray {
@@ -53,6 +68,74 @@ class SampleArray {
     // the default size of the samples array
     uint defaultSize = 0;
 
+    SubSampleDefinition@ NewDefinition(uint lap, uint cp) {
+        // create a new definition
+        SubSampleDefinition newDefinition(lap, cp);
+
+        // create a variable for the insertion index
+        uint insertionIdx = -1;
+
+        for (uint i = 0; i < definitions.Length; i++) {
+            SubSampleDefinition@ curDefinition = definitions[i];
+
+            // checks for if the insertion index should be set
+            const bool greaterLap = curDefinition.lap > lap;
+            const bool greaterCP = (curDefinition.lap == lap) && (curDefinition.checkpoint > cp);
+
+            // once a checkpoint is after the current one, insert before that one
+            if (greaterCP && greaterLap) {
+                insertionIdx = i;
+                break;
+            }
+        }
+
+        // if last item, insert last
+        // else insert at insertion index
+        if (insertionIdx == uint(-1)) {
+            definitions.InsertLast(newDefinition);
+        }
+        else {
+            definitions.InsertAt(insertionIdx, newDefinition);
+        }
+
+        return newDefinition;
+    }
+
+    private bool DefinitionMeetsCondition(SubSampleDefinition @def, uint lap, uint cp) {
+        // if laps are same and the lap is not any, it does not meet the condition
+        if (def.lap != lap && lap != uint(-1)) { return false; }
+        // repeat for the checkpoint
+        if (def.checkpoint != cp && cp != uint(-1)) { return false; }
+        // if it passes all, it must meet the condition
+        return true;
+    }
+
+    void CalculateStartIndices() {
+        uint startIdx = 0;
+
+        for (uint i = 0; i < definitions.Length; i++) {
+            SubSampleDefinition@ def = definitions[i];
+
+            def.startIdx = startIdx;
+
+            startIdx += def.length;
+        }
+    }
+
+    array<SubSampleDefinition@> FindDefinitions(uint lap = -1, uint cp = -1) {
+        CalculateStartIndices();
+
+        // create an empty list of definitions
+        array<SubSampleDefinition@> foundDefs;
+
+        for (uint i = 0; i < definitions.Length; i++) {
+            SubSampleDefinition@ def = definitions[i];
+            if (DefinitionMeetsCondition(def, lap, cp)) { foundDefs.InsertLast(def); }
+        }
+
+        // return the list of definitions that meet the condition
+        return foundDefs;
+    }
 
     // appends a sample to the end of a region
     void AppendSample(
@@ -60,12 +143,58 @@ class SampleArray {
         uint lap = -1,
         uint cp = -1
     ) {
+        SubSampleDefinition@ relevantSubSamples;
 
+        auto foundDefs = FindDefinitions(lap, cp);
+
+        // if there are no found definitions, create a new one
+        if (foundDefs.IsEmpty()) {
+            @relevantSubSamples = NewDefinition(lap, cp);
+        }
+        else {
+            // set the relevant samples to the last samples found
+            @relevantSubSamples = foundDefs[foundDefs.Length - 1];
+        }
+
+        // calculate the start indexes
+        CalculateStartIndices();
+
+        // increment the length of the sub samples
+        relevantSubSamples.length++;
+        // finally, insert the point
+        samples.InsertAt(relevantSubSamples.startIdx, point);
     }
 
     // delete samples in this range
-    void DeleteSamples(ArrayRange range) {
+    void DeleteSubSamples(uint lap, uint cp) {
+        // find the relevant definitions
+        auto foundDefs = FindDefinitions(lap, cp);
+        if (foundDefs.IsEmpty()) {
+            error("Found no sub samples to delete where: LAP=" + lap + "CP=" + cp);
+            return;
+        }
 
+        // calculate the start indices to correctly delete later
+        CalculateStartIndices();
+
+        // calculate the deleted offset
+        uint deletedOffset = 0;
+
+        for (uint i = 0; i < foundDefs.Length; i++) {
+            SubSampleDefinition@ samplesToDelete = foundDefs[i];
+
+            // TODO: figure out if length works correctly here due to indexing
+            samples.RemoveRange(
+                samplesToDelete.startIdx - deletedOffset,
+                samplesToDelete.CalculateEndIndex() - deletedOffset
+            );
+
+            deletedOffset += samplesToDelete.length;
+            samplesToDelete.length = 0;
+        }
+
+        // recalculate the start indexes
+        CalculateStartIndices();
     }
 
 
@@ -100,13 +229,14 @@ class SampleArray {
                 break;
             }
 
-            // if the start is not set, set the min and max to the startIdx
+            // if the start is not set, set the min to the max because it stores the start idx
             if (!startSet) {
-                range.min = subSamples.startIdx;
-                range.max = range.min;
+                range.min = range.max;
+                startSet = true;
             }
 
             // add the length to the max
+            // must be done after setting min to max
             range.max += subSamples.length;
         }
 
