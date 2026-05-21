@@ -1,6 +1,10 @@
 // TODO: improve gap algorithm
 
-bool MeetsCheckLocationCriteria(SubSamples@ subSamples, PointLocation@ minCheckLoc, PointLocation@ maxCheckLoc) {
+bool MeetsCheckLocationCriteria(
+    SubSampleDefinition@ subSamples,
+    PointLocation@ minCheckLoc,
+    PointLocation@ maxCheckLoc
+) {
     // check if the subsamples are from after this location
     // either greater lap or same lap greater checkpoint
     if (minCheckLoc !is null) {
@@ -24,7 +28,7 @@ bool MeetsCheckLocationCriteria(SubSamples@ subSamples, PointLocation@ minCheckL
 
 uint GetMinDistIndex(
     Point@ currentPoint,
-    array<Point@>@ points,
+    array<Point>@ points,
     int minCheckIdx,
     int maxCheckIdx,
     uint interval = 1
@@ -144,7 +148,7 @@ namespace GetGap {
         // ------------------------------------------------------------------------------------
         // get min index
 
-        array<Point@>@ samples = reference.fullSamples;
+        auto samples = reference.samples;
 
         // define some variables to start
         int minIdx = 0;
@@ -218,7 +222,7 @@ namespace GetGap {
     }
 
     Point@ Best(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
-        array<Point@>@ samples = reference.fullSamples;
+        auto samples = reference.samples;
 
         PointLocation loc;
         loc.cp = PlayerData::cp;
@@ -251,6 +255,5 @@ namespace GetGap {
         // TODO:
         // replace this with the location instead once I figure out how to do that    
         return samples[minIdx];
-        return null;
     }
 }

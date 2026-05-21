@@ -39,11 +39,16 @@ class LogMgr : SubReferenceMgr {
 
         // print(PlayerData::lap + " " + PlayerData::cp);
 
-        SubSamples@ subSamples = sampleArray.GetLapAndCP(PlayerData::lap, PlayerData::cp);
-
         if (PlayerData::hasRespawned) {
             print('Player has respawned; deleting current samples');
-            subSamples.Reset();
+
+            // TODO: fix
+            // get the range of this checkpoint
+            ArrayRange thisCheckpointRange = sampleArray.GetSampleRange(
+                PointLocation(), PointLocation()
+            );
+            // delete this checkpoint's samples
+            sampleArray.DeleteSamples(thisCheckpointRange);
         }
 
         // increment the counter
@@ -75,7 +80,8 @@ class LogMgr : SubReferenceMgr {
         currentPoint.LoadFromState(car);
 
         // insert the new sample
-        subSamples.samples.InsertLast(currentPoint);
+        // TODO: set this accurately
+        sampleArray.AppendSample(currentPoint, 0, 0);
 
         // debug print
         // print(car + " " + currentPoint.Get());

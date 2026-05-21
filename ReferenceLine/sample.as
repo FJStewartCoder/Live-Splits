@@ -33,29 +33,19 @@ class ArrayRange {
 // TODO: update sample array to store seperate samples per checkpoint and lap
 // should fix issue with respawns and stuff
 
-class SubSamples {
-    array<Point> samples;
+class SubSampleDefinition {
+    uint lap = 0;
+    uint checkpoint = 0;
 
-    uint lap;
-    uint checkpoint;
-
-    void Reset() {
-        samples.Resize(0);
-    }
-
-    SubSamples(uint lap, uint checkpoint) {
-        this.lap = lap;
-        this.checkpoint = checkpoint;
-    }
-
-    SubSamples() {}
+    uint startIdx = 0;
+    uint length = 0;
 }
 
 class SampleArray {
     // a list of subsamples
-    array<SubSamples> samples;
-    // a list of all of the samples in order 
-    array<Point@> fullSamples;
+    array<Point> samples;
+    // defines how the samples is layed out relative to the laps and checkpoints
+    array<SubSampleDefinition> definitions;
 
     // the size of the samples
     bool isComplete = false;
@@ -64,79 +54,33 @@ class SampleArray {
     uint defaultSize = 0;
 
 
+    // appends a sample to the end of a region
+    void AppendSample(
+        Point@ point,
+        uint lap = -1,
+        uint cp = -1
+    ) {
+
+    }
+
+    // delete samples in this range
+    void DeleteSamples(ArrayRange range) {
+
+    }
+
+
     void SetComplete(bool value) {
         // set array complete to true or false based on the input
         isComplete = value;
-
-        if (value) {
-            GenerateFullSamples();
-        }
     }
 
     void Reset() {
-        fullSamples.Resize(0);
-        samples.Resize(defaultSize);
+        samples.RemoveRange(0, samples.Length);
+        definitions.RemoveRange(0, definitions.Length);
+
         SetComplete(false);
-    }
 
-    SubSamples@ FindLapAndCP(uint lap, uint cp) {
-        for (int i = 0; i < samples.Length; i++) {
-            SubSamples@ subSample = samples[i];
-
-            if (subSample.lap == lap && subSample.checkpoint == cp) {
-                return subSample;
-            }
-        }
-
-        return null;
-    }
-
-    SubSamples@ GetLapAndCP(uint lap, uint cp) {
-        const bool exists = FindLapAndCP(lap, cp) !is null;
-
-        if (exists) { return FindLapAndCP(lap, cp); }
-
-        SubSamples subSamples(lap, cp);
-        samples.InsertLast(subSamples);
-
-        return subSamples;
-    }
-
-    void SortSubSamples() {
-        while (true) {
-            bool swapped = false;
-
-            for (int i = 0; i < samples.Length - 1; i++) {
-                bool sameLapGreaterCP = (samples[i].lap == samples[i + 1].lap) && (samples[i].checkpoint > samples[i + 1].checkpoint);
-                bool greaterLap = (samples[i].lap > samples[i + 1].lap);
-
-                bool shouldSwap = greaterLap || sameLapGreaterCP;
-                
-                if (shouldSwap) {
-                    SubSamples temp = samples[i];
-                    samples[i] = samples[i + 1];
-                    samples[i + 1] = temp;
-                }
-            }
-
-            if (!swapped) { break; }
-        }
-    }
-
-    void GenerateFullSamples() {
-        SortSubSamples();
-        
-        // iterate all of the sub samples
-        for (uint i = 0; i < samples.Length; i++) {
-            SubSamples@ subSamples = samples[i];
-
-            fullSamples.Reserve(subSamples.samples.Length);
-
-            for (uint j = 0; j < subSamples.samples.Length; j++) {
-                Point@ p = subSamples.samples[j];
-                fullSamples.InsertLast(p);
-            }
-        }
+        samples.Reserve(defaultSize);
     }
 
     ArrayRange GetSampleRange(PointLocation start, PointLocation end) {
@@ -145,10 +89,8 @@ class SampleArray {
         ArrayRange range;
         bool startSet = false;
 
-        for (uint i = 0; i < samples.Length; i++) {
-            SubSamples@ subSamples = samples[i];
-            
-            range.max += subSamples.samples.Length;
+        for (uint i = 0; i < definitions.Length; i++) {
+            SubSampleDefinition@ subSamples = definitions[i];
 
             if (!MeetsCheckLocationCriteria(subSamples, start, end)) {
                 // if not met criteria and not start set, we are before start so continue
@@ -157,20 +99,22 @@ class SampleArray {
                 // if not, we are beyond the end. so, break
                 break;
             }
-            
-            if (!startSet) { range.min = range.max; }
-            startSet = true;
 
-            for (uint j = 0; j < subSamples.samples.Length; j++) {
-                Point@ p = subSamples.samples[j];
-                fullSamples.InsertLast(p);
+            // if the start is not set, set the min and max to the startIdx
+            if (!startSet) {
+                range.min = subSamples.startIdx;
+                range.max = range.min;
             }
+
+            // add the length to the max
+            range.max += subSamples.length;
         }
 
+        // TODO: figure out if length is one index too great
         return range;
     }
 
     SampleArray() {
-        samples.Reserve(defaultSize);
+        Reset();
     }
 }

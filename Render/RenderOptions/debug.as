@@ -22,11 +22,12 @@ namespace Render {
             UI::SeparatorText("Player Data");
             UI::InputInt("Player Respawned", (PlayerData::hasRespawned) ? 1 : 0);
 
-            for (int i = 0; i < reference.sampleArray.samples.Length; i++) {
-                SubSamples@ samples = reference.sampleArray.samples[i];
+            for (int i = 0; i < reference.sampleArray.definitions.Length; i++) {
+                SubSampleDefinition@ samples = reference.sampleArray.definitions[i];
 
                 UI::SeparatorText("LAP: " + samples.lap + ", CP: " + samples.checkpoint);
-                UI::InputInt("Size", samples.samples.Length);
+                UI::InputInt("Start", samples.startIdx);
+                UI::InputInt("Size", samples.length);
             }
 
             DebugRenderGhost(gapMgr.playerData);
