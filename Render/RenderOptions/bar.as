@@ -77,7 +77,7 @@ namespace Render {
         for (int i = 0; i < gapMgr.ghosts.Length; i++) {
             int curGap = gapMgr.ghosts[i].gap;
 
-            if (i == 1) {
+            if (i == 0) {
                 minGap = curGap;
                 maxGap = curGap;
 

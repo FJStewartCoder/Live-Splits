@@ -1,9 +1,23 @@
-Create a GhostInfo_V2 thing that allows you to calculate the lap and checkpoint of a ghost and if they have finished.
-Use above tool to stop gap for ghosts being updated once they finish
-Re-implement cache
-Improve efficiency of gap algorithms
-Fix all gap algorithms (mostly just the estimation one)
-Re-implement save
-Fix point overlap when respawning (just take into account the respawn animation)
-Fix settings (gap between log and stuff)
-Improve rendering settings (percentage location of bar rather than pixel based + ensure consistent text sizing of gap on bar between resolutions)
+1 - Ghost Management
+    1.1 Fix ghost management (create a new class or something)
+
+2 - Gap Algorithms
+    2.1 Fix all gap algorithms (old estimation and implement new one with checkpoint and lap consideration)
+    2.2 - Improve efficiency of gap algorithms
+
+3 - Improve gap display
+    3.1 - implement no respawn timer
+    3.2 - implement per checkpoint gaps to ghosts
+    3.3 - Re-implement cache
+
+4 - Re-implement save
+
+5 - Bug Fixes
+    5.1 - Fix point overlap when respawning (just take into account the respawn animation)
+    5.2 - Fix wierd issue where the gaps get updated upon respawning on the log run.
+
+7 - Settings
+    7.1 - Fix settings (gap between log and stuff)
+
+8 - UI
+    8.1 - Improve rendering settings (percentage location of bar rather than pixel based + ensure consistent text sizing of gap on bar between resolutions)

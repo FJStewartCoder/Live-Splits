@@ -91,7 +91,14 @@ class GapMgr {
         for (int i = 0; i < ghosts.Length; i++) {
             GhostGapData@ data = ghosts[i];
 
-            EvaluateGap(data);
+            // calculate the extra ghost info
+            GhostExtraInfo info = GetExtraGhostInfo(data.ghostData);
+
+            // only evaluate the gap to the reference if the ghost has not finished
+            if (!info.isFinished) {
+                EvaluateGap(data);
+            }
+
             data.gap = playerData.relGap - data.relGap;
 
             // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());

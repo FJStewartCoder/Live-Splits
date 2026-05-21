@@ -22,7 +22,7 @@ namespace PlayerData {
         auto raceData = MLFeed::GetRaceData_V4();
         auto player = raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
 
-        auto lapCount = raceData.LapCount;
+        // auto lapCount = raceData.LapCount;
         auto cpCount = raceData.CpCount + 1;
         auto playerCompletedCPs = player.CpCount;
 
