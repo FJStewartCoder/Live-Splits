@@ -1,66 +1,8 @@
-void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
-    while (true) {
-        bool swapped = false;
-
-        for (uint i = 0; i < arr.Length - 1; i++) {
-            MLFeed::GhostInfo_V2@ temp = null;
-            MLFeed::GhostInfo_V2@ cur = arr[i];
-            MLFeed::GhostInfo_V2@ next = arr[i + 1];
-
-            if (cur.IdUint > next.IdUint) {
-                @temp = cur;
-
-                @arr[i] = next;
-                @arr[i + 1] = temp;
-
-                swapped = true;
-            }
-        }
-
-        if (!swapped) { break; }
-    }
-}
-
 class GapMgr {
-    GhostGapData[] ghosts;
+    RacingGhostManager ghostMgr;
     GhostGapData playerData;
 
-    bool isGhostsSet = false;
-
     RotatingCounter framesBetweenGap(4);
-
-    void CreateGhostsArray() {
-        // reset the ghosts array
-        ghosts.Resize(0);
-
-        // TODO: fix the dodgy system
-        // when adding more ghosts, your own state gets duplicated which causes errors
-        // it mostly works
-
-        // get the loaded ghosts
-        // the ids are in the same order as the vehicle state vis
-        array<MLFeed::GhostInfo_V2@> mlGhosts = MLFeed::GetGhostData().LoadedGhosts;
-        SortGhostInfo(mlGhosts);
-
-        // get those vis
-        CSceneVehicleVis@[] vehicleStates = VehicleState::GetAllVis(GetApp().GameScene);
-
-        // iterate the vehicle visibilities and relate them to the ghost 
-        for (int i = 1; i < vehicleStates.Length; i++) {
-            CSceneVehicleVis@ vis = vehicleStates[i];
-
-            GhostGapData data;
-
-            @data.entityVis = vis;
-            data.entityId = GetEntityId(vis);
-
-            @data.ghostData = mlGhosts[i - 1];
-            data.ghostId = data.ghostData.IdUint;
-            data.ghostName = data.ghostData.Nickname;
-
-            ghosts.InsertLast(data);
-        }
-    }
 
     int EvaluateGapFromState(CSceneVehicleVisState@ state) {
         Point p;
@@ -86,7 +28,10 @@ class GapMgr {
 
         auto a = VehicleState::ViewingPlayerState();
         playerData.relGap = EvaluateGapFromState(a);
-        
+
+        // get the ghosts list        
+        array<GhostGapData>@ ghosts = ghostMgr.ghostsList;
+
         // iterate the ghosts in the ghost list
         for (int i = 0; i < ghosts.Length; i++) {
             GhostGapData@ data = ghosts[i];
@@ -111,9 +56,9 @@ class GapMgr {
 
             if (!isGhostsSet && timer.GetTime() > 100) {
                 trace("Resetting ghost array");
- 
-                CreateGhostsArray();
-                isGhostsSet = true;
+
+                // TODO: ensure this is only called once
+                ghostMgr.CreateGhostsArray();
             }
         }
     }

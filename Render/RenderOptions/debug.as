@@ -12,8 +12,7 @@ namespace Render {
     }
 
     void Debug() {
-        // creates window
-        if (UI::Begin("Debug Menu")) {
+        if (UI::Begin("Checkpoint Breakdown")) {
             // ONLY FOR DEBUGGING
             UI::InputInt("TIME", timer.GetTime());
             UI::InputInt("SIZE", reference.sampleArray.samples.Length);
@@ -30,6 +29,11 @@ namespace Render {
                 UI::InputInt("Size", samples.length);
             }
 
+            UI::End();
+        }
+
+        // creates window
+        if (UI::Begin("Ghost and Gap Breakdown")) {
             DebugRenderGhost(gapMgr.playerData);
 
             for (int i = 0; i < gapMgr.ghosts.Length; i++) {
