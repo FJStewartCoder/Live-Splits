@@ -1,3 +1,17 @@
+// TODO: re-implement the max cache size
+// TODO: re-implement the approximation thing
+
+
+
+
+
+// this is returned to the user when they request a cached gap
+// gap can be error val if error
+class CacheReturnItem {
+    bool isError = false;
+    CacheEntry@ entry = null;
+};
+
 class CacheEntry {
     // the gap
     int gap;
@@ -5,97 +19,99 @@ class CacheEntry {
     uint timeStamp;
     // the index of the lastIdx (fixes issue with reseting whilst caching using estimation)
     uint idx = 0;
-}
 
-// this is returned to the user when they request a cached gap
-// gap can be error val if error
-class CacheReturnItem {
-    bool isError = false;
-
-    int gap = 0;
-    uint idx = 0;
-};
-
-const int errorVal = uint(-1) >> 1;
-
-// 2d array of cache entries
-
-// ARRAY IS STRUCTED AS BELOW
-// item 0 is gap = 0, timeStamp = id of the relevant car
-// all subsequent items are actual cache entries
-array<array<CacheEntry>> cacheArray(0, array<CacheEntry>(0));
-
-// reset all array lengths to 0
-void ResetCacheArray() {
-    // iterate each array and resize to 0
-    for (int i = 0; i < cacheArray.Length; i++) {
-        cacheArray[i].Resize(0);
+    CacheEntry(int gap, uint tstamp, uint idx = 0) {
+        this.gap = gap;
+        this.timeStamp = tstamp;
+        this.idx = idx;
     }
 
-    // resize main array to 0
-    cacheArray.Resize(0);
+    CacheEntry() {}
 }
 
-// ----------------------------------------------------------
+class GapCache {
+    array<CacheEntry> cacheEntries;
 
-CacheEntry MakeCacheEntry(int gap, uint timeStamp, uint idx = 0) {
-    CacheEntry newEntry;
+    // perform a binary search thing on the list
+    uint CacheSearch(uint tstamp) {
+        // begin at 1 because 0 is id
+        uint l = 1;
+        // length -1 to get the last index
+        uint r = cacheEntries.Length - 1;
 
-    newEntry.gap = gap;
-    newEntry.timeStamp = timeStamp;
-    newEntry.idx = idx;
+        // index of the midpoint
+        uint mid;
 
-    return newEntry;
-}
+        while (l <= r) {
+            mid = (l + r) / 2;
 
-// ----------------------------------------------------------
+            CacheEntry@ entry = cacheEntries[mid];
 
-// idx is the cacheArray index of the array to search
-// value is the timestamp to search for
-// returns index of closest value
-uint BinarySearch(uint idx, uint value) {
-    // begin at 1 because 0 is id
-    uint l = 1;
-    // length -1 to get the last index
-    uint r = cacheArray[idx].Length - 1;
-
-    // index of the midpoint
-    uint mid;
-
-    while (l <= r) {
-        mid = (l + r) / 2;
-
-        if (cacheArray[idx][mid].timeStamp == value) {
-            // if got value, return value
-            return mid;
+            if (entry.timeStamp == tstamp) {
+                // if got value, return value
+                return mid;
+            }
+            else if (tstamp > entry.timeStamp) {
+                l = mid + 1;
+            }
+            else {
+                r = mid - 1;
+            }
         }
-        else if (value > cacheArray[idx][mid].timeStamp) {
-            l = mid + 1;
+
+        return mid;
+    }
+
+    CacheReturnItem GetCache(uint time, uint threshold = uint(-1)) {
+        // find the closest index
+        uint foundIdx = CacheSearch(time);
+        // get the closest item
+        CacheEntry@ foundItem = cacheEntries[foundIdx];
+
+        CacheReturnItem returnItem;
+
+        // calculate if the item is difference to the time is greater than threshold
+        const bool greaterThanThreshold = Math::Abs(int(foundItem.timeStamp) - time) > threshold;
+
+        // if there is an error set the error to true
+        if ( greaterThanThreshold && threshold != uint(-1) ) {
+            returnItem.isError = true;
         }
         else {
-            r = mid - 1;
+            // set the entry to the found item
+            @returnItem.entry = cacheEntries[foundIdx];
         }
+
+        // return the cache item
+        return returnItem;
     }
 
-    return mid;
-}
+    void AddCache(int gap, uint timeStamp, uint idx) {
+        // create a new entry
+        CacheEntry entry(gap, timeStamp, idx);
 
-// returns uint(-1) if not found
-// returns index if found
-uint GetArray(uint id) {
-    // linear search to find the relevant cache array
-    for (uint i = 0; i < cacheArray.Length; i++) {
-        // based on the array specification, timestamp of the first item is the id
-        if (cacheArray[i][0].timeStamp == id) {
-            // return index if found
-            return i;
+        // find where to insert it
+        uint insertionIdx = CacheSearch(timeStamp);
+
+        // if the timestamp is greater than the item at the insert index, insert at the index after this
+        if (timeStamp > cacheEntries[insertionIdx].timeStamp) {
+            insertionIdx++;
         }
+
+        // insert the entry at the insertion index
+        cacheEntries.InsertAt(insertionIdx, entry);
     }
 
-    // if not found return error
-    return uint(-1);
+    void Reset() {
+        cacheEntries.Resize(0);
+    }
 }
 
+
+// TODO: fix the below things
+
+
+/*
 uint CalculateApproximation(CacheEntry @prevCache, CacheEntry @nextCache, uint timeStamp, uint tolerance = 5000) {
     // the total time difference between current and other cache's timestamps
     // get the timestamp difference from the bigger - smaller
@@ -228,53 +244,4 @@ CacheReturnItem GetCacheItem(uint timeStamp, uint id, bool useApproximation = fa
     // return the gap
     return item;
 }
-
-void SetCacheItem(int gap, uint timeStamp, uint id, uint idx) {
-    // get the index of the array based on id
-    uint cacheArrayIndex = GetArray(id);
-
-    // if not found, return 0
-    if (cacheArrayIndex == uint(-1)) {
-        // create a new array with a new cache entry that stores the id as timestamp
-        array<CacheEntry> newArray = {MakeCacheEntry(0, id, idx)};
-        // insert last the new array
-        cacheArray.InsertLast(newArray);
-
-        // set the index to the new last item
-        cacheArrayIndex = cacheArray.Length - 1;
-    }
-
-    CacheEntry[]@ arrayPtr = cacheArray[cacheArrayIndex];
-
-    // if no entries insert last the new entry
-    if (arrayPtr.Length == 1) {
-        arrayPtr.InsertLast(MakeCacheEntry(gap, timeStamp, idx));
-        return;
-    }
-
-    if (arrayPtr.Length > maxCacheSize) {
-        return;
-    }
-
-    uint insertIdx = uint(-1);
-
-    // search for where to insert
-    insertIdx = BinarySearch(cacheArrayIndex, timeStamp);
-    
-    // if timestamp is same then we don't need to add the same value again
-    if (arrayPtr[insertIdx].timeStamp == timeStamp) {
-        return;
-    }
-
-    // if timestamp to insert is greater than the one at the insertIdx, we need to insert after so increment insertIdx
-    if (timeStamp > arrayPtr[insertIdx].timeStamp) {
-        // 1, 2, 4, 5, 6, 7, 8, 9
-        // we would insert 3 at index 2
-        // if bin search returned idx 1, the tstamp would be 2, we want +1 idx
-        // if returned idx 2, tstamp is 4 which is bigger so do nothing
-        insertIdx++;
-    }
-
-    // insert the item
-    arrayPtr.InsertAt(insertIdx, MakeCacheEntry(gap, timeStamp, idx));
-}
+*/

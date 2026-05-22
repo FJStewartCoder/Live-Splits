@@ -4,6 +4,11 @@ class GapMgr {
 
     bool isGhostsSet = false;
 
+
+    // stores the player name then a cache array
+    dictionary cacheDict;
+
+
     RotatingCounter framesBetweenGap(4);
 
     int EvaluateGapFromState(
@@ -96,6 +101,8 @@ class GapMgr {
     void OnChangeTrack() {
         OnRestart();
         ghostMgr.Reset();
+        // clear the cache dictionary
+        cacheDict.DeleteAll();
     }
 }
 

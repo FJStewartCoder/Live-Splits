@@ -38,9 +38,6 @@ void OnChangeTrack() {
     // TODO: re-implement
     // SetGaps::Optimise(expectedFrameRate, modLinResolution);
 
-    // reset the cache
-    ResetCacheArray();
-
     // on longer saved
     isSaved = false;
 }
