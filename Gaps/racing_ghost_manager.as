@@ -71,6 +71,8 @@ class RacingGhostManager {
         // MLFeed ghosts (loaded) is a list of all ghosts
         // this array is in the same order as the VehicleState vis list
         // duplicates can occur in ML list but only the first instance of each is the correct one
+        
+        // EXTRA CONSIDERATION: Vehicle state doesnt't show the vehciles always in the correct order (not sorted)
 
         // get the loaded ghosts
         // the ids are in the same order as the vehicle state vis
