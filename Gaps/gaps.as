@@ -140,7 +140,13 @@ namespace GetGap {
     }
 
     // current position and array of points
-    Point@ Full(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
+    Point@ Full(
+        Point @currentPoint,
+        SampleArray@ reference,
+        uint startIdx,
+        uint endIdx,
+        bool useLinear = false
+    ) {
         // if array not complete don't calculate gap
         // unless overridden
         // if (!arrayComplete && !getGapOverride) { return; }
@@ -152,8 +158,11 @@ namespace GetGap {
 
         // define some variables to start
         int minIdx = 0;
-        int checkStart = 0;
-        int checkEnd = samples.Length;
+
+        // the check start is the startIdx or 0 if startIdx > length
+        int checkStart = (startIdx > samples.Length) ? 0 : startIdx;
+        // the end index is the sample.length if endIdx is greater than length else it is endIdx
+        int checkEnd = (startIdx > samples.Length) ? samples.Length : endIdx;
 
         // if linear, do a linear search
         if (useLinear) {
@@ -178,7 +187,13 @@ namespace GetGap {
     }
 
     // need the misc array, current position and array of points
-    Point@ OriginalEstimation(Point @currentPoint, SampleArray@ reference, bool useLinear = false) {
+    Point@ OriginalEstimation(
+        Point @currentPoint,
+        SampleArray@ reference,
+        uint startIdx,
+        uint endIdx,
+        bool useLinear = false
+    ) {
         /*
         // if array not complete don't calculate gap
         // unless overridden
@@ -219,47 +234,5 @@ namespace GetGap {
         */
 
         return null;
-    }
-
-    Point@ Best(
-        Point @currentPoint,
-        SampleArray@ reference,
-        uint cp,
-        uint lap,
-        bool useLinear = false
-    ) {
-        auto samples = reference.samples;
-
-        PointLocation loc;
-        loc.cp = cp;
-        loc.lap = lap;
-
-        ArrayRange range = reference.GetSampleRange(loc, loc);
-
-        // define some variables to start
-        int minIdx = 0;
-        int checkStart = range.min;
-        int checkEnd = range.max;
-
-        // if linear, do a linear search
-        if (useLinear) {
-            minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd);
-        }
-        else {
-            // iterate all intervals in checkIntervals
-            for (int interval = 0; interval < checkIntervals.Length; interval++) {
-                // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, checkIntervals[interval]);
-
-                // set the check start and check end for the next loop using the current interval
-                // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervals[interval];
-                checkEnd = minIdx + checkIntervals[interval];
-            }
-        }
-
-        // TODO:
-        // replace this with the location instead once I figure out how to do that    
-        return samples[minIdx];
     }
 }

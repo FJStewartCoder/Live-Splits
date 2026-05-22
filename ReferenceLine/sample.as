@@ -28,6 +28,10 @@ class Point {
 class ArrayRange {
     uint min = 0;
     uint max = 0;
+
+    string ToString() {
+        return "MIN: " + min + ", MAX: " + max;
+    }
 }
 
 // TODO: update sample array to store seperate samples per checkpoint and lap
@@ -213,7 +217,7 @@ class SampleArray {
     }
 
     ArrayRange GetSampleRange(PointLocation start, PointLocation end) {
-        // SortSubSamples();
+        CalculateStartIndices();
 
         ArrayRange range;
         bool startSet = false;
@@ -231,13 +235,12 @@ class SampleArray {
 
             // if the start is not set, set the min to the max because it stores the start idx
             if (!startSet) {
-                range.min = range.max;
+                range.min = subSamples.startIdx;
                 startSet = true;
             }
 
-            // add the length to the max
-            // must be done after setting min to max
-            range.max += subSamples.length;
+            // set the max index to the start + the length
+            range.max = subSamples.CalculateEndIndex();
         }
 
         // TODO: figure out if length is one index too great

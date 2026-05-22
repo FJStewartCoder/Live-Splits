@@ -6,17 +6,34 @@ class GapMgr {
 
     RotatingCounter framesBetweenGap(4);
 
-    int EvaluateGapFromState(CSceneVehicleVisState@ state) {
+    int EvaluateGapFromState(
+        CSceneVehicleVisState@ state,
+        uint checkpoint,
+        uint lap
+    ) {
         Point p;
         p.LoadFromState(state);
 
-        Point@ p2 = GetGap::Full(p, reference.sampleArray, false);
+        PointLocation loc(checkpoint, lap);
+        ArrayRange range = reference.sampleArray.GetSampleRange(loc, loc);
+
+        print(range.ToString());
+
+        Point@ p2 = GetGap::Full(p, reference.sampleArray, range.min, range.max, false);
 
         return timer.GetTime() - p2.timeStamp;
     }
 
     void EvaluateGap(GhostGapData@ data) {
-        int gap = EvaluateGapFromState(data.entityVis.AsyncState);
+        GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostData);
+
+        print(data.ghostName);
+
+        int gap = EvaluateGapFromState(
+            data.entityVis.AsyncState,
+            extraData.checkpoint,
+            extraData.lap
+        );
 
         data.relGap = gap;
         // TODO: fix once it is fixed
@@ -29,7 +46,7 @@ class GapMgr {
         if (!framesBetweenGap.GetValue()) { return; }
 
         auto a = VehicleState::ViewingPlayerState();
-        playerData.relGap = EvaluateGapFromState(a);
+        playerData.relGap = EvaluateGapFromState(a, PlayerData::cp, PlayerData::lap);
 
         // get the ghost list and make the variable name more local
         auto ghosts = ghostMgr.ghostsList;

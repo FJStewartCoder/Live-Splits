@@ -2,8 +2,8 @@
     1.1 Fix ghost management (create a new class or something)
 
 2 - Gap Algorithms
-    2.1 Fix all gap algorithms (old estimation and implement new one with checkpoint and lap consideration)
-    2.2 - Improve efficiency of gap algorithms
+    2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)
+    2.2 - Fix all gap algorithms (old estimation and implement new one with checkpoint and lap consideration)
 
 3 - Improve gap display
     3.1 - implement no respawn timer
@@ -14,10 +14,15 @@
 
 5 - Bug Fixes
     5.1 - Fix point overlap when respawning (just take into account the respawn animation)
-    5.2 - Fix wierd issue where the gaps get updated upon respawning on the log run.
+    5.2 - Fix wierd issue where the gaps in the UI get updated upon respawning on the log run.
 
 7 - Settings
     7.1 - Fix settings (gap between log and stuff)
 
 8 - UI
     8.1 - Improve rendering settings (percentage location of bar rather than pixel based + ensure consistent text sizing of gap on bar between resolutions)
+
+9 - Efficiency
+    9.1 - Fix general efficiency and speed
+
+10 - Finish all TODOs

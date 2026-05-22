@@ -35,6 +35,12 @@ class PointLocation {
     string ToString() {
         return "CP: " + cp + ", LAP: " + lap + ", IDX:" + idx;
     }
+
+    PointLocation(uint cp = 0, uint lap = 0, uint idx = 0) {
+        this.cp = cp; this.lap = lap; this.idx = idx;
+    }
+
+    PointLocation() {}
 }
 
 // stores and calculates the ghosts that exist
@@ -98,6 +104,11 @@ class RacingGhostManager {
             // TODO: implement the corrent insertion method
             ghostsList.InsertLast(data);
         }
+    }
+
+    // TODO: implement a better refresh later
+    void RefreshGhosts() {
+        Reset();
     }
 
     void Reset() {
