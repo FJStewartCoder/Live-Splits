@@ -93,7 +93,8 @@ class RacingGhostManager {
             data.ghostId = data.ghostData.IdUint;
             data.ghostName = data.ghostData.Nickname;
 
-            ghosts.InsertLast(data);
+            // TODO: implement the corrent insertion method
+            ghostsList.InsertLast(data);
         }
     }
 
@@ -101,5 +102,11 @@ class RacingGhostManager {
         // reset the ghosts array and ghosts dictionary
         ghosts.DeleteAll();
         ghostsList.Resize(0);
+    }
+
+    void OnRestart() {
+        for (int i = 0; i < ghostsList.Length; i++) {
+            ghostsList[i].ResetGaps();
+        }
     }
 }

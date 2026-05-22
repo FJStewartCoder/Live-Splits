@@ -34,10 +34,12 @@ namespace Render {
 
         // creates window
         if (UI::Begin("Ghost and Gap Breakdown")) {
+            auto ghosts = gapMgr.ghostMgr.ghostsList;
+
             DebugRenderGhost(gapMgr.playerData);
 
-            for (int i = 0; i < gapMgr.ghosts.Length; i++) {
-                GhostGapData@ ghost = gapMgr.ghosts[i];
+            for (int i = 0; i < ghosts.Length; i++) {
+                GhostGapData@ ghost = ghosts[i];
 
                 UI::PushID(i);
 

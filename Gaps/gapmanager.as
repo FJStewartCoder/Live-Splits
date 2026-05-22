@@ -2,6 +2,8 @@ class GapMgr {
     RacingGhostManager ghostMgr;
     GhostGapData playerData;
 
+    bool isGhostsSet = false;
+
     RotatingCounter framesBetweenGap(4);
 
     int EvaluateGapFromState(CSceneVehicleVisState@ state) {
@@ -29,8 +31,8 @@ class GapMgr {
         auto a = VehicleState::ViewingPlayerState();
         playerData.relGap = EvaluateGapFromState(a);
 
-        // get the ghosts list        
-        array<GhostGapData>@ ghosts = ghostMgr.ghostsList;
+        // get the ghost list and make the variable name more local
+        auto ghosts = ghostMgr.ghostsList;
 
         // iterate the ghosts in the ghost list
         for (int i = 0; i < ghosts.Length; i++) {
@@ -57,8 +59,10 @@ class GapMgr {
             if (!isGhostsSet && timer.GetTime() > 100) {
                 trace("Resetting ghost array");
 
-                // TODO: ensure this is only called once
                 ghostMgr.CreateGhostsArray();
+
+                // set ghosts set to true because it now is
+                isGhostsSet = true;
             }
         }
     }
@@ -67,16 +71,14 @@ class GapMgr {
         isGhostsSet = false;
         framesBetweenGap.Reset();
 
-        for (int i = 0; i < ghosts.Length; i++) {
-            ghosts[i].ResetGaps();
-        }
+        ghostMgr.OnRestart();
 
         playerData.ResetGaps();
     }
 
     void OnChangeTrack() {
         OnRestart();
-        ghosts.Resize(0);
+        ghostMgr.Reset();
     }
 }
 

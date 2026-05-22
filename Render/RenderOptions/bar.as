@@ -73,9 +73,11 @@ namespace Render {
         float minGap;
         float maxGap;
 
+        auto ghosts = gapMgr.ghostMgr.ghostsList;
+
         // iterate miscArray to draw the largest bars only
-        for (int i = 0; i < gapMgr.ghosts.Length; i++) {
-            int curGap = gapMgr.ghosts[i].gap;
+        for (int i = 0; i < ghosts.Length; i++) {
+            int curGap = ghosts[i].gap;
 
             if (i == 0) {
                 minGap = curGap;
@@ -120,8 +122,8 @@ namespace Render {
         }
 
         // iterate miscArray to draw in each point that a car is gaining
-        for (int i = 0; i < gapMgr.ghosts.Length; i++) {
-            int curGap = gapMgr.ghosts[i].gap;
+        for (int i = 0; i < ghosts.Length; i++) {
+            int curGap = ghosts[i].gap;
 
             // draw a line per car
             drawLength = GetLineOffset(curGap, barGapRange, width);

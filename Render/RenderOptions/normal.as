@@ -2,8 +2,10 @@ bool updateWindowSize = false;
 
 namespace Render {
     void Normal() {
+        auto ghosts = gapMgr.ghostMgr.ghostsList;
+
         // gets the number of valid cars
-        uint validCars = gapMgr.ghosts.Length;
+        uint validCars = ghosts.Length;
 
         // --------------------------------------------------------
         // styling
@@ -38,7 +40,7 @@ namespace Render {
         if (UI::Begin("Live Splits", flags)) {
             // show gaps for all cars except the current car
             for (int i = 0; i < validCars; i++) {
-                int curGap = gapMgr.ghosts[i].gap;
+                int curGap = ghosts[i].gap;
 
                 // includes "+" if greater than 0
                 string curGapString = GapToString(curGap);
