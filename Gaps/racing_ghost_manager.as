@@ -19,11 +19,17 @@ class GhostGapData {
 
     // location in which the previous point was found
     // used by estimate gap
-    PointLocation lastPointLoc;
+    uint lastPointIdx;
 
     void ResetGaps() {
         gap = 0;
         relGap = 0;
+        lastPointIdx = 0;
+    }
+
+    void ApplyGapInfo(GapInfo@ gapInfo) {
+        relGap = gapInfo.gap;
+        lastPointIdx = gapInfo.index;
     }
 }
 

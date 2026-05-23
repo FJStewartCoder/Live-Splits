@@ -5,6 +5,8 @@
     2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)
     2.2 - Fix all gap algorithms (old estimation and implement new one with checkpoint and lap consideration)
 
+    2.3 - Fix sample array inserting the items in the wrong order per checkpoint
+
 3 - Improve gap display
     3.1 - implement no respawn timer
     3.2 - implement per checkpoint gaps to ghosts

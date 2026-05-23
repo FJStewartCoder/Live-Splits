@@ -8,7 +8,7 @@ namespace Render {
 
         UI::InputInt("GAP", ghost.gap);
         UI::InputInt("REL GAP", ghost.relGap);
-        UI::InputText("LAST IDX", ghost.lastPointLoc.ToString());
+        UI::InputInt("LAST IDX", ghost.lastPointIdx);
     }
 
     void Debug() {

@@ -1,5 +1,22 @@
 // TODO: improve gap algorithm
 
+class GapInfo {
+    // the point closest to the desired point
+    Point@ point = null;
+    // the distance from point to player/ghost point
+    float distance = 0;
+    // the index that the point was found
+    uint index = 0;
+
+    // the evaluated gap
+    int gap = 0;
+
+    string ToString() {
+        return "DIST: " + distance + ", IDX: " + index + ", GAP: " + gap;
+    }
+}
+
+
 bool MeetsCheckLocationCriteria(
     SubSampleDefinition@ subSamples,
     PointLocation@ minCheckLoc,
@@ -49,7 +66,6 @@ uint GetMinDistIndex(
 
     for (int p = minCheckIdx; p < maxCheckIdx; p += interval) {
         curDist = GetDist(points[p], currentPoint);
-        // print(curDist);
 
         // if the current distance is less or at the start of loop
         if (curDist < minDist || p == minCheckIdx) {
@@ -94,27 +110,6 @@ namespace GetGap {
     // however, greater can help to filter out brief periods of crossing over the track
     array<uint> checkIntervals = {30, 8, 1};
 
-    // how far either side of the last index will we search
-    uint searchRadius = 500;
-
-    // used to prevent 
-    float distThreshold = -1;
-
-    int PointsToGap(Point @p1, Point @p2) {
-        // no threshold
-        if (distThreshold == -1) {
-            return p1.timeStamp - p2.timeStamp;
-        }
-
-        // only set gap if below threshold
-        if (GetDist(p1, p2) <= distThreshold) {
-            return p1.timeStamp - p2.timeStamp;
-        }
-
-        // fail so dist = 0
-        return 0;
-    }
-
     // function to optimise the intervals arrays based on the frame rate and logs per second
     // resolution defines how many checks per second should be done
     void Optimise(uint frameRate, uint resolution) {
@@ -136,15 +131,16 @@ namespace GetGap {
 
         // set search radius for estimation to some number of seconds
         // currently searchs 2 seconds either side
-        searchRadius = logsPerSecond * searchRangeSeconds;
+        // TODO: reimplement
+        // searchRadius = logsPerSecond * searchRangeSeconds;
     }
 
     // current position and array of points
-    Point@ Full(
+    GapInfo Full(
         Point @currentPoint,
         SampleArray@ reference,
-        uint startIdx,
-        uint endIdx,
+        uint startIdx = -1,
+        uint endIdx = -1,
         bool useLinear = false
     ) {
         // if array not complete don't calculate gap
@@ -154,7 +150,7 @@ namespace GetGap {
         // ------------------------------------------------------------------------------------
         // get min index
 
-        auto samples = reference.samples;
+        array<Point>@ samples = reference.samples;
 
         // define some variables to start
         int minIdx = 0;
@@ -181,41 +177,51 @@ namespace GetGap {
             }
         }
 
-        // TODO:
-        // replace this with the location instead once I figure out how to do that    
-        return samples[minIdx];
+        // create a new return item
+        GapInfo returnItem;
+
+        // save the point
+        @returnItem.point = samples[minIdx];
+        // save the min index
+        returnItem.index = minIdx;
+
+        return returnItem;
     }
 
     // need the misc array, current position and array of points
-    Point@ OriginalEstimation(
+    GapInfo Estimation(
         Point @currentPoint,
         SampleArray@ reference,
-        uint startIdx,
-        uint endIdx,
+        uint estimatedIdx,
+        uint searchRange = 75,
+
+        // TODO: integrate these later
+        uint startIdx = -1,
+        uint endIdx = -1,
         bool useLinear = false
     ) {
-        /*
-        // if array not complete don't calculate gap
-        // unless overridden
-        // if (!arrayComplete && !getGapOverride) { return; }
-            
         // ------------------------------------------------------------------------------------
         // get min index
+
+        // get the list of samples
+        array<Point>@ samples = reference.samples;
 
         // define some variables to start
         int minIdx = 0;
         // get the start and end of our estimated search
-        int checkStart = miscPtr.lastIdx - searchRadius;
-        int checkEnd = miscPtr.lastIdx + searchRadius;
+        int checkStart = int(estimatedIdx) - searchRange;
+        int checkEnd = int(estimatedIdx) + searchRange;
+
+        print(checkStart + " " + checkEnd);
 
         if (useLinear) {
-            minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, 1);
+            minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, 1);
         }
         else {
             // iterate all intervals in checkIntervals
             for (int interval = 0; interval < checkIntervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, ghostPoints, checkStart, checkEnd, checkIntervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, checkIntervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
@@ -224,15 +230,14 @@ namespace GetGap {
             }
         }
 
-        // -----------------------------------------------------------------------------------
+        // create a new return item
+        GapInfo returnItem;
 
-        // set the last index to the index we found the min value
-        miscPtr.lastIdx = minIdx;
+        // save the point
+        @returnItem.point = samples[minIdx];
+        // save the min index
+        returnItem.index = minIdx;
 
-        // set the gap based on the timestamps
-        miscPtr.relGap = PointsToGap(currentPoint, ghostPoints[minIdx]);
-        */
-
-        return null;
+        return returnItem;
     }
 }

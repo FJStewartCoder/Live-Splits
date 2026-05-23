@@ -11,10 +11,11 @@ class GapMgr {
 
     RotatingCounter framesBetweenGap(4);
 
-    int EvaluateGapFromState(
+    GapInfo EvaluateGapFromState(
         CSceneVehicleVisState@ state,
         uint checkpoint,
-        uint lap
+        uint lap,
+        uint lastIdx = -1
     ) {
         Point p;
         p.LoadFromState(state);
@@ -24,9 +25,11 @@ class GapMgr {
 
         print(range.ToString());
 
-        Point@ p2 = GetGap::Full(p, reference.sampleArray, range.min, range.max, false);
+        // GapInfo gapInfo = GetGap::Estimation(p, reference.sampleArray, lastIdx, 250, range.min, range.max, true);
+        GapInfo gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, true);
+        gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
 
-        return timer.GetTime() - p2.timeStamp;
+        return gapInfo;
     }
 
     void EvaluateGap(GhostGapData@ data) {
@@ -34,15 +37,16 @@ class GapMgr {
 
         print(data.ghostName);
 
-        int gap = EvaluateGapFromState(
+        GapInfo gap = EvaluateGapFromState(
             data.entityVis.AsyncState,
             extraData.checkpoint,
-            extraData.lap
+            extraData.lap,
+            data.lastPointIdx
         );
 
-        data.relGap = gap;
-        // TODO: fix once it is fixed
-        // data.lastPointLoc = 0;
+        // TODO: implement distance threshold
+
+        data.ApplyGapInfo(gap);
     }
 
     void UpdateGaps() {
@@ -51,7 +55,9 @@ class GapMgr {
         if (!framesBetweenGap.GetValue()) { return; }
 
         auto a = VehicleState::ViewingPlayerState();
-        playerData.relGap = EvaluateGapFromState(a, PlayerData::cp, PlayerData::lap);
+
+        GapInfo playerGapInfo = EvaluateGapFromState(a, PlayerData::cp, PlayerData::lap, playerData.lastPointIdx);
+        playerData.ApplyGapInfo(playerGapInfo);
 
         // get the ghost list and make the variable name more local
         auto ghosts = ghostMgr.ghostsList;
