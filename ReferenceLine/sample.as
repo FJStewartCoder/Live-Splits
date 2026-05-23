@@ -26,12 +26,23 @@ class Point {
 }
 
 class ArrayRange {
-    uint min = 0;
-    uint max = 0;
+    int min = 0;
+    int max = 0;
+
+    bool IsBetween(int num) {
+        return num >= min && num <= max;
+    }
 
     string ToString() {
         return "MIN: " + min + ", MAX: " + max;
     }
+
+    ArrayRange(int min, int max) {
+        this.min = min;
+        this.max = max;
+    }
+
+    ArrayRange() {}
 }
 
 // TODO: update sample array to store seperate samples per checkpoint and lap
@@ -163,10 +174,10 @@ class SampleArray {
         // calculate the start indexes
         CalculateStartIndices();
 
+        // finally, insert the point
+        samples.InsertAt(relevantSubSamples.CalculateEndIndex(), point);
         // increment the length of the sub samples
         relevantSubSamples.length++;
-        // finally, insert the point
-        samples.InsertAt(relevantSubSamples.startIdx, point);
     }
 
     // delete samples in this range

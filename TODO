@@ -3,9 +3,8 @@
 
 2 - Gap Algorithms
     2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)
-    2.2 - Fix all gap algorithms (old estimation and implement new one with checkpoint and lap consideration)
-
-    2.3 - Fix sample array inserting the items in the wrong order per checkpoint
+    2.2 - Test all gap algorithms (estimation when idx is out of range)
+    2.3 - Fix the GapInfo to provide the distance
 
 3 - Improve gap display
     3.1 - implement no respawn timer
@@ -16,7 +15,7 @@
 
 5 - Bug Fixes
     5.1 - Fix point overlap when respawning (just take into account the respawn animation)
-    5.2 - Fix wierd issue where the gaps in the UI get updated upon respawning on the log run.
+    5.2 - Fix issue where logger may finish without logging the whole track
 
 7 - Settings
     7.1 - Fix settings (gap between log and stuff)

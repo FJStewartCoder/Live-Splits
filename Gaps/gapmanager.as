@@ -25,8 +25,11 @@ class GapMgr {
 
         print(range.ToString());
 
-        // GapInfo gapInfo = GetGap::Estimation(p, reference.sampleArray, lastIdx, 250, range.min, range.max, true);
-        GapInfo gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, true);
+        GapInfo gapInfo;
+
+        // gapInfo = GetGap::Estimation(p, reference.sampleArray, lastIdx, 50, range.min, range.max, false);
+        gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, true);
+
         gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
 
         return gapInfo;

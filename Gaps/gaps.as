@@ -46,29 +46,28 @@ bool MeetsCheckLocationCriteria(
 uint GetMinDistIndex(
     Point@ currentPoint,
     array<Point>@ points,
-    int minCheckIdx,
-    int maxCheckIdx,
+    ArrayRange range,
     uint interval = 1
 ) {
     // dont allow min idx less than 0
-    if (minCheckIdx < 0) {
-        minCheckIdx = 0;
+    if (range.min < 0) {
+        range.min = 0;
     }
 
     // dont let max greater than length
-    if (maxCheckIdx > points.Length) {
-        maxCheckIdx = points.Length;
+    if (range.max > points.Length) {
+        range.max = points.Length;
     }
 
     float curDist = 0;
     float minDist = 0;
-    float minIdx = minCheckIdx;
+    float minIdx = range.min;
 
-    for (int p = minCheckIdx; p < maxCheckIdx; p += interval) {
+    for (int p = range.min; p < range.max; p += interval) {
         curDist = GetDist(points[p], currentPoint);
 
         // if the current distance is less or at the start of loop
-        if (curDist < minDist || p == minCheckIdx) {
+        if (curDist < minDist || p == range.min) {
             minDist = curDist;
             minIdx = p;
         }
@@ -155,25 +154,27 @@ namespace GetGap {
         // define some variables to start
         int minIdx = 0;
 
+        ArrayRange checkRange;
+
         // the check start is the startIdx or 0 if startIdx > length
-        int checkStart = (startIdx > samples.Length) ? 0 : startIdx;
+        checkRange.min = (startIdx > samples.Length) ? 0 : startIdx;
         // the end index is the sample.length if endIdx is greater than length else it is endIdx
-        int checkEnd = (startIdx > samples.Length) ? samples.Length : endIdx;
+        checkRange.max = (startIdx > samples.Length) ? samples.Length : endIdx;
 
         // if linear, do a linear search
         if (useLinear) {
-            minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd);
+            minIdx = GetMinDistIndex(currentPoint, samples, checkRange);
         }
         else {
             // iterate all intervals in checkIntervals
             for (int interval = 0; interval < checkIntervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, checkIntervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, samples, checkRange, checkIntervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervals[interval];
-                checkEnd = minIdx + checkIntervals[interval];
+                checkRange.min = minIdx - checkIntervals[interval];
+                checkRange.max = minIdx + checkIntervals[interval];
             }
         }
 
@@ -200,33 +201,42 @@ namespace GetGap {
         uint endIdx = -1,
         bool useLinear = false
     ) {
-        // ------------------------------------------------------------------------------------
-        // get min index
-
         // get the list of samples
         array<Point>@ samples = reference.samples;
 
         // define some variables to start
         int minIdx = 0;
-        // get the start and end of our estimated search
-        int checkStart = int(estimatedIdx) - searchRange;
-        int checkEnd = int(estimatedIdx) + searchRange;
 
-        print(checkStart + " " + checkEnd);
+        ArrayRange checkRange;
+
+        // the check start is the startIdx or 0 if startIdx > length
+        checkRange.min = (startIdx > samples.Length) ? 0 : startIdx;
+        // the end index is the sample.length if endIdx is greater than length else it is endIdx
+        checkRange.max = (startIdx > samples.Length) ? samples.Length : endIdx;
+
+        // if the estimated index is in the range, ensure that bounds are bound by the min and max entered by the user
+        // if the estimated index is not in the range, trust the range
+        if ( checkRange.IsBetween(estimatedIdx) ) {
+            int min = estimatedIdx - searchRange;
+            int max = estimatedIdx + searchRange;
+
+            if (checkRange.IsBetween(min)) { checkRange.min = min; }
+            if (checkRange.IsBetween(max)) { checkRange.min = min; }
+        }
 
         if (useLinear) {
-            minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, 1);
+            minIdx = GetMinDistIndex(currentPoint, samples, checkRange, 1);
         }
         else {
             // iterate all intervals in checkIntervals
             for (int interval = 0; interval < checkIntervals.Length; interval++) {
                 // gets the min idx from the start to the end in intervals of interval
-                minIdx = GetMinDistIndex(currentPoint, samples, checkStart, checkEnd, checkIntervals[interval]);
+                minIdx = GetMinDistIndex(currentPoint, samples, checkRange, checkIntervals[interval]);
 
                 // set the check start and check end for the next loop using the current interval
                 // EXAMPLE: we currently iterate each 20, we need to check 20 each side next time
-                checkStart = minIdx - checkIntervals[interval];
-                checkEnd = minIdx + checkIntervals[interval];
+                checkRange.min = minIdx - checkIntervals[interval];
+                checkRange.max = minIdx + checkIntervals[interval];
             }
         }
 

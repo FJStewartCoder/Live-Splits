@@ -70,8 +70,8 @@ namespace Render {
         // draw the outer bar
         drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, barTransparency), rounding);
 
-        float minGap;
-        float maxGap;
+        float minGap = 0;
+        float maxGap = 0;
 
         auto ghosts = gapMgr.ghostMgr.ghostsList;
 
