@@ -23,6 +23,12 @@ class Point {
         // gets time stamp
         timeStamp = timer.GetTime();
     }
+
+    Point(double x, double y, double z) {
+        this.x = x; this.y = y; this.z = z;
+    }
+
+    Point() {}
 }
 
 class ArrayRange {
@@ -90,6 +96,7 @@ class SampleArray {
         // create a variable for the insertion index
         uint insertionIdx = -1;
 
+        // iterate each current definition until one is found that has a greater lap and cp
         for (uint i = 0; i < definitions.Length; i++) {
             SubSampleDefinition@ curDefinition = definitions[i];
 
@@ -108,12 +115,16 @@ class SampleArray {
         // else insert at insertion index
         if (insertionIdx == uint(-1)) {
             definitions.InsertLast(newDefinition);
+
+            // return like this so that you get a proper pointer thing
+            return definitions[definitions.Length - 1];
         }
         else {
             definitions.InsertAt(insertionIdx, newDefinition);
-        }
 
-        return newDefinition;
+            // return like this so that you get a proper pointer thing
+            return definitions[insertionIdx];
+        }
     }
 
     private bool DefinitionMeetsCondition(SubSampleDefinition @def, uint lap, uint cp) {
@@ -130,10 +141,8 @@ class SampleArray {
 
         for (uint i = 0; i < definitions.Length; i++) {
             SubSampleDefinition@ def = definitions[i];
-
             def.startIdx = startIdx;
-
-            startIdx += def.length;
+            startIdx = def.CalculateEndIndex();
         }
     }
 
@@ -172,6 +181,7 @@ class SampleArray {
         }
 
         // calculate the start indexes
+        // TODO: prevent this being called as often somehow
         CalculateStartIndices();
 
         // finally, insert the point

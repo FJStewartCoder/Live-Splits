@@ -23,12 +23,12 @@ class GapMgr {
         PointLocation loc(checkpoint, lap);
         ArrayRange range = reference.sampleArray.GetSampleRange(loc, loc);
 
-        print(range.ToString());
+        // print(range.ToString());
 
         GapInfo gapInfo;
 
         // gapInfo = GetGap::Estimation(p, reference.sampleArray, lastIdx, 50, range.min, range.max, false);
-        gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, true);
+        gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, false);
 
         gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
 
@@ -38,7 +38,7 @@ class GapMgr {
     void EvaluateGap(GhostGapData@ data) {
         GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostData);
 
-        print(data.ghostName);
+        // print(data.ghostName);
 
         GapInfo gap = EvaluateGapFromState(
             data.entityVis.AsyncState,
