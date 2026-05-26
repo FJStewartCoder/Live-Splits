@@ -78,6 +78,50 @@ class RacingGhostManager {
         }
     }
 
+    private void FilterGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
+        // stores the ghost name then the most relevant ghost info
+        dictionary seen;
+
+        for (uint i = 0; i < arr.Length; i++) {
+            MLFeed::GhostInfo_V2@ info = arr[i];
+
+            const bool isValid = info.Result_Time != -1;
+
+            if (!isValid) { continue; }
+
+            if (seen.Exists(info.Nickname)) {
+                MLFeed::GhostInfo_V2@ seen_info = cast<MLFeed::GhostInfo_V2@>(seen[info.Nickname]);
+                const bool isSeenFaster = seen_info.Result_Time < info.Result_Time;
+
+                // if the current info has a faster time, insert instead
+                if (!isSeenFaster) {
+                    @seen[info.Nickname] = info;
+                }
+            }
+            else {
+                // if there is no info for this name, add it to the list
+                @seen[info.Nickname] = info;
+            }
+        }
+
+        // clear the array
+        arr.RemoveRange(0, arr.Length);
+
+        // convert the dictionary back into an array
+        auto seenNames = seen.GetKeys();
+
+        print("Number names = " + seenNames.Length);
+
+        // iterate all items and add them back to the array
+        for (uint i = 0; i < seenNames.Length; i++) {
+            const string name = seenNames[i];
+
+            MLFeed::GhostInfo_V2@ seenData = cast<MLFeed::GhostInfo_V2@>(seen[name]);
+
+            arr.InsertLast(seenData);
+        }
+    }
+
     void CreateGhostsArray() {
         // TODO: implement the below description with the dictionary (string: GhostData&) and the list of GhostData
         // MLFeed ghosts (loaded) is a list of all ghosts
@@ -93,6 +137,7 @@ class RacingGhostManager {
         // get the loaded ghosts
         // the ids are in the same order as the vehicle state vis
         array<MLFeed::GhostInfo_V2@> mlGhosts = MLFeed::GetGhostData().LoadedGhosts;
+        FilterGhostInfo(mlGhosts);
         SortGhostInfo(mlGhosts);
 
         // get those vis
@@ -131,5 +176,7 @@ class RacingGhostManager {
         for (int i = 0; i < ghostsList.Length; i++) {
             ghostsList[i].ResetGaps();
         }
+
+        RefreshGhosts();
     }
 }
