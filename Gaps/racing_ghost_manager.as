@@ -83,6 +83,10 @@ class RacingGhostManager {
         // MLFeed ghosts (loaded) is a list of all ghosts
         // this array is in the same order as the VehicleState vis list
         // duplicates can occur in ML list but only the first instance of each is the correct one
+        // some ghosts have result time -1 which means incomplete
+        // duplicates occur when more track is driven on a track that is never played which means that there are several ghosts with different times / checkpoint counts
+        // any time a PB is set, duplicate ghosts occur
+        // these need to be filtered to only show the fastest ghost per name
         
         // EXTRA CONSIDERATION: Vehicle state doesnt't show the vehciles always in the correct order (not sorted)
 
