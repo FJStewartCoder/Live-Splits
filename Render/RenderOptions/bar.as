@@ -57,23 +57,23 @@ namespace Render {
 
 
         void SetDefault() {
-            width = 1/4;
-            height = 1/16;
+            width = 1.0 / 4;
+            height = 1.0 / 16;
             xPos = 0.5;
             yPos = 0.3;
 
             transparency = 0.7;
 
             backgroundColour = vec3(0, 0, 0);
-            outlineColour = vec3(0, 0, 0);
+            outlineColour = vec3(1, 1, 1);
             lineColour = vec3(0, 0, 0);
             positiveColour = vec3(0, 1, 0);
             negativeColour = vec3(1, 0, 0);
             textColour = vec3(1, 1, 1);
 
             cornerRounding = 5;
-            outlineThickness = width / 160;
-            lineThickness = width / 320;
+            outlineThickness = 2;
+            lineThickness = 1;
         }
 
         // TODO: implement
@@ -194,14 +194,14 @@ namespace Render {
         drawList.AddLine(
             vec2(centrePos.x, centrePos.y + (height / 2)),
             vec2(centrePos.x, centrePos.y - (height / 2)),
-            RGBToRGBA(settings.lineColour, 1),
+            RGBToRGBA(settings.outlineColour, settings.transparency),
             settings.outlineThickness
         );
 
         // draw outer border
         drawList.AddRect(
             vec4(topLeft.x, topLeft.y, width, height),
-            RGBToRGBA(settings.lineColour, 1),
+            RGBToRGBA(settings.outlineColour, settings.transparency),
             settings.cornerRounding,
             settings.outlineThickness
         );

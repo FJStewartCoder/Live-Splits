@@ -56,9 +56,13 @@ string GapToString(int gap) {
 
 void Render() {
     // if the plugin is off don't do anything
-    if (!isEnabled) {
-        return;
-    }
+    if (!isEnabled) { return; }
+
+    // if the UI is not shown, don't render
+    // TODO: add settings to enable these even if the UI is off
+    if (!UI::IsGameUIVisible()) { return; } 
+
+    // if (!UI::IsOverlayShown()) { return; }
 
     // if not in game, don't do anything
     if (!IsInGame()) { return; }

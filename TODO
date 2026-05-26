@@ -22,10 +22,7 @@
     7.1 - Fix settings (gap between log and stuff)
 
 8 - UI
-    8.1 - Percentage location
-    8.2 - Consistent text sizing on bar (when changing resolution)
-    8.3 - Disable rendering when UI is disable
-    8.4 - Custom bar size
+    8.1 - Consistent text sizing on bar (when changing resolution)
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed
