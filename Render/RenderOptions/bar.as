@@ -41,11 +41,57 @@ void EnsureOffsets(float width, float height) {
 }
 
 namespace Render {
-    void Bar() {
+    class BarSettings {
+        // position and size
+        double width;
+        double height;
+        double xPos;
+        double yPos;
+
+        // colour and transparency
+        double transparency;
+        vec4 backgroundColour;
+        vec4 outlineColour;
+        vec4 lineColour;
+        vec4 positiveColour;
+        vec4 negativeColour;
+
+        // other style options
+        double cornerRounding;
+        double outlineThickness;
+        double lineThickness;
+
+
+        void SetDefault() {
+            width = 1/4;
+            height = 1/16;
+            xPos = 0.5;
+            yPos = 0.3;
+
+            transparency = 0.7;
+        }
+
+        // TODO: implement
+        bool IsValid() {
+            return true;
+        }
+
+        BarSettings() {
+            SetDefault();
+        }
+    }
+
+    void Bar(
+        BarSettings settings
+    ) {
+        if (!settings.IsValid()) {
+            settings.SetDefault();
+        }
+
         // quarter screen width
-        float width = Display::GetWidth() / 4;
+        float width = Display::GetWidth() * settings.width;
         // 16th screen height
-        float height = Display::GetHeight() / 16;
+        float height = Display::GetHeight() * settings.height;
 
         // ensure the offsets
         EnsureOffsets(width, height);
