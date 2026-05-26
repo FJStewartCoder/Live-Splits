@@ -68,7 +68,9 @@ void Render() {
     }
     
     if (EnabledStatus(1)) {
-        Render::Bar();
+        // TODO: allow updating these settings
+        Render::BarSettings settings;
+        Render::Bar(settings);
     }
 
     if (EnabledStatus(2)) {

@@ -21,23 +21,16 @@ float GetLineOffset(int gap, float maxGap, float totalWidth) {
     }    
 }
 
-vec2 CalculateMaxOffsets(float barWidth, float barHeight) {
-    int width = Display::GetWidth();
-    int height = Display::GetHeight();
-
-    return vec2((width - barWidth) / 2, (height - barHeight) / 2);
+vec2 CalculateCentreBarPosition(Render::BarSettings@ settings) {
+    return vec2(Display::GetWidth() * settings.xPos, Display::GetHeight() * settings.yPos);
 }
 
-// ensures offsets are valid
-void EnsureOffsets(float width, float height) {
-    vec2 maxOffsets = CalculateMaxOffsets(width, height);
+vec2 CalculateBarTopLeft(double width, double height, vec2 centrePos) {
+    return vec2(centrePos.x - (width / 2), centrePos.y - (height / 2));
+}
 
-    // basic validation for x and y offset
-    if (xOffset > maxOffsets.x) { xOffset = maxOffsets.x; }
-    else if (xOffset < -1 * maxOffsets.x) { xOffset = -1 * maxOffsets.x; }
-
-    if (yOffset > maxOffsets.y) { yOffset = maxOffsets.y; }
-    else if (yOffset < -1 * maxOffsets.y) { yOffset = -1 * maxOffsets.y; }
+vec4 RGBToRGBA(vec3 colour, double transparency) {
+    return vec4(colour.x, colour.y, colour.z, transparency);
 }
 
 namespace Render {
@@ -50,11 +43,12 @@ namespace Render {
 
         // colour and transparency
         double transparency;
-        vec4 backgroundColour;
-        vec4 outlineColour;
-        vec4 lineColour;
-        vec4 positiveColour;
-        vec4 negativeColour;
+        vec3 backgroundColour;
+        vec3 outlineColour;
+        vec3 lineColour;
+        vec3 positiveColour;
+        vec3 negativeColour;
+        vec3 textColour;
 
         // other style options
         double cornerRounding;
@@ -69,6 +63,17 @@ namespace Render {
             yPos = 0.3;
 
             transparency = 0.7;
+
+            backgroundColour = vec3(0, 0, 0);
+            outlineColour = vec3(0, 0, 0);
+            lineColour = vec3(0, 0, 0);
+            positiveColour = vec3(0, 1, 0);
+            negativeColour = vec3(1, 0, 0);
+            textColour = vec3(1, 1, 1);
+
+            cornerRounding = 5;
+            outlineThickness = width / 160;
+            lineThickness = width / 320;
         }
 
         // TODO: implement
@@ -82,7 +87,7 @@ namespace Render {
     }
 
     void Bar(
-        BarSettings settings
+        Render::BarSettings settings
     ) {
         if (!settings.IsValid()) {
             settings.SetDefault();
@@ -93,28 +98,18 @@ namespace Render {
         // 16th screen height
         float height = Display::GetHeight() * settings.height;
 
-        // ensure the offsets
-        EnsureOffsets(width, height);
-
-        vec4 lineColour = vec4(1, 1, 1, barTransparency);
-        float thickness = width / 160;
-
-        const float rounding = 5;
+        vec2 centrePos = CalculateCentreBarPosition(settings);
+        vec2 topLeft = CalculateBarTopLeft(width, height, centrePos);
 
         UI::DrawList @drawList = UI::GetForegroundDrawList();
 
-        // get the centre of the screen
-        vec2 centrePos = GetScreenCentre();
-
-        // offset the centre pos by the x and y offsets
-        centrePos.x += xOffset;
-        centrePos.y -= yOffset;
-
-        vec2 topLeft = vec2(centrePos.x - (width / 2), centrePos.y - (height / 2));
-
         // top left pos, then the size
         // draw the outer bar
-        drawList.AddRectFilled(vec4(topLeft.x, topLeft.y, width, height), vec4(0, 0, 0, barTransparency), rounding);
+        drawList.AddRectFilled(
+            vec4(topLeft.x, topLeft.y, width, height),
+            RGBToRGBA(settings.backgroundColour, settings.transparency),
+            settings.cornerRounding
+        );
 
         float minGap = 0;
         float maxGap = 0;
@@ -148,23 +143,37 @@ namespace Render {
         // only draw min offset if actually negative
         if (minGap < 0) {
             drawLength = GetLineOffset(minGap, barGapRange, width);
-            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(0, 1, 0, barTransparency));
+            drawList.AddRectFilled(
+                vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), 
+                RGBToRGBA(settings.positiveColour, settings.transparency)
+            );
 
             string text = GapToString(minGap);
 
             // write the gap the side
-            drawList.AddText(vec2(centrePos.x + (width / 2) - UI::MeasureString(text).x, centrePos.y + (height / 2)), vec4(1, 1, 1, barTransparency), text);
+            drawList.AddText(
+                vec2(centrePos.x + (width / 2) - UI::MeasureString(text).x, centrePos.y + (height / 2)), 
+                RGBToRGBA(settings.lineColour, settings.transparency),
+                text
+            );
         }
 
         // only draw max offset if actually positive
         if (maxGap > 0) {
             drawLength = GetLineOffset(maxGap, barGapRange, width);
-            drawList.AddRectFilled(vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), vec4(1, 0, 0, barTransparency));
+            drawList.AddRectFilled(
+                vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), 
+                RGBToRGBA(settings.negativeColour, settings.transparency)
+            );
 
             string text = GapToString(maxGap);
 
             // write the gap the side
-            drawList.AddText(vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)), vec4(1, 1, 1, barTransparency), text);
+            drawList.AddText(
+                vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)),
+                RGBToRGBA(settings.textColour, settings.transparency),
+                text
+            );
         }
 
         // iterate miscArray to draw in each point that a car is gaining
@@ -173,13 +182,28 @@ namespace Render {
 
             // draw a line per car
             drawLength = GetLineOffset(curGap, barGapRange, width);
-            drawList.AddLine(vec2(centrePos.x - drawLength, centrePos.y + (height / 2)), vec2(centrePos.x - drawLength, centrePos.y - (height / 2)), vec4(0, 0, 0, barTransparency), thickness / 2);
+            drawList.AddLine(
+                vec2(centrePos.x - drawLength, centrePos.y + (height / 2)),
+                vec2(centrePos.x - drawLength, centrePos.y - (height / 2)),
+                RGBToRGBA(settings.lineColour, settings.transparency),
+                settings.lineThickness
+            );
         }
 
         // draw the centre line
-        drawList.AddLine(vec2(centrePos.x, centrePos.y + (height / 2)), vec2(centrePos.x, centrePos.y - (height / 2)), lineColour, thickness);
+        drawList.AddLine(
+            vec2(centrePos.x, centrePos.y + (height / 2)),
+            vec2(centrePos.x, centrePos.y - (height / 2)),
+            RGBToRGBA(settings.lineColour, 1),
+            settings.outlineThickness
+        );
 
         // draw outer border
-        drawList.AddRect(vec4(topLeft.x, topLeft.y, width, height), lineColour, rounding, thickness);
+        drawList.AddRect(
+            vec4(topLeft.x, topLeft.y, width, height),
+            RGBToRGBA(settings.lineColour, 1),
+            settings.cornerRounding,
+            settings.outlineThickness
+        );
     }
 }
