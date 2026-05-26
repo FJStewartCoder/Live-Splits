@@ -153,7 +153,7 @@ namespace Render {
             // write the gap the side
             drawList.AddText(
                 vec2(centrePos.x + (width / 2) - UI::MeasureString(text).x, centrePos.y + (height / 2)), 
-                RGBToRGBA(settings.lineColour, settings.transparency),
+                RGBToRGBA(settings.textColour, settings.transparency),
                 text
             );
         }

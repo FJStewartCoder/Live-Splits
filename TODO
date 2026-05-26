@@ -23,6 +23,7 @@
 
 8 - UI
     8.1 - Consistent text sizing on bar (when changing resolution)
+    8.2 - Consider improving the other UI options
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed
