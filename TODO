@@ -22,7 +22,7 @@
     7.1 - Fix settings (gap between log and stuff)
 
 8 - UI
-    8.1 - Consistent text sizing on bar (when changing resolution)
+    8.1 - Consider updating dynamic text-sizing to be based on one desired number to prevent having two different font sizes on each side
     8.2 - Consider improving the other UI options
 
 9 - Efficiency

@@ -1,10 +1,3 @@
-vec2 GetScreenCentre() {
-    int gameWidth = Display::GetWidth();
-    int gameHeight = Display::GetHeight();
-
-    return vec2(gameWidth / 2, gameHeight / 2);
-}
-
 float GetLineOffset(int gap, float maxGap, float totalWidth) {
     // get the current gap and calculate the length of the bar relative to the max
     int curGap = Math::Abs(gap);
@@ -33,6 +26,19 @@ vec4 RGBToRGBA(vec3 colour, double transparency) {
     return vec4(colour.x, colour.y, colour.z, transparency);
 }
 
+double CalculateFontSizeForWidth(const string &in text, double desiredWidth, UI::Font@ font = null) {
+    const double baseFontSize = 10.0;
+
+    // calculate the base width using the base font size
+    double baseWidth = UI::MeasureString(text, font, baseFontSize).x;
+
+    // calculate the scale factor by calculating the division of the desired / base
+    double scaleFactor = desiredWidth / baseWidth;
+
+    // calculate the final font size by multiplying the scaleFactor by the baseFontSize
+    return baseFontSize * scaleFactor;
+}
+
 namespace Render {
     class BarSettings {
         // position and size
@@ -55,6 +61,9 @@ namespace Render {
         double outlineThickness;
         double lineThickness;
 
+        // the width of the font relative to half of the width of the bar
+        double fontWidth;
+
 
         void SetDefault() {
             width = 1.0 / 4;
@@ -62,7 +71,7 @@ namespace Render {
             xPos = 0.5;
             yPos = 0.3;
 
-            transparency = 0.7;
+            transparency = 0.8;
 
             backgroundColour = vec3(0, 0, 0);
             outlineColour = vec3(1, 1, 1);
@@ -74,6 +83,8 @@ namespace Render {
             cornerRounding = 5;
             outlineThickness = 2;
             lineThickness = 1;
+
+            fontWidth = 0.3;
         }
 
         // TODO: implement
@@ -150,11 +161,16 @@ namespace Render {
 
             string text = GapToString(minGap);
 
-            // write the gap the side
+            double desiredTextWidth = (width / 2) * settings.fontWidth;
+            double fontSize = CalculateFontSizeForWidth(text, desiredTextWidth);
+
+            // write the gap on the right side of the bar
             drawList.AddText(
-                vec2(centrePos.x + (width / 2) - UI::MeasureString(text).x, centrePos.y + (height / 2)), 
+                vec2(centrePos.x + (width / 2) - desiredTextWidth, centrePos.y + (height / 2)), 
                 RGBToRGBA(settings.textColour, settings.transparency),
-                text
+                text,
+                null,
+                fontSize
             );
         }
 
@@ -168,11 +184,16 @@ namespace Render {
 
             string text = GapToString(maxGap);
 
-            // write the gap the side
+            double desiredTextWidth = (width / 2) * settings.fontWidth;
+            double fontSize = CalculateFontSizeForWidth(text, desiredTextWidth);
+
+            // write the gap on the left side of the bar
             drawList.AddText(
                 vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)),
                 RGBToRGBA(settings.textColour, settings.transparency),
-                text
+                text,
+                null,
+                fontSize
             );
         }
 
