@@ -29,6 +29,7 @@ class GapMgr {
 
         // gapInfo = GetGap::Estimation(p, reference.sampleArray, lastIdx, 50, range.min, range.max, false);
         gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, false);
+        // gapInfo = GetGap::Full(p, reference.sampleArray, -1, -1, true);
 
         gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
 
@@ -75,11 +76,36 @@ class GapMgr {
             GhostExtraInfo info = GetExtraGhostInfo(data.ghostData);
 
             // only evaluate the gap to the reference if the ghost has not finished
-            if (!info.isFinished) {
-                EvaluateGap(data);
+            if (info.isFinished) {
+                data.gap = playerData.relGap - data.relGap;
+                continue;
             }
 
-            data.gap = playerData.relGap - data.relGap;
+            // if there is no cache entry for this ghost, create one
+            if (!cacheDict.Exists(data.ghostName)) {
+                GapCache newCache;
+                cacheDict[data.ghostName] = newCache;
+            }
+
+            // get the ghost cache list
+            GapCache@ ghostCache = cast<GapCache@>(cacheDict[data.ghostName]);
+            CacheReturnItem cacheReturn = ghostCache.GetCache(timer.GetTime(), 50);
+
+            // if there is an error (no cache item, create a new one and set the gap)
+            if (cacheReturn.isError) {
+                // trace("Unable to get cache for " + data.ghostName + " @ " + timer.GetTime());
+                EvaluateGap(data);
+                data.gap = playerData.relGap - data.relGap;
+
+                // add new cache entry
+                ghostCache.AddCache(data.relGap, timer.GetTime(), data.lastPointIdx);
+            }
+            // else, use the cache item
+            else {
+                // trace("Got cache for " + data.ghostName + " @ " + cacheReturn.entry.timeStamp);
+                data.gap = playerData.relGap - cacheReturn.entry.gap;
+                data.lastPointIdx = cacheReturn.entry.idx;
+            }
 
             // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
         }

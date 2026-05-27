@@ -11,16 +11,18 @@
 3 - Improve gap display
     3.1 - implement no respawn timer
     3.2 - implement per checkpoint gaps to ghosts
-    3.3 - Re-implement cache
 
 4 - Re-implement save
 
 5 - Bug Fixes
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
-
+    5.2 - Fix issue where first second of logs are not made due to the respawn thing
+    5.3 - Don't cache the personal best ghost because it causes issues
 
 7 - Settings
     7.1 - Fix settings (gap between log and stuff)
+    7.2 - Add cache related settings
+    7.3 - Add settings to determine how much of the array to search (e.g only search the current checkpoint or not)
 
 8 - UI
     8.1 - Consider updating dynamic text-sizing to be based on one desired number to prevent having two different font sizes on each side

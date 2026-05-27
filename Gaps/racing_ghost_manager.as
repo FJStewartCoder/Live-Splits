@@ -51,6 +51,9 @@ class PointLocation {
 
 // stores and calculates the ghosts that exist
 class RacingGhostManager {
+    // TODO: implement both of the below
+    // both ghosts and ghostsList need to be fully implemented
+
     // stores the ghosts as pairs of name to data
     dictionary ghosts;
     array<GhostGapData> ghostsList;

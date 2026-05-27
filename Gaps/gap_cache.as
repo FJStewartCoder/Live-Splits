@@ -32,15 +32,18 @@ class CacheEntry {
 class GapCache {
     array<CacheEntry> cacheEntries;
 
+    uint cacheHits = 0;
+    uint cacheAttempts = 0;
+
     // perform a binary search thing on the list
     uint CacheSearch(uint tstamp) {
         // begin at 1 because 0 is id
-        uint l = 1;
+        int l = 0;
         // length -1 to get the last index
-        uint r = cacheEntries.Length - 1;
+        int r = cacheEntries.Length - 1;
 
         // index of the midpoint
-        uint mid;
+        int mid;
 
         while (l <= r) {
             mid = (l + r) / 2;
@@ -63,12 +66,21 @@ class GapCache {
     }
 
     CacheReturnItem GetCache(uint time, uint threshold = uint(-1)) {
+        // increment the cache attempts
+        cacheAttempts++;
+
+        CacheReturnItem returnItem;
+
+        // if there are no entries, it is not possible to get cache
+        if (cacheEntries.IsEmpty()) {
+            returnItem.isError = true;
+            return returnItem;
+        }
+
         // find the closest index
         uint foundIdx = CacheSearch(time);
         // get the closest item
         CacheEntry@ foundItem = cacheEntries[foundIdx];
-
-        CacheReturnItem returnItem;
 
         // calculate if the item is difference to the time is greater than threshold
         const bool greaterThanThreshold = Math::Abs(int(foundItem.timeStamp) - time) > threshold;
@@ -80,6 +92,8 @@ class GapCache {
         else {
             // set the entry to the found item
             @returnItem.entry = cacheEntries[foundIdx];
+            // increment the cache hits
+            cacheHits++;
         }
 
         // return the cache item
@@ -89,6 +103,12 @@ class GapCache {
     void AddCache(int gap, uint timeStamp, uint idx) {
         // create a new entry
         CacheEntry entry(gap, timeStamp, idx);
+
+        // if there are no current entries, insert the entry in the last position
+        if (cacheEntries.IsEmpty()) {
+            cacheEntries.InsertLast(entry);
+            return;
+        }
 
         // find where to insert it
         uint insertionIdx = CacheSearch(timeStamp);
@@ -104,6 +124,8 @@ class GapCache {
 
     void Reset() {
         cacheEntries.Resize(0);
+        cacheAttempts = 0;
+        cacheHits = 0;
     }
 }
 

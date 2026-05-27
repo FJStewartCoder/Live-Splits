@@ -11,7 +11,7 @@ namespace Render {
         UI::InputInt("LAST IDX", ghost.lastPointIdx);
     }
 
-    void Debug() {
+    void DebugCheckpoint() {
         if (UI::Begin("Checkpoint Breakdown")) {
             // ONLY FOR DEBUGGING
             UI::InputInt("TIME", timer.GetTime());
@@ -31,7 +31,27 @@ namespace Render {
 
             UI::End();
         }
+    }
 
+    void DebugCache() {
+        if (UI::Begin("Cache Breakdown")) {
+            auto names = gapMgr.cacheDict.GetKeys();
+
+            for (uint i = 0; i < names.Length; i++) {
+                const auto name = names[i];
+                GapCache@ cache = cast<GapCache@>(gapMgr.cacheDict[name]);
+
+                UI::SeparatorText(name);
+                UI::InputInt("Cache Entries", cache.cacheEntries.Length);
+                UI::InputInt("Cache Hits", cache.cacheHits);
+                UI::InputInt("Cache Attempts", cache.cacheAttempts);
+            }
+
+            UI::End();
+        }
+    }
+
+    void DebugGhostsAndGaps() {
         // creates window
         if (UI::Begin("Ghost and Gap Breakdown")) {
             auto ghosts = gapMgr.ghostMgr.ghostsList;
@@ -47,7 +67,14 @@ namespace Render {
 
                 UI::PopID();
             }
+
+            UI::End();
         }
-        UI::End();
+    }
+
+    void Debug() {
+        DebugCheckpoint();
+        DebugGhostsAndGaps();
+        DebugCache();
     }
 }
