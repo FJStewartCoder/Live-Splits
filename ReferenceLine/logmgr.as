@@ -24,6 +24,11 @@ class LogMgr : SubReferenceMgr {
     // a counter that is the number of frames between logging
     RotatingCounter framesBetweenLog(1);
 
+    // 1 second for respawn
+    uint respawnDuration = 1000;
+    // the time that the last respawn was registered
+    uint lastRespawnTime = 0;
+
 
     const bool IsFinished() {
         return GetApp().CurrentPlayground.GameTerminals[0].UISequence_Current == SGamePlaygroundUIConfig::EUISequence::Finish;
@@ -65,6 +70,12 @@ class LogMgr : SubReferenceMgr {
         return false;
     }
 
+    const bool PlayerInRespawnAnim() {
+        // check if the difference in time between last respawn and now is less than the respawn duration
+        // if it is, the player is in the respawn animation
+        return (timer.GetTime() - lastRespawnTime) < respawnDuration;
+    }
+
     void LogPoint() {
         // only log points if not complete
         if (sampleArray.isComplete) { return; }
@@ -79,6 +90,13 @@ class LogMgr : SubReferenceMgr {
 
             // delete this checkpoint's samples
             sampleArray.DeleteSubSamples(PlayerData::lap, PlayerData::cp);
+            lastRespawnTime = timer.GetTime();
+        }
+
+        // only log if the player is not in the respawn animation because points will overlap and break the full gap algorithm
+        if (PlayerInRespawnAnim()) {
+            // trace("Player is in respawn animation");
+            return;
         }
 
         // increment the counter
@@ -109,6 +127,15 @@ class LogMgr : SubReferenceMgr {
         Point currentPoint;
         currentPoint.LoadFromState(car);
 
+        auto raceData = MLFeed::GetRaceData_V4();
+        auto player = raceData.GetPlayer_V4(MLFeed::LocalPlayersName);
+
+        // adjust the timestamp to be a no respawn timer
+        // prevents issues where player has respawned
+        currentPoint.timeStamp -= player.TimeLostToRespawns;
+        
+        print(currentPoint.Get());
+
         // insert the new sample
         // TODO: set this accurately
         sampleArray.AppendSample(currentPoint, PlayerData::lap, PlayerData::cp);
@@ -123,6 +150,9 @@ class LogMgr : SubReferenceMgr {
 
         // reset the rotating counter
         framesBetweenLog.Reset();
+
+        // reset the last respawn time
+        lastRespawnTime = 0;
     }
 
     void OnRestart() override {

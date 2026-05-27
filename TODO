@@ -16,7 +16,8 @@
 4 - Re-implement save
 
 5 - Bug Fixes
-    5.1 - Fix point overlap when respawning (just take into account the respawn animation)
+    5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
+
 
 7 - Settings
     7.1 - Fix settings (gap between log and stuff)
