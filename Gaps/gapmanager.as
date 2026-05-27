@@ -57,6 +57,8 @@ class GapMgr {
         framesBetweenGap.Increment();
         if (!framesBetweenGap.GetValue()) { return; }
 
+        if (PlayerData::isFinished) { return; }
+
         auto a = VehicleState::ViewingPlayerState();
 
         GapInfo playerGapInfo = EvaluateGapFromState(a, PlayerData::cp, PlayerData::lap, playerData.lastPointIdx);

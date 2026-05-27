@@ -17,6 +17,7 @@ namespace PlayerData {
     uint lastRespawnCount;
 
     bool hasRespawned;
+    bool isFinished;
 
     void Update() {
         auto raceData = MLFeed::GetRaceData_V4();
@@ -30,6 +31,7 @@ namespace PlayerData {
         lap = playerCompletedCPs / cpCount;
 
         hasRespawned = lastRespawnCount != player.NbRespawnsRequested;
+        isFinished = player.IsFinished;
 
         lastRespawnCount = player.NbRespawnsRequested;
     }
@@ -39,5 +41,6 @@ namespace PlayerData {
         cp = 0;
         lastRespawnCount = 0;
         hasRespawned = false;
+        isFinished = false;
     }
 }
