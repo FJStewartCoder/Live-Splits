@@ -11,6 +11,7 @@
 3 - Improve gap display
     3.1 - implement no respawn timer
     3.2 - implement per checkpoint gaps to ghosts
+    3.3 - Add feature for gap rate (shows the rate of gaining or losing time instead of total time gained or lost)
 
 4 - Re-implement save
 

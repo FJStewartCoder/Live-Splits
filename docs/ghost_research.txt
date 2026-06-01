@@ -1,0 +1,15 @@
+Ghost list is a list of all ghosts
+The fastest ghosts are the currently loaded ones
+The ghosts are in the same order (based on ID) as the VehicleState visibilities
+
+If you restart on the first run (before you complete a run) a ghost appears in MLFeed but two appear in VehicleState
+Once you complete your first run, only one ghost appears in VehicleState but two in MLFeed
+
+After adding a ghost and restarting, VehicleState IDs and MLFeed IDs are in the same order
+
+If you add a ghost after only partially finishing a run, the first two entries (in sorted order) are the personal best entries
+If there are not the same number of ghosts, there is no way to determine who is who reliably
+
+Final statement:
+Ghosts IDs and VehicleState Entity IDs are always in the same order as each other
+They aren't necessarily always in sorted order (when recieving as an array)

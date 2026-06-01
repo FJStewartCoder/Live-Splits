@@ -1,4 +1,4 @@
-class GhostGapData {
+class GhostData {
     // the name of the ghost
     string ghostName;
 
@@ -11,11 +11,16 @@ class GhostGapData {
     uint ghostId;
     // the actual ghost data
     MLFeed::GhostInfo_V2@ ghostData = null;
+}
+
+class GhostGapData {
+    GhostData@ ghostInfo = null;
 
     // gap, in milliseconds, relative to the player
     int gap;
     // gap, in milliseconds, relative to reference points
     int relGap; 
+    int lastRelGap;
 
     // location in which the previous point was found
     // used by estimate gap
@@ -50,15 +55,15 @@ class PointLocation {
 }
 
 // stores and calculates the ghosts that exist
-class RacingGhostManager {
+namespace GhostManager {
     // TODO: implement both of the below
     // both ghosts and ghostsList need to be fully implemented
 
     // stores the ghosts as pairs of name to data
     dictionary ghosts;
-    array<GhostGapData> ghostsList;
+    array<GhostData> ghostsList;
 
-    private void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
+    void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
         while (true) {
             bool swapped = false;
 
@@ -81,7 +86,7 @@ class RacingGhostManager {
         }
     }
 
-    private void FilterGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
+    void FilterGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
         // stores the ghost name then the most relevant ghost info
         dictionary seen;
 
@@ -181,5 +186,30 @@ class RacingGhostManager {
         }
 
         RefreshGhosts();
+    }
+
+    void SortVehicleVis() {
+
+    }
+
+    GhostData[] GetAllGhosts() {
+        // ghost array to retun
+        GhostData[] ghosts;
+
+        // check that the scene is available
+        auto app = GetApp();
+        if (app is null) { return ghosts; }
+
+        auto scene = app.GameScene;
+        if (scene is null) { return ghosts; }
+
+        // get the vehicle vis states
+        auto visStates = VehicleState::GetAllVis(scene);
+
+        // TODO: continue from here
+    }
+
+    void RefreshGhosts(GhostData[]@ ghosts) {
+
     }
 }
