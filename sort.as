@@ -1,23 +1,30 @@
-funcdef int COMPARE(int, int);
-funcdef int TRANSFORM(uint64);
+funcdef int COMPARE(ref@, ref@);
 
 // TODO: IMPLEMENT LIKE QUICK SORT OR SOMETHING
-void Sort(array<uint64>@ arr, COMPARE@ compFunc, TRANSFORM@ transFunc) {
+void Sort(array<ref@>@ arr, COMPARE@ compFunc) {
+    print(arr.Length);
+    if (arr.IsEmpty()) { return; }
+
     while (true) {
         bool swapped = false;
 
         for (uint i = 0; i < arr.Length - 1; i++) {
-            uint64 temp;
-            uint64 cur = arr[i];
-            uint64 next = arr[i + 1];
+            trace("Init variables");
+            ref@ temp = null;
+            ref@ cur = arr[i];
+            ref@ next = arr[i + 1];
 
-            int compRes = compFunc( transFunc(cur), transFunc(next) );
+            trace("Comparing");
+            int compRes = compFunc( cur, next );
+
+            trace("Compare res: " + compRes);
 
             if (compRes > 0) {
-                temp = cur;
+                trace("Swapping");
+                @temp = cur;
 
-                arr[i] = next;
-                arr[i + 1] = temp;
+                @arr[i] = next;
+                @arr[i + 1] = temp;
 
                 swapped = true;
             }

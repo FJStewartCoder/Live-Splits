@@ -120,38 +120,40 @@ namespace GhostManager {
         }
     }
 
-    int Compare(int a, int b) {
-        return a - b;
+    int CompareStates(ref @a, ref @b) {
+        auto a1 = cast<CSceneVehicleVis>(a);
+        auto b1 = cast<CSceneVehicleVis>(b);
+
+        return int(GetEntityId(a1)) - int(GetEntityId(b1));
     }
 
-    int VehicleStateToInt(uint64 state) {
-        CSceneVehicleVis@ vis = Dev::ForceCast<CSceneVehicleVis@>(state).Get();
-        return GetEntityId(vis);
-    }
+    int CompareGhosts(ref @a, ref @b) {
+        auto a1 = cast<MLFeed::GhostInfo_V2@>(a);
+        auto b1 = cast<MLFeed::GhostInfo_V2@>(b);
 
-    int MLGhostToInt(uint64 ghostPtr) {
-        MLFeed::GhostInfo_V2@ ghost = Dev::ForceCast<MLFeed::GhostInfo_V2@>(ghostPtr).Get();
-        return ghost.IdUint;
+        return int(a1.IdUint) - int(b1.IdUint);
     }
 
     void SortVisStates(CSceneVehicleVis@[]@ states) {
-        uint64[] toSort;
+        ref@[] toSort;
 
         for (uint i = 0; i < states.Length; i++) {
-            toSort.InsertLast(Dev::ForceCast<uint64>(states[i]).Get());
+            ref@ stateRef = states[i];
+            toSort.InsertLast(stateRef);
         }
 
-        Sort(toSort, @Compare, @VehicleStateToInt);
+        Sort(toSort, @CompareStates);
     }
 
     void SortGhostInfo(MLFeed::GhostInfo_V2@[]@ ghosts) {
-        uint64[] toSort;
+        ref@[] toSort;
 
         for (uint i = 0; i < ghosts.Length; i++) {
-            toSort.InsertLast(Dev::ForceCast<uint64>(ghosts[i]).Get());
+            ref@ ghostRef = ghosts[i];
+            toSort.InsertLast(ghostRef);
         }
 
-        Sort(toSort, @Compare, @MLGhostToInt);
+        Sort(toSort, @CompareGhosts);
     }
 
     GhostData[] GetAllGhosts() {
@@ -198,6 +200,8 @@ namespace GhostManager {
 
             // TODO: implement enum type for ghosts
         }
+
+        trace("Got all ghosts");
 
         return ghosts;
     }
