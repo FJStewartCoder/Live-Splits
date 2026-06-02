@@ -1,5 +1,5 @@
 1 - Ghost Management
-    1.1 - Fix issues when number of ghosts is updated during the race (could use a hash or something)
+    No current issues
 
 2 - Gap Algorithms
     2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)

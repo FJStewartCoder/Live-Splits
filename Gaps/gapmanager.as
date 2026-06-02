@@ -2,7 +2,8 @@ class GapMgr {
     GhostGapData[] ghostGaps;
     GhostGapData playerData;
 
-    bool isGhostsSet = false;
+    // the hash to quickly decide when to refresh the ghosts
+    uint lastGhostHash = 0;
 
 
     // stores the player name then a cache array
@@ -181,37 +182,46 @@ class GapMgr {
     }
 
     void OnUpdate() {
-        if (reference.sampleArray.isComplete) {
-            UpdateGaps();
+        // why update gaps if the points are incomplete
+        if (!reference.sampleArray.isComplete) { return; }
 
-            // TODO:
-            // check the ghost hash
-            // if different from last hash
-            // update the ghosts array
+        // allow time for ghosts to load in
+        if (timer.GetTime() < 100) { return; }
+        
+        // get the hash
+        uint ghostHash = GhostManager::GetGhostHash();
 
-            if (!isGhostsSet && timer.GetTime() > 100) {
-                trace("Resetting ghost array");
+        print(ghostHash + " " + lastGhostHash);
 
-                CreateGhostsArray();
+        // check for hash equality
+        const bool isHashEqual = ghostHash == lastGhostHash;
 
-                // set ghosts set to true because it now is
-                isGhostsSet = true;
-            }
+        // update the last hash to the current hash
+        lastGhostHash = ghostHash;
+
+        // if the set of ghosts before is not the same as the ghosts now, update them
+        if (!isHashEqual) {
+            trace("Resetting ghost array");
+            CreateGhostsArray();
         }
+
+        UpdateGaps();
     }
 
     void OnRestart() {
-        isGhostsSet = false;
         framesBetweenGap.Reset();
-
         ghostGaps.Resize(0);
-
         playerData.ResetGaps();
+
+        // ensures that ghosts are updated on restart
+        lastGhostHash = 0;
     }
 
     void OnChangeTrack() {
         OnRestart();
         ghostGaps.Resize(0);
+
+        lastGhostHash = 0;
 
         // clear the cache dictionary
         cacheDict.DeleteAll();

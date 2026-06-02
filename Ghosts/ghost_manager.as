@@ -215,6 +215,7 @@ namespace GhostManager {
 
         // if there are not the same number of ghosts as states as mlghosts, just use unnamed ghosts
         if (visStates.Length - 1 != mlGhosts.Length) {
+            warn("Number of ML Ghosts does not match number of Vehicle States");
             return GetVehicleVisAsGhosts();
         }
 
@@ -242,7 +243,24 @@ namespace GhostManager {
         return ghosts;
     }
 
-    void RefreshGhosts(GhostData[]@ ghosts) {
+    // TODO: improve the hash function
+    uint GetGhostHash() {
+        uint hash = 0;
 
+        // check that the scene is available
+        auto app = GetApp();
+        if (app is null) { return hash; }
+
+        auto scene = app.GameScene;
+        if (scene is null) { return hash; }
+
+        // get the vehicle vis states
+        CSceneVehicleVis@[] visStates = VehicleState::GetAllVis(scene);
+
+        for (uint i = 0; i < visStates.Length; i++) {
+            hash += GetEntityId(visStates[i]);
+        }
+
+        return hash;
     }
 }
