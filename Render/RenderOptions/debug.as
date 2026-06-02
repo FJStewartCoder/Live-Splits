@@ -2,9 +2,9 @@ namespace Render {
     void DebugRenderGhost(GhostGapData@ ghost) {
         UI::SeparatorText("");
 
-        UI::InputText("NAME", ghost.ghostName);
-        UI::InputInt("GHOST ID", ghost.ghostId);
-        UI::InputInt("ENTITY ID", ghost.entityId);
+        UI::InputText("NAME", ghost.ghostInfo.name);
+        UI::InputInt("GHOST ID", ghost.ghostInfo.ghostId);
+        UI::InputInt("ENTITY ID", ghost.ghostInfo.entityId);
 
         UI::InputInt("GAP", ghost.gap);
         UI::InputInt("REL GAP", ghost.relGap);
@@ -54,7 +54,7 @@ namespace Render {
     void DebugGhostsAndGaps() {
         // creates window
         if (UI::Begin("Ghost and Gap Breakdown")) {
-            auto ghosts = gapMgr.ghostMgr.ghostsList;
+            auto ghosts = gapMgr.ghostGaps;
 
             DebugRenderGhost(gapMgr.playerData);
 

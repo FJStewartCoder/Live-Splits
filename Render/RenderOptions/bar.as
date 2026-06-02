@@ -125,7 +125,7 @@ namespace Render {
         float minGap = 0;
         float maxGap = 0;
 
-        auto ghosts = gapMgr.ghostMgr.ghostsList;
+        auto ghosts = gapMgr.ghostGaps;
 
         // iterate miscArray to draw the largest bars only
         for (int i = 0; i < ghosts.Length; i++) {

@@ -1,5 +1,5 @@
 class GapMgr {
-    RacingGhostManager ghostMgr;
+    GhostGapData[] ghostGaps;
     GhostGapData playerData;
 
     bool isGhostsSet = false;
@@ -37,12 +37,12 @@ class GapMgr {
     }
 
     void EvaluateGap(GhostGapData@ data) {
-        GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostData);
+        GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostInfo.ghostData);
 
         // print(data.ghostName);
 
         GapInfo gap = EvaluateGapFromState(
-            data.entityVis.AsyncState,
+            data.ghostInfo.entityVis.AsyncState,
             extraData.checkpoint,
             extraData.lap,
             data.lastPointIdx
@@ -66,29 +66,30 @@ class GapMgr {
         playerData.ApplyGapInfo(playerGapInfo);
 
         // get the ghost list and make the variable name more local
-        auto ghosts = ghostMgr.ghostsList;
+        auto ghosts = ghostGaps;
 
         // iterate the ghosts in the ghost list
         for (int i = 0; i < ghosts.Length; i++) {
             GhostGapData@ data = ghosts[i];
+            GhostData@ info = data.ghostInfo;
 
             // calculate the extra ghost info
-            GhostExtraInfo info = GetExtraGhostInfo(data.ghostData);
+            GhostExtraInfo extraInfo = GetExtraGhostInfo(info.ghostData);
 
             // only evaluate the gap to the reference if the ghost has not finished
-            if (info.isFinished) {
+            if (extraInfo.isFinished) {
                 data.gap = playerData.relGap - data.relGap;
                 continue;
             }
 
             // if there is no cache entry for this ghost, create one
-            if (!cacheDict.Exists(data.ghostName)) {
+            if (!cacheDict.Exists(info.name)) {
                 GapCache newCache;
-                cacheDict[data.ghostName] = newCache;
+                cacheDict[info.name] = newCache;
             }
 
             // get the ghost cache list
-            GapCache@ ghostCache = cast<GapCache@>(cacheDict[data.ghostName]);
+            GapCache@ ghostCache = cast<GapCache@>(cacheDict[info.name]);
             CacheReturnItem cacheReturn = ghostCache.GetCache(timer.GetTime(), 50);
 
             // if there is an error (no cache item, create a new one and set the gap)
@@ -111,14 +112,39 @@ class GapMgr {
         }
     }
 
+    void CreateGhostsArray() {
+        ghostGaps.Resize(0);
+
+        auto ghosts = GhostManager::GetAllGhosts();
+
+        for (uint i = 0; i < ghosts.Length; i++) {
+            GhostData@ curGhost = ghosts[i];
+            GhostGapData newGapData;
+
+            newGapData.ghostInfo = curGhost;
+
+            if (curGhost.type == GhostType::LOCAL_PLAYER) {
+                playerData = newGapData;
+            }
+            else {
+                ghostGaps.InsertLast(newGapData);
+            }
+        }
+    }
+
     void OnUpdate() {
         if (reference.sampleArray.isComplete) {
             UpdateGaps();
 
+            // TODO:
+            // check the ghost hash
+            // if different from last hash
+            // update the ghosts array
+
             if (!isGhostsSet && timer.GetTime() > 100) {
                 trace("Resetting ghost array");
 
-                ghostMgr.CreateGhostsArray();
+                CreateGhostsArray();
 
                 // set ghosts set to true because it now is
                 isGhostsSet = true;
@@ -130,14 +156,15 @@ class GapMgr {
         isGhostsSet = false;
         framesBetweenGap.Reset();
 
-        ghostMgr.OnRestart();
+        ghostGaps.Resize(0);
 
         playerData.ResetGaps();
     }
 
     void OnChangeTrack() {
         OnRestart();
-        ghostMgr.Reset();
+        ghostGaps.Resize(0);
+
         // clear the cache dictionary
         cacheDict.DeleteAll();
     }

@@ -1,6 +1,23 @@
+enum GhostType {
+    // the current player
+    // is live, can not be cached
+    LOCAL_PLAYER,
+
+    // another player. e.g player in ranked
+    // is live, can not be cached
+    PLAYER,
+
+    // a ghost that has been recorded
+    // is not live, can be cached
+    GHOST,
+
+    // none of them. should be the default value
+    NONE
+}
+
 class GhostData {
     // the name of the ghost
-    string ghostName;
+    string name;
 
     // the entity id for the vehiclevis
     uint entityId;
@@ -11,10 +28,13 @@ class GhostData {
     uint ghostId;
     // the actual ghost data
     MLFeed::GhostInfo_V2@ ghostData = null;
+
+    // the type of ghost
+    GhostType type = GhostType::NONE;
 }
 
 class GhostGapData {
-    GhostData@ ghostInfo = null;
+    GhostData ghostInfo;
 
     // gap, in milliseconds, relative to the player
     int gap;
@@ -56,36 +76,6 @@ class PointLocation {
 
 // stores and calculates the ghosts that exist
 namespace GhostManager {
-    // TODO: implement both of the below
-    // both ghosts and ghostsList need to be fully implemented
-
-    // stores the ghosts as pairs of name to data
-    dictionary ghosts;
-    array<GhostData> ghostsList;
-
-    void SortGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
-        while (true) {
-            bool swapped = false;
-
-            for (uint i = 0; i < arr.Length - 1; i++) {
-                MLFeed::GhostInfo_V2@ temp = null;
-                MLFeed::GhostInfo_V2@ cur = arr[i];
-                MLFeed::GhostInfo_V2@ next = arr[i + 1];
-
-                if (cur.IdUint > next.IdUint) {
-                    @temp = cur;
-
-                    @arr[i] = next;
-                    @arr[i + 1] = temp;
-
-                    swapped = true;
-                }
-            }
-
-            if (!swapped) { break; }
-        }
-    }
-
     void FilterGhostInfo(array<MLFeed::GhostInfo_V2@>@ arr) {
         // stores the ghost name then the most relevant ghost info
         dictionary seen;
@@ -130,66 +120,38 @@ namespace GhostManager {
         }
     }
 
-    void CreateGhostsArray() {
-        // TODO: implement the below description with the dictionary (string: GhostData&) and the list of GhostData
-        // MLFeed ghosts (loaded) is a list of all ghosts
-        // this array is in the same order as the VehicleState vis list
-        // duplicates can occur in ML list but only the first instance of each is the correct one
-        // some ghosts have result time -1 which means incomplete
-        // duplicates occur when more track is driven on a track that is never played which means that there are several ghosts with different times / checkpoint counts
-        // any time a PB is set, duplicate ghosts occur
-        // these need to be filtered to only show the fastest ghost per name
-        
-        // EXTRA CONSIDERATION: Vehicle state doesnt't show the vehciles always in the correct order (not sorted)
-
-        // get the loaded ghosts
-        // the ids are in the same order as the vehicle state vis
-        array<MLFeed::GhostInfo_V2@> mlGhosts = MLFeed::GetGhostData().LoadedGhosts;
-        FilterGhostInfo(mlGhosts);
-        SortGhostInfo(mlGhosts);
-
-        // get those vis
-        CSceneVehicleVis@[] vehicleStates = VehicleState::GetAllVis(GetApp().GameScene);
-
-        // iterate the vehicle visibilities and relate them to the ghost 
-        for (int i = 1; i < vehicleStates.Length; i++) {
-            CSceneVehicleVis@ vis = vehicleStates[i];
-
-            GhostGapData data;
-
-            @data.entityVis = vis;
-            data.entityId = GetEntityId(vis);
-
-            @data.ghostData = mlGhosts[i - 1];
-            data.ghostId = data.ghostData.IdUint;
-            data.ghostName = data.ghostData.Nickname;
-
-            // TODO: implement the corrent insertion method
-            ghostsList.InsertLast(data);
-        }
+    int Compare(int a, int b) {
+        return a - b;
     }
 
-    // TODO: implement a better refresh later
-    void RefreshGhosts() {
-        Reset();
+    int VehicleStateToInt(uint64 state) {
+        CSceneVehicleVis@ vis = Dev::ForceCast<CSceneVehicleVis@>(state).Get();
+        return GetEntityId(vis);
     }
 
-    void Reset() {
-        // reset the ghosts array and ghosts dictionary
-        ghosts.DeleteAll();
-        ghostsList.Resize(0);
+    int MLGhostToInt(uint64 ghostPtr) {
+        MLFeed::GhostInfo_V2@ ghost = Dev::ForceCast<MLFeed::GhostInfo_V2@>(ghostPtr).Get();
+        return ghost.IdUint;
     }
 
-    void OnRestart() {
-        for (int i = 0; i < ghostsList.Length; i++) {
-            ghostsList[i].ResetGaps();
+    void SortVisStates(CSceneVehicleVis@[]@ states) {
+        uint64[] toSort;
+
+        for (uint i = 0; i < states.Length; i++) {
+            toSort.InsertLast(Dev::ForceCast<uint64>(states[i]).Get());
         }
 
-        RefreshGhosts();
+        Sort(toSort, @Compare, @VehicleStateToInt);
     }
 
-    void SortVehicleVis() {
+    void SortGhostInfo(MLFeed::GhostInfo_V2@[]@ ghosts) {
+        uint64[] toSort;
 
+        for (uint i = 0; i < ghosts.Length; i++) {
+            toSort.InsertLast(Dev::ForceCast<uint64>(ghosts[i]).Get());
+        }
+
+        Sort(toSort, @Compare, @MLGhostToInt);
     }
 
     GhostData[] GetAllGhosts() {
@@ -204,9 +166,40 @@ namespace GhostManager {
         if (scene is null) { return ghosts; }
 
         // get the vehicle vis states
-        auto visStates = VehicleState::GetAllVis(scene);
+        CSceneVehicleVis@[] visStates = VehicleState::GetAllVis(scene);
+        SortVisStates(visStates);
+        
+        // get the loaded ghosts
+        // the ids are in the same order as the vehicle state vis
+        array<MLFeed::GhostInfo_V2@> mlGhosts = MLFeed::GetGhostData().LoadedGhosts;
+        FilterGhostInfo(mlGhosts);
+        SortGhostInfo(mlGhosts);
 
-        // TODO: continue from here
+        // TODO: have a better method of handling this later
+        if (visStates.Length - 1 != mlGhosts.Length) {
+            return ghosts;
+        }
+
+        // iterate the vehicle visibilities and relate them to the ghost 
+        for (int i = 1; i < visStates.Length; i++) {
+            CSceneVehicleVis@ vis = visStates[i];
+
+            GhostData data;
+
+            @data.entityVis = vis;
+            data.entityId = GetEntityId(vis);
+
+            @data.ghostData = mlGhosts[i - 1];
+            data.ghostId = data.ghostData.IdUint;
+            data.name = data.ghostData.Nickname;
+
+            // TODO: implement the corrent insertion method
+            ghosts.InsertLast(data);
+
+            // TODO: implement enum type for ghosts
+        }
+
+        return ghosts;
     }
 
     void RefreshGhosts(GhostData[]@ ghosts) {

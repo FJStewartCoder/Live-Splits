@@ -2,7 +2,7 @@ bool updateWindowSize = false;
 
 namespace Render {
     void Normal() {
-        auto ghosts = gapMgr.ghostMgr.ghostsList;
+        auto ghosts = gapMgr.ghostGaps;
 
         // gets the number of valid cars
         uint validCars = ghosts.Length;
