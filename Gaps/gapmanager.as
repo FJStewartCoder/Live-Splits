@@ -13,15 +13,22 @@ class GapMgr {
 
     GapInfo EvaluateGapFromState(
         CSceneVehicleVisState@ state,
-        uint checkpoint,
-        uint lap,
-        uint lastIdx = -1
+        uint lastIdx = -1,
+
+        // checkpoint estimation related features
+        bool useCheckpointEstimation = false,
+        uint checkpoint = -1,
+        uint lap = -1
     ) {
         Point p;
         p.LoadFromState(state);
 
-        PointLocation loc(checkpoint, lap);
-        ArrayRange range = reference.sampleArray.GetSampleRange(loc, loc);
+        ArrayRange range(0, reference.sampleArray.samples.Length);
+
+        if (useCheckpointEstimation) {
+            PointLocation loc(checkpoint, lap);
+            range = reference.sampleArray.GetSampleRange(loc, loc);
+        }
 
         // print(range.ToString());
 
@@ -37,20 +44,99 @@ class GapMgr {
     }
 
     void EvaluateGap(GhostGapData@ data) {
-        GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostInfo.ghostData);
+        GhostData@ ghostInfo = data.ghostInfo;
+        GapInfo gap;
 
-        // print(data.ghostName);
+        // if there is no extra data, just get the gap as usual
+        if (ghostInfo.ghostData is null) {
+            gap = EvaluateGapFromState(
+                ghostInfo.entityVis.AsyncState,
+                data.lastPointIdx,
+                false
+            );
+        }
+        // if there is extra data to work with, use it
+        else {
+            GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostInfo.ghostData);
 
-        GapInfo gap = EvaluateGapFromState(
-            data.ghostInfo.entityVis.AsyncState,
-            extraData.checkpoint,
-            extraData.lap,
-            data.lastPointIdx
-        );
+            // print(data.ghostName);
+
+            gap = EvaluateGapFromState(
+                ghostInfo.entityVis.AsyncState,
+                data.lastPointIdx,
+                true,
+                extraData.checkpoint,
+                extraData.lap
+            );
+        }
 
         // TODO: implement distance threshold
 
         data.ApplyGapInfo(gap);
+    }
+
+    void InfolessGhostGap(GhostGapData@ data) {
+        // TODO: determine a method of analysing whether a ghost has finsihed
+        const bool isFinished = false;
+
+        if (!isFinished) { EvaluateGap(data); }
+        data.gap = playerData.relGap - data.relGap;
+    }
+
+    void WithInfoGhostGap(GhostGapData@ data) {
+        // get the extra info
+        GhostData@ info = data.ghostInfo;
+
+        // calculate the extra ghost info
+        GhostExtraInfo extraInfo = GetExtraGhostInfo(info.ghostData);
+
+        // only evaluate the gap to the reference if the ghost has not finished
+        if (extraInfo.isFinished) {
+            data.gap = playerData.relGap - data.relGap;
+            return;
+        }
+
+        // if there is no cache entry for this ghost, create one
+        if (!cacheDict.Exists(info.name)) {
+            GapCache newCache;
+            cacheDict[info.name] = newCache;
+        }
+
+        // get the ghost cache list
+        GapCache@ ghostCache = cast<GapCache@>(cacheDict[info.name]);
+        CacheReturnItem cacheReturn = ghostCache.GetCache(timer.GetTime(), 50);
+
+        // if there is an error (no cache item, create a new one and set the gap)
+        if (cacheReturn.isError) {
+            // trace("Unable to get cache for " + data.ghostName + " @ " + timer.GetTime());
+            EvaluateGap(data);
+
+            // add new cache entry
+            ghostCache.AddCache(data.relGap, timer.GetTime(), data.lastPointIdx);
+        }
+        // else, use the cache item
+        else {
+            // trace("Got cache for " + data.ghostName + " @ " + cacheReturn.entry.timeStamp);
+            data.relGap = cacheReturn.entry.gap;
+            data.lastPointIdx = cacheReturn.entry.idx;
+        }
+
+        // regardless of cache or not, calculate the gap
+        data.gap = playerData.relGap - data.relGap;
+
+        // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
+    }
+
+    void HandleUpdateGhostGap(GhostGapData@ data) {
+        GhostData@ info = data.ghostInfo;
+
+        // if there is no ghost data to work with, use a more primitive process
+        if (info.ghostData is null) {
+            InfolessGhostGap(data);
+            return;
+        }
+
+        WithInfoGhostGap(data);
     }
 
     void UpdateGaps() {
@@ -62,7 +148,7 @@ class GapMgr {
 
         auto a = VehicleState::ViewingPlayerState();
 
-        GapInfo playerGapInfo = EvaluateGapFromState(a, PlayerData::cp, PlayerData::lap, playerData.lastPointIdx);
+        GapInfo playerGapInfo = EvaluateGapFromState(a, playerData.lastPointIdx, true, PlayerData::cp, PlayerData::lap);
         playerData.ApplyGapInfo(playerGapInfo);
 
         // get the ghost list and make the variable name more local
@@ -70,47 +156,7 @@ class GapMgr {
 
         // iterate the ghosts in the ghost list
         for (int i = 0; i < ghosts.Length; i++) {
-            GhostGapData@ data = ghosts[i];
-            GhostData@ info = data.ghostInfo;
-
-            // calculate the extra ghost info
-            GhostExtraInfo extraInfo = GetExtraGhostInfo(info.ghostData);
-
-            // only evaluate the gap to the reference if the ghost has not finished
-            if (extraInfo.isFinished) {
-                data.gap = playerData.relGap - data.relGap;
-                continue;
-            }
-
-            // if there is no cache entry for this ghost, create one
-            if (!cacheDict.Exists(info.name)) {
-                GapCache newCache;
-                cacheDict[info.name] = newCache;
-            }
-
-            // get the ghost cache list
-            GapCache@ ghostCache = cast<GapCache@>(cacheDict[info.name]);
-            CacheReturnItem cacheReturn = ghostCache.GetCache(timer.GetTime(), 50);
-
-            // if there is an error (no cache item, create a new one and set the gap)
-            if (cacheReturn.isError) {
-                // trace("Unable to get cache for " + data.ghostName + " @ " + timer.GetTime());
-                EvaluateGap(data);
-
-                // add new cache entry
-                ghostCache.AddCache(data.relGap, timer.GetTime(), data.lastPointIdx);
-            }
-            // else, use the cache item
-            else {
-                // trace("Got cache for " + data.ghostName + " @ " + cacheReturn.entry.timeStamp);
-                data.relGap = cacheReturn.entry.gap;
-                data.lastPointIdx = cacheReturn.entry.idx;
-            }
-
-            // regardless of cache or not, calculate the gap
-            data.gap = playerData.relGap - data.relGap;
-
-            // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
+            HandleUpdateGhostGap(ghosts[i]);
         }
     }
 

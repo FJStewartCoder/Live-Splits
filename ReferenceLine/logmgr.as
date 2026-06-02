@@ -27,7 +27,8 @@ class LogMgr : SubReferenceMgr {
     // 1 second for respawn
     uint respawnDuration = 1000;
     // the time that the last respawn was registered
-    uint lastRespawnTime = 0;
+    uint defaultLastRespawnTime = 0xffffffff;
+    uint lastRespawnTime = defaultLastRespawnTime;
 
 
     const bool IsFinished() {
@@ -73,7 +74,9 @@ class LogMgr : SubReferenceMgr {
     const bool PlayerInRespawnAnim() {
         // check if the difference in time between last respawn and now is less than the respawn duration
         // if it is, the player is in the respawn animation
-        return (timer.GetTime() - lastRespawnTime) < respawnDuration;
+        
+        // also, lastRespawnTime should not be the default value
+        return ((timer.GetTime() - lastRespawnTime) < respawnDuration) && lastRespawnTime != defaultLastRespawnTime;
     }
 
     void LogPoint() {
@@ -152,7 +155,7 @@ class LogMgr : SubReferenceMgr {
         framesBetweenLog.Reset();
 
         // reset the last respawn time
-        lastRespawnTime = 0;
+        lastRespawnTime = defaultLastRespawnTime;
     }
 
     void OnRestart() override {

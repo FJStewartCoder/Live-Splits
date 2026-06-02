@@ -15,11 +15,11 @@
 
 5 - Bug Fixes
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
-    5.2 - Fix issue where first second of logs are not made due to the respawn thing
-    5.3 - Don't cache the personal best ghost because it causes issues
+    5.2 - Don't cache the personal best ghost because it causes issues
 
 6 - Cache
-    6.1 - It seems to be broken for your own ghosts (fix it so that your own ghosts don't get cached)
+    6.1 - Delete the cache of your local ghosts when setting a new PB (or just don't cache them)
+    6.2 - Only cache ghosts if they are known to be ghosts based on the type (also requires the types to be implemented)
 
 7 - Settings
     7.1 - Fix settings (gap between log and stuff)

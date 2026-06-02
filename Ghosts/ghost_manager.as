@@ -11,6 +11,9 @@ enum GhostType {
     // is not live, can be cached
     GHOST,
 
+    // used for when the type can not be determined
+    UNKNOWN,
+
     // none of them. should be the default value
     NONE
 }
@@ -156,6 +159,39 @@ namespace GhostManager {
         Sort(toSort, @CompareGhosts);
     }
 
+    GhostData[] GetVehicleVisAsGhosts() {
+        // ghost array to retun
+        GhostData[] ghosts;
+
+        // check that the scene is available
+        auto app = GetApp();
+        if (app is null) { return ghosts; }
+
+        auto scene = app.GameScene;
+        if (scene is null) { return ghosts; }
+
+        CSceneVehicleVis@[] visStates = VehicleState::GetAllVis(scene);
+
+        // skip the first entry since that is always the local player
+        for (uint i = 1; i < visStates.Length; i++) {
+            CSceneVehicleVis@ vis = visStates[i];
+            GhostData ghostData;
+
+            ghostData.entityId = GetEntityId(vis);
+            @ghostData.entityVis = vis;
+
+            ghostData.ghostId = 0;
+            @ghostData.ghostData = null;
+
+            ghostData.name = "Unknown";
+            ghostData.type = GhostType::UNKNOWN;
+
+            ghosts.InsertLast(ghostData);
+        }
+
+        return ghosts;
+    }
+
     GhostData[] GetAllGhosts() {
         // ghost array to retun
         GhostData[] ghosts;
@@ -177,9 +213,9 @@ namespace GhostManager {
         FilterGhostInfo(mlGhosts);
         SortGhostInfo(mlGhosts);
 
-        // TODO: have a better method of handling this later
+        // if there are not the same number of ghosts as states as mlghosts, just use unnamed ghosts
         if (visStates.Length - 1 != mlGhosts.Length) {
-            return ghosts;
+            return GetVehicleVisAsGhosts();
         }
 
         // iterate the vehicle visibilities and relate them to the ghost 
