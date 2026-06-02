@@ -96,7 +96,6 @@ class GapMgr {
             if (cacheReturn.isError) {
                 // trace("Unable to get cache for " + data.ghostName + " @ " + timer.GetTime());
                 EvaluateGap(data);
-                data.gap = playerData.relGap - data.relGap;
 
                 // add new cache entry
                 ghostCache.AddCache(data.relGap, timer.GetTime(), data.lastPointIdx);
@@ -104,9 +103,12 @@ class GapMgr {
             // else, use the cache item
             else {
                 // trace("Got cache for " + data.ghostName + " @ " + cacheReturn.entry.timeStamp);
-                data.gap = playerData.relGap - cacheReturn.entry.gap;
+                data.relGap = cacheReturn.entry.gap;
                 data.lastPointIdx = cacheReturn.entry.idx;
             }
+
+            // regardless of cache or not, calculate the gap
+            data.gap = playerData.relGap - data.relGap;
 
             // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
         }

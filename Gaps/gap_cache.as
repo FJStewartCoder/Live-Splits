@@ -85,13 +85,18 @@ class GapCache {
         // calculate if the item is difference to the time is greater than threshold
         const bool greaterThanThreshold = Math::Abs(int(foundItem.timeStamp) - time) > threshold;
 
+        // check if the foundIdx indicates that the it was the most recently added item
+        // this will be true if the timestamp is less the timestamp to search for and the item is the last item
+        const bool isRecentlyAdded = (foundItem.timeStamp < time) && (foundIdx == cacheEntries.Length - 1);
+
         // if there is an error set the error to true
-        if ( greaterThanThreshold && threshold != uint(-1) ) {
+        // if either we are greater than the threshold and we are using a threshold or it is the recently added item
+        if ( (greaterThanThreshold && threshold != uint(-1)) || isRecentlyAdded ) {
             returnItem.isError = true;
         }
         else {
             // set the entry to the found item
-            @returnItem.entry = cacheEntries[foundIdx];
+            @returnItem.entry = foundItem;
             // increment the cache hits
             cacheHits++;
         }

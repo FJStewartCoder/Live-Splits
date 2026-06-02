@@ -1,7 +1,5 @@
 1 - Ghost Management
-    1.1 - Fix issue where number of ghosts in VehicleState is different to ghosts
-    1.2 - Fix issues when number of ghosts is updated during the race (could use a hash or something)
-    1.3 - Ensure proper functionality of ghosts (should be good now)
+    1.1 - Fix issues when number of ghosts is updated during the race (could use a hash or something)
 
 2 - Gap Algorithms
     2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)
@@ -19,6 +17,9 @@
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
     5.2 - Fix issue where first second of logs are not made due to the respawn thing
     5.3 - Don't cache the personal best ghost because it causes issues
+
+6 - Cache
+    6.1 - It seems to be broken for your own ghosts (fix it so that your own ghosts don't get cached)
 
 7 - Settings
     7.1 - Fix settings (gap between log and stuff)
