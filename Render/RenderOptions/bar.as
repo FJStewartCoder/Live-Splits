@@ -43,6 +43,9 @@ double CalculateFontSizeForWidth(const string &in text, double desiredWidth, UI:
 }
 
 namespace Render {
+    // 99 hours, 59 minutes, 59 seconds, 999 millis
+    const string TEST_TEXT = "+99:59:59.999";
+
     class BarSettings {
         // position and size
         double width;
@@ -92,7 +95,7 @@ namespace Render {
             outlineThickness = 2;
             lineThickness = 1;
 
-            fontWidth = 0.3;
+            fontWidth = 0.4;
 
             maxPositiveGap = 2000;
             maxNegativeGap = 2000;
@@ -152,6 +155,10 @@ namespace Render {
         // 16th screen height
         float height = Display::GetHeight() * settings.height;
 
+        // calculate the desired text width and font size using the test text 
+        double desiredTextWidth = (width / 2) * settings.fontWidth;
+        double fontSize = CalculateFontSizeForWidth(TEST_TEXT, desiredTextWidth);
+
         vec2 centrePos = CalculateCentreBarPosition(settings);
         vec2 topLeft = CalculateBarTopLeft(width, height, centrePos);
 
@@ -172,7 +179,7 @@ namespace Render {
 
         // iterate miscArray to draw the largest bars only
         for (int i = 0; i < ghosts.Length; i++) {
-            int curGap = ghosts[i].gap;
+            int curGap = ghosts[i].gap.GetGap();
 
             if (i == 0) {
                 minGap = curGap;
@@ -213,13 +220,11 @@ namespace Render {
             );
 
             string text = GapToString(minGap);
-
-            double desiredTextWidth = (width / 2) * settings.fontWidth;
-            double fontSize = CalculateFontSizeForWidth(text, desiredTextWidth);
+            double textWidth = UI::MeasureString(text, null, fontSize).x;
 
             // write the gap on the right side of the bar
             drawList.AddText(
-                vec2(centrePos.x + (width / 2) - desiredTextWidth, centrePos.y + (height / 2)), 
+                vec2(centrePos.x + (width / 2) - textWidth, centrePos.y + (height / 2)), 
                 RGBToRGBA(settings.textColour, settings.transparency),
                 text,
                 null,
@@ -246,9 +251,6 @@ namespace Render {
 
             string text = GapToString(maxGap);
 
-            double desiredTextWidth = (width / 2) * settings.fontWidth;
-            double fontSize = CalculateFontSizeForWidth(text, desiredTextWidth);
-
             // write the gap on the left side of the bar
             drawList.AddText(
                 vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)),
@@ -261,7 +263,7 @@ namespace Render {
 
         // iterate miscArray to draw in each point that a car is gaining
         for (int i = 0; i < ghosts.Length; i++) {
-            int curGap = ghosts[i].gap;
+            int curGap = ghosts[i].gap.GetGap();
             DrawGapLine(
                 drawList,
                 curGap,

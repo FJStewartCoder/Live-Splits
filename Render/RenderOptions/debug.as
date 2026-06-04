@@ -6,8 +6,11 @@ namespace Render {
         UI::InputInt("GHOST ID", ghost.ghostInfo.ghostId);
         UI::InputInt("ENTITY ID", ghost.ghostInfo.entityId);
 
-        UI::InputInt("GAP", ghost.gap);
-        UI::InputInt("REL GAP", ghost.relGap);
+        UI::InputInt("GAPS LENGTH", ghost.gap.gaps.Length);
+        UI::InputInt("GAP", ghost.gap.GetGap());
+        UI::InputInt("REL GAP", ghost.rel.GetGap());
+        UI::InputInt("LAST REL GAP", ghost.rel.GetGap(1));
+        UI::InputInt("GAP RATE", ghost.gap.GapRate());
         UI::InputInt("LAST IDX", ghost.lastPointIdx);
     }
 

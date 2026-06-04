@@ -36,27 +36,106 @@ class GhostData {
     GhostType type = GhostType::NONE;
 }
 
+class GapEntry {
+    int gap = 0;
+    uint tstamp = 0;
+
+    GapEntry(int gap, uint tstamp) {
+        this.gap = gap; this.tstamp = tstamp;
+    }
+
+    GapEntry() {}
+}
+
+class GapData {
+    // TODO: add a setting for this
+    uint maxGaps = 10;
+    GapEntry[] gaps;
+
+    int GapRate() {
+        // TODO: add a setting for this
+        // number of entries that will be used to calculate the rate
+        const uint numEntriesForCalc = 5;
+
+        // if there are no enough entries, return 0
+        if (gaps.Length <= numEntriesForCalc) { return 0; }
+
+        GapEntry@ now = GetGapEntry();
+        GapEntry@ last = GetGapEntry(numEntriesForCalc);
+
+        // last = -1.2, now = -1.1, so rate should be +0.1 per frame
+        // to achieve this now - last
+        const int ratePerPeriod = now.gap - last.gap;
+        // for example, time since last frame is 0.1s, gap needs to be perFrame / time
+        const int period = now.tstamp - last.tstamp;
+
+        // calculate the time since last frame as seconds rather than millis
+        const double periodMultiplier = double(period) / 1000;
+
+        return double(ratePerPeriod) / periodMultiplier;
+    }
+
+    void SetGap(int val) {
+        GapEntry entry(val, timer.GetTime());
+        gaps.InsertLast(entry);
+
+        // remove index 0 if there are too many gaps
+        if (gaps.Length > maxGaps) { gaps.RemoveAt(0); }
+    }
+
+    GapEntry@ GetGapEntry(
+        uint offset = 0  // number of records to search backwards for the value (easier to get last item)
+    ) {
+        // return 0 if empty or the last value if not empty
+        if (gaps.Length <= offset) { return null; }
+        return gaps[gaps.Length - (offset + 1)];
+    }
+
+    int GetGap(
+        uint offset = 0  // number of records to search backwards for the value (easier to get last item)
+    ) {
+        if (gaps.Length <= offset) { return 0; }
+        return gaps[gaps.Length - (offset + 1)].gap;
+    }
+
+
+    void Reset() {
+        gaps.Resize(0);
+    }
+
+    GapData() {
+        Reset();
+    }
+}
+
 class GhostGapData {
     GhostData ghostInfo;
 
-    // gap, in milliseconds, relative to the player
-    int gap;
-    // gap, in milliseconds, relative to reference points
-    int relGap; 
-    int lastRelGap;
+    // gap relative to the player
+    GapData gap;
+    // gap relative to the reference
+    GapData rel;
 
     // location in which the previous point was found
     // used by estimate gap
     uint lastPointIdx;
 
     void ResetGaps() {
-        gap = 0;
-        relGap = 0;
+        gap.Reset();
+        rel.Reset();
+
         lastPointIdx = 0;
     }
 
-    void ApplyGapInfo(GapInfo@ gapInfo) {
-        relGap = gapInfo.gap;
+    void ApplyGapInfo(GhostGapData@ data) {
+        // calculate the gap relative to the data passed in
+        int gapToSet = data.rel.GetGap() - this.rel.GetGap();
+        // set this as the new gap
+        gap.SetGap(gapToSet);
+    }
+
+    void ApplyRelGapInfo(GapInfo@ gapInfo) {
+        rel.SetGap(gapInfo.gap);
         lastPointIdx = gapInfo.index;
     }
 }

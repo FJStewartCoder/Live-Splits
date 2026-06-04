@@ -14,7 +14,7 @@ namespace Render {
             int height = (FONT_SIZE * (validCars - 1)) + (TEXT_SPACING * (validCars - 2)) + (FRAME_PADDING * 2);
 
             // get the string width of placeholder amount using this function
-            vec2 textSize = UI::MeasureString("+99.999", null, FONT_SIZE);
+            vec2 textSize = UI::MeasureString(TEST_TEXT, null, FONT_SIZE);
             int width = textSize.x + (FRAME_PADDING * 2);
 
             // set window height
@@ -40,7 +40,7 @@ namespace Render {
         if (UI::Begin("Live Splits", flags)) {
             // show gaps for all cars except the current car
             for (int i = 0; i < validCars; i++) {
-                int curGap = ghosts[i].gap;
+                int curGap = ghosts[i].gap.GetGap();
 
                 // includes "+" if greater than 0
                 string curGapString = GapToString(curGap);

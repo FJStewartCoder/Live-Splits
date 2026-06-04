@@ -10,7 +10,7 @@ class GapMgr {
     dictionary cacheDict;
 
 
-    RotatingCounter framesBetweenGap(4);
+    RotatingCounter framesBetweenGap(20);
 
     GapInfo EvaluateGapFromState(
         CSceneVehicleVisState@ state,
@@ -73,7 +73,7 @@ class GapMgr {
 
         // TODO: implement distance threshold
 
-        data.ApplyGapInfo(gap);
+        data.ApplyRelGapInfo(gap);
     }
 
     void InfolessGhostGap(GhostGapData@ data) {
@@ -81,7 +81,7 @@ class GapMgr {
         const bool isFinished = false;
 
         if (!isFinished) { EvaluateGap(data); }
-        data.gap = playerData.relGap - data.relGap;
+        data.ApplyGapInfo(playerData);
     }
 
     void WithInfoGhostGap(GhostGapData@ data) {
@@ -93,7 +93,7 @@ class GapMgr {
 
         // only evaluate the gap to the reference if the ghost has not finished
         if (extraInfo.isFinished) {
-            data.gap = playerData.relGap - data.relGap;
+            data.ApplyGapInfo(playerData);
             return;
         }
 
@@ -113,17 +113,17 @@ class GapMgr {
             EvaluateGap(data);
 
             // add new cache entry
-            ghostCache.AddCache(data.relGap, timer.GetTime(), data.lastPointIdx);
+            ghostCache.AddCache(data.rel.GetGap(), timer.GetTime(), data.lastPointIdx);
         }
         // else, use the cache item
         else {
             // trace("Got cache for " + data.ghostName + " @ " + cacheReturn.entry.timeStamp);
-            data.relGap = cacheReturn.entry.gap;
+            data.rel.SetGap(cacheReturn.entry.gap);
             data.lastPointIdx = cacheReturn.entry.idx;
         }
 
         // regardless of cache or not, calculate the gap
-        data.gap = playerData.relGap - data.relGap;
+        data.ApplyGapInfo(playerData);
 
         // print(data.entityId + " " + data.ghostId + " " + data.ghostData.Nickname + " " + data.entityVis.AsyncState.Position.ToString());
     }
@@ -150,7 +150,7 @@ class GapMgr {
         auto a = VehicleState::ViewingPlayerState();
 
         GapInfo playerGapInfo = EvaluateGapFromState(a, playerData.lastPointIdx, true, PlayerData::cp, PlayerData::lap);
-        playerData.ApplyGapInfo(playerGapInfo);
+        playerData.ApplyRelGapInfo(playerGapInfo);
 
         // get the ghost list and make the variable name more local
         auto ghosts = ghostGaps;

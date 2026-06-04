@@ -9,7 +9,7 @@
 3 - Improve gap display
     3.1 - implement no respawn timer
     3.2 - implement per checkpoint gaps to ghosts
-    3.3 - Add feature for gap rate (shows the rate of gaining or losing time instead of total time gained or lost)
+    3.3 - Add a display for gap rate
 
 4 - Re-implement save
 
@@ -27,8 +27,7 @@
     7.3 - Add settings to determine how much of the array to search (e.g only search the current checkpoint or not)
 
 8 - UI
-    8.1 - Consider updating dynamic text-sizing to be based on one desired number to prevent having two different font sizes on each side
-    8.2 - Consider improving the other UI options
+    8.1 - Consider improving the other UI options
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed
