@@ -1,17 +1,20 @@
-float GetLineOffset(int gap, float maxGap, float totalWidth) {
-    // get the current gap and calculate the length of the bar relative to the max
-    int curGap = Math::Abs(gap);
+float GetLineOffset(
+    int gap,
+    uint maxGap,
+    float totalWidth
+) {
+    // the width of half of the bar (because the gaps are only shown in half of the bar)
+    float sectionWidth = totalWidth / 2;
 
-    if (curGap > maxGap) {
-        curGap = maxGap;
-    }
+    // get the absolute value of the gap as it is more convenient for calculations
+    uint curGap = Math::Abs(gap);
 
-    if (gap < 0) {
-        return -1 * (totalWidth / 2) * float(curGap) / maxGap;
-    }
-    else {
-        return (totalWidth / 2) * float(curGap) / maxGap;
-    }    
+    // if the current gap is greater max gap, the width is the full amount
+    if (curGap > maxGap) { return sectionWidth; }
+
+    // otherwise, calculate the percentage of bar filled as the current gap out of the max gap
+    // this is multiplied with the section width
+    return sectionWidth * (float(curGap) / maxGap);
 }
 
 vec2 CalculateCentreBarPosition(Render::BarSettings@ settings) {
@@ -64,6 +67,11 @@ namespace Render {
         // the width of the font relative to half of the width of the bar
         double fontWidth;
 
+        // the maximum gap that can be drawn on the bar before overflowing
+        // both are in milliseconds (1.252s == 1252)
+        int maxPositiveGap;  // in reference to -1.2s
+        int maxNegativeGap;  // in reference to +1.2s
+
 
         void SetDefault() {
             width = 1.0 / 4;
@@ -85,6 +93,9 @@ namespace Render {
             lineThickness = 1;
 
             fontWidth = 0.3;
+
+            maxPositiveGap = 500;
+            maxNegativeGap = 5000;
         }
 
         // TODO: implement
@@ -95,6 +106,38 @@ namespace Render {
         BarSettings() {
             SetDefault();
         }
+    }
+
+    void DrawGapLine(
+        UI::DrawList@ drawList,
+        int curGap,
+        int barWidth, int barHeight,
+        vec2 centre,
+        Render::BarSettings@ settings
+    ) {
+        // is positive refers to being faster so gap is less than 0
+        const bool isPositive = curGap < 0;
+        
+        int drawX;
+
+        if (isPositive) {
+            // get the x position of the line
+            drawX = GetLineOffset(curGap, settings.maxPositiveGap, barWidth);
+            // since it is a positive integer, convert it to negative to be correctly placed
+            drawX *= -1;
+        }
+        else {
+            // get the x pos
+            drawX = GetLineOffset(curGap, settings.maxNegativeGap, barWidth);
+        }
+
+        // draw a line per car
+        drawList.AddLine(
+            vec2(centre.x - drawX, centre.y + (barHeight / 2)),
+            vec2(centre.x - drawX, centre.y - (barHeight / 2)),
+            RGBToRGBA(settings.lineColour, settings.transparency),
+            settings.lineThickness
+        );
     }
 
     void Bar(
@@ -122,8 +165,8 @@ namespace Render {
             settings.cornerRounding
         );
 
-        float minGap = 0;
-        float maxGap = 0;
+        int minGap = 0;
+        int maxGap = 0;
 
         auto ghosts = gapMgr.ghostGaps;
 
@@ -149,13 +192,23 @@ namespace Render {
         // DEBUG PRINT
         // print(minGap + " " + maxGap);
 
-        float drawLength;
+        float drawWidth;
 
         // only draw min offset if actually negative
+        // this only draws the coloured section (it is more efficient to only do it once then draw the lines on top)
         if (minGap < 0) {
-            drawLength = GetLineOffset(minGap, barGapRange, width);
+            // calculate the draw length
+            drawWidth = GetLineOffset(minGap, settings.maxPositiveGap, width);
+
+            // the min (positive (as in faster/improving/-1s) gap) is on the right side
+            // so, draw from the middle line, to the right, by draw width
             drawList.AddRectFilled(
-                vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), 
+                vec4(
+                    centrePos.x,
+                    centrePos.y - (height / 2),
+                    drawWidth,
+                    height
+                ), 
                 RGBToRGBA(settings.positiveColour, settings.transparency)
             );
 
@@ -176,9 +229,18 @@ namespace Render {
 
         // only draw max offset if actually positive
         if (maxGap > 0) {
-            drawLength = GetLineOffset(maxGap, barGapRange, width);
+            // calculate the draw width
+            drawWidth = GetLineOffset(maxGap, settings.maxNegativeGap, width);
+
+            // the negative gap (you are slower) is on the left side
+            // so draw from the centre line subtract the draw width, to the right, by draw width
             drawList.AddRectFilled(
-                vec4(centrePos.x - drawLength, centrePos.y - (height / 2), drawLength, height), 
+                vec4(
+                    centrePos.x - drawWidth,
+                    centrePos.y - (height / 2),
+                    drawWidth,
+                    height
+                ), 
                 RGBToRGBA(settings.negativeColour, settings.transparency)
             );
 
@@ -200,14 +262,12 @@ namespace Render {
         // iterate miscArray to draw in each point that a car is gaining
         for (int i = 0; i < ghosts.Length; i++) {
             int curGap = ghosts[i].gap;
-
-            // draw a line per car
-            drawLength = GetLineOffset(curGap, barGapRange, width);
-            drawList.AddLine(
-                vec2(centrePos.x - drawLength, centrePos.y + (height / 2)),
-                vec2(centrePos.x - drawLength, centrePos.y - (height / 2)),
-                RGBToRGBA(settings.lineColour, settings.transparency),
-                settings.lineThickness
+            DrawGapLine(
+                drawList,
+                curGap,
+                width, height,
+                centrePos,
+                settings
             );
         }
 
