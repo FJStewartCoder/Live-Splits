@@ -94,8 +94,8 @@ namespace Render {
 
             fontWidth = 0.3;
 
-            maxPositiveGap = 500;
-            maxNegativeGap = 5000;
+            maxPositiveGap = 2000;
+            maxNegativeGap = 2000;
         }
 
         // TODO: implement
