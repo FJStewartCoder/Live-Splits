@@ -24,7 +24,8 @@
     7.3 - Add settings to determine how much of the array to search (e.g only search the current checkpoint or not)
 
 8 - UI
-    8.1 - Consider improving the other UI options
+    8.1 - Add settings to Normal UI
+    8.2 - Add an option to only show the n cars closest to you (or similar)
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed

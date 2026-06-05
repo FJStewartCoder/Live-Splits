@@ -49,19 +49,18 @@ class GapEntry {
 
 class GapData {
     // TODO: add a setting for this
-    uint maxGaps = 10;
+    uint maxGaps = 20;
     GapEntry[] gaps;
 
+    // TODO: consider taking a similar approach to std deviation
     int GapRate() {
-        // TODO: add a setting for this
-        // number of entries that will be used to calculate the rate
-        const uint numEntriesForCalc = 5;
+        // if the number of gaps is not full, return 0
+        if (gaps.Length != maxGaps) { return 0; }
 
-        // if there are no enough entries, return 0
-        if (gaps.Length <= numEntriesForCalc) { return 0; }
-
+        // get the current gap
         GapEntry@ now = GetGapEntry();
-        GapEntry@ last = GetGapEntry(numEntriesForCalc);
+        // get the oldest gap
+        GapEntry@ last = GetGapEntry(maxGaps - 1);
 
         // last = -1.2, now = -1.1, so rate should be +0.1 per frame
         // to achieve this now - last

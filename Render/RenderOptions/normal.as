@@ -1,8 +1,57 @@
 bool updateWindowSize = false;
 
 namespace Render {
+    enum TextAlignment {
+        LEFT,
+        RIGHT,
+        CENTRE
+    }
+    
+    // TODO: implement text colour
+    // TODO: implement background colour
+    class NormalSectionSettings {
+        float width;
+
+        float padding;
+
+        TextAlignment textAlignment;
+
+
+        const bool isValid() {
+            // TODO: implement
+            return true;
+        }
+
+        void SetDefaults() {
+            width = 40;
+
+            padding = 2;
+
+            textAlignment = TextAlignment::LEFT;
+        }
+
+        NormalSectionSettings() {
+            SetDefaults();
+        }
+    }
+
+    // TODO: implement position and scale regardless of resolution
     class NormalSettings {
         bool summary;
+
+        NormalSectionSettings positionSettings;
+        bool positionEnabled;
+
+        NormalSectionSettings nameSettings;
+        bool nameEnabled;
+
+        NormalSectionSettings gapSettings;
+        bool gapEnabled;
+
+        NormalSectionSettings rateSettings;
+        bool rateEnabled;
+
+        float sectionHeight;
 
         const bool isValid() {
             // TODO: implement
@@ -11,24 +60,42 @@ namespace Render {
 
         void SetDefaults() {
             summary = false;
+
+            positionSettings.width = 30;
+            positionSettings.textAlignment = TextAlignment::CENTRE;
+            positionEnabled = true;
+
+            nameSettings.width = 100;
+            nameEnabled = true;
+
+            gapSettings.width = 60;
+            gapSettings.textAlignment = TextAlignment::CENTRE;
+            gapEnabled = true;
+
+            rateSettings.width = 60;
+            rateSettings.textAlignment = TextAlignment::CENTRE;
+            rateEnabled = true;
+
+            sectionHeight = 20;
         }
 
         NormalSettings() {
             SetDefaults();
         }
-    };
+    }
 
-    // TODO: add text alignment options
     void NormalSection(
         const string&in text,
-        const float width,
         const float height,
         const vec2 topLeftPos,
-        const float padding
+        NormalSectionSettings@ settings
     ) {
         UI::DrawList@ drawList = UI::GetForegroundDrawList();
 
-        const float widthForText = width - (padding * 2);
+        // re-assignment since it is quicker to type
+        const float padding = settings.padding;
+
+        const float widthForText = settings.width - (padding * 2);
         // this is equivalent to the font size (font size is character height)
         const float heightForText = height - (padding * 2);
 
@@ -41,21 +108,50 @@ namespace Render {
 
         // draw the background box
         drawList.AddRectFilled(
-            vec4(topLeftPos.x, topLeftPos.y, width, height),
+            vec4(topLeftPos.x, topLeftPos.y, settings.width, height),
             vec4(0, 0, 0, 0.5)
         );
 
         // measure the text to ensure that it fits
-        const float textWidth = UI::MeasureString(text, null, fontSize).x;
+        vec2 textMeasurements = UI::MeasureString(text, null, fontSize);
+
+        // height and width measurements used for positioning
+        float textWidth = textMeasurements.x;
+        float textHeight = textMeasurements.y;
 
         // if the text is too large, size down the text to fit in the width
         if (textWidth > widthForText) {
             fontSize = CalculateFontSizeForWidth(text, widthForText);
+
+            // re-calculate the text width and height
+            textWidth = widthForText;
+            textHeight = fontSize;
+        }
+
+        // the x position of the text
+        float xPos;
+
+        switch (settings.textAlignment) {
+            case (TextAlignment::LEFT):
+                xPos = topLeftPos.x + padding;
+                break;
+            case (TextAlignment::RIGHT):
+                // width for - width gives the spare space
+                xPos = topLeftPos.x + padding + (widthForText - textWidth);
+                break;
+            case (TextAlignment::CENTRE):
+                // same as above but half of spare space
+                xPos = topLeftPos.x + padding + ((widthForText - textWidth) / 2);
+                break;
         }
 
         // draw the text
         drawList.AddText(
-            vec2(topLeftPos.x + padding, topLeftPos.y + padding),
+            // y pos is top left + half height == centre then - textHeight / 2 to centre vertically
+            vec2(
+                xPos,
+                (topLeftPos.y + (height / 2)) - (textHeight / 2)
+            ),
             vec4(1, 1, 1, 1),
             text,
             null,
@@ -71,47 +167,43 @@ namespace Render {
         const vec2 topLeftPos,
         NormalSettings@ settings
     ) {
-        const float height = 20;
-        const float padding = 2;
+        const float height = settings.sectionHeight;
 
-        const float posWidth = 20;
+        float cumulativeX = topLeftPos.x;
 
+        // draw the position section and accumulate the x pos
         NormalSection(
             tostring(racePosition),
-            posWidth,
             height,
-            topLeftPos,
-            padding
+            vec2(cumulativeX, topLeftPos.y),
+            settings.positionSettings
         );
-        
-        const float nameWidth = 75;
-        
+        cumulativeX += settings.positionSettings.width;
+
+        // draw the name section and accumulate the x pos
         NormalSection(
             name,
-            nameWidth,
             height,
-            vec2(topLeftPos.x + posWidth, topLeftPos.y),
-            padding
+            vec2(cumulativeX, topLeftPos.y),
+            settings.nameSettings
         );
+        cumulativeX += settings.nameSettings.width;
 
-        const float gapWidth = 40;
-
+        // draw the gap section and accumulate the x pos
         NormalSection(
             GapToString(gap),
-            gapWidth,
             height,
-            vec2(topLeftPos.x + posWidth + nameWidth, topLeftPos.y),
-            padding
+            vec2(cumulativeX, topLeftPos.y),
+            settings.gapSettings
         );
+        cumulativeX += settings.gapSettings.width;
 
-        const float rateWidth = 50;
-
+        // draw the gap rate section
         NormalSection(
             GapToString(gapRate),
-            rateWidth,
             height,
-            vec2(topLeftPos.x + posWidth + nameWidth + gapWidth, topLeftPos.y),
-            padding
+            vec2(cumulativeX, topLeftPos.y),
+            settings.rateSettings
         );
     }
 
@@ -141,7 +233,7 @@ namespace Render {
 
         Sort(ghostRefs, @CompareGhosts);
 
-        const float sectionHeight = 20;
+        const float sectionHeight = settings.sectionHeight;
         const vec2 topLeft = vec2(50, 50);
 
         // sort the ghosts
