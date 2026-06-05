@@ -10,7 +10,7 @@ class GapMgr {
     dictionary cacheDict;
 
 
-    RotatingCounter framesBetweenGap(20);
+    RotatingCounter framesBetweenGap(3);
 
     GapInfo EvaluateGapFromState(
         CSceneVehicleVisState@ state,

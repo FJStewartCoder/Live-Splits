@@ -225,6 +225,11 @@ namespace GhostManager {
         }
 
         Sort(toSort, @CompareStates);
+
+        // actually finish the sorting process by putting the resutls back into the passed in array
+        for (uint i = 0; i < states.Length; i++) {
+            @states[i] = cast<CSceneVehicleVis@>(toSort[i]);
+        }
     }
 
     void SortGhostInfo(MLFeed::GhostInfo_V2@[]@ ghosts) {
@@ -236,6 +241,11 @@ namespace GhostManager {
         }
 
         Sort(toSort, @CompareGhosts);
+
+        // actually finish the sorting process by putting the resutls back into the passed in array
+        for (uint i = 0; i < ghosts.Length; i++) {
+            @ghosts[i] = cast<MLFeed::GhostInfo_V2@>(toSort[i]);
+        }
     }
 
     GhostData[] GetVehicleVisAsGhosts() {

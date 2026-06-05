@@ -301,7 +301,7 @@ namespace Render {
         }
 
         // calculate a new height and centre for the gaps
-        float gapsHeight = height * 0.8;
+        float gapsHeight = height * 0.65;
         // the y pos needs to be the centre of the bar
         // so, we can take the centre and sub half of the height to get the top of the bar
         // then we need to go down by half of the new bar width to get the centre

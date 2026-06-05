@@ -68,7 +68,8 @@ void Render() {
     if (!IsInGame()) { return; }
 
     if (EnabledStatus(0)) {
-        Render::Normal();
+        Render::NormalSettings settings;
+        Render::Normal(settings);
     }
     
     if (EnabledStatus(1)) {

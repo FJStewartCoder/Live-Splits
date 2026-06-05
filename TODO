@@ -7,9 +7,6 @@
     2.3 - Fix the GapInfo to provide the distance
 
 3 - Improve gap display
-    3.1 - implement no respawn timer
-    3.2 - implement per checkpoint gaps to ghosts
-    3.3 - Add a display for gap rate
 
 4 - Re-implement save
 
@@ -33,4 +30,8 @@
     9.1 - Fix general efficiency and speed
 
 10 - Finish all TODOs
-    10.1 - Consider adding a function to SampleArray that allows for the insertion of a point based on the timestamp
+
+11 - Future Considerations
+    11.1 - implement no respawn timer
+    11.2 - Consider adding a function to SampleArray that allows for the insertion of a point based on the timestamp
+    11.3 - Improve display for gap rate (e.g Toggleable, seperate bar)
