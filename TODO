@@ -26,6 +26,7 @@
 8 - UI
     8.1 - Add settings to Normal UI
     8.2 - Add an option to only show the n cars closest to you (or similar)
+    8.3 - Show the current player in the Normal UI
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed

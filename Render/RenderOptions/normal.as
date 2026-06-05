@@ -7,14 +7,15 @@ namespace Render {
         CENTRE
     }
     
-    // TODO: implement text colour
-    // TODO: implement background colour
     class NormalSectionSettings {
         float width;
 
         float padding;
 
         TextAlignment textAlignment;
+
+        vec4 backgroundColour;
+        vec4 textColour;
 
 
         const bool isValid() {
@@ -23,11 +24,15 @@ namespace Render {
         }
 
         void SetDefaults() {
-            width = 40;
+            // width as a percentage of the screen width
+            width = 0.075;
 
             padding = 2;
 
             textAlignment = TextAlignment::LEFT;
+
+            backgroundColour = vec4(0, 0, 0, 0.7);
+            textColour = vec4(1, 1, 1, 1);
         }
 
         NormalSectionSettings() {
@@ -35,10 +40,10 @@ namespace Render {
         }
     }
 
-    // TODO: implement position and scale regardless of resolution
     class NormalSettings {
         bool summary;
 
+        // TODO: implement the toggles
         NormalSectionSettings positionSettings;
         bool positionEnabled;
 
@@ -53,6 +58,14 @@ namespace Render {
 
         float sectionHeight;
 
+        vec2 position;
+        
+        // colour for the gap based on performance
+        vec4 neutralColour;
+        vec4 positiveColour;
+        vec4 negativeColour;
+
+
         const bool isValid() {
             // TODO: implement
             return true;
@@ -61,22 +74,31 @@ namespace Render {
         void SetDefaults() {
             summary = false;
 
-            positionSettings.width = 30;
+            positionSettings.width = 0.02;
             positionSettings.textAlignment = TextAlignment::CENTRE;
             positionEnabled = true;
 
-            nameSettings.width = 100;
+            nameSettings.width = 0.1;
             nameEnabled = true;
 
-            gapSettings.width = 60;
+            gapSettings.width = 0.05;
             gapSettings.textAlignment = TextAlignment::CENTRE;
             gapEnabled = true;
 
-            rateSettings.width = 60;
+            rateSettings.width = 0.05;
             rateSettings.textAlignment = TextAlignment::CENTRE;
             rateEnabled = true;
 
-            sectionHeight = 20;
+            sectionHeight = 0.025;
+
+            // the below calculation allows the table to be the same width from the top as the left
+            // 16 * x == 9 * y
+            // y = 16x / 9
+            position = vec2(0.02, (16.0 / 9.0) * 0.02);
+
+            neutralColour = vec4(0.7, 0.7, 0.7, 1);
+            negativeColour = vec4(1, 0.3, 0.3, 1);
+            positiveColour = vec4(0, 1, 0, 1);
         }
 
         NormalSettings() {
@@ -92,10 +114,12 @@ namespace Render {
     ) {
         UI::DrawList@ drawList = UI::GetForegroundDrawList();
 
+        const float width = settings.width * Display::GetWidth();
+
         // re-assignment since it is quicker to type
         const float padding = settings.padding;
 
-        const float widthForText = settings.width - (padding * 2);
+        const float widthForText = width - (padding * 2);
         // this is equivalent to the font size (font size is character height)
         const float heightForText = height - (padding * 2);
 
@@ -108,8 +132,8 @@ namespace Render {
 
         // draw the background box
         drawList.AddRectFilled(
-            vec4(topLeftPos.x, topLeftPos.y, settings.width, height),
-            vec4(0, 0, 0, 0.5)
+            vec4(topLeftPos.x, topLeftPos.y, width, height),
+            settings.backgroundColour
         );
 
         // measure the text to ensure that it fits
@@ -152,7 +176,7 @@ namespace Render {
                 xPos,
                 (topLeftPos.y + (height / 2)) - (textHeight / 2)
             ),
-            vec4(1, 1, 1, 1),
+            settings.textColour,
             text,
             null,
             fontSize
@@ -167,7 +191,8 @@ namespace Render {
         const vec2 topLeftPos,
         NormalSettings@ settings
     ) {
-        const float height = settings.sectionHeight;
+        const int screenWidth = Display::GetWidth();
+        const float height = settings.sectionHeight * Display::GetHeight();
 
         float cumulativeX = topLeftPos.x;
 
@@ -178,7 +203,7 @@ namespace Render {
             vec2(cumulativeX, topLeftPos.y),
             settings.positionSettings
         );
-        cumulativeX += settings.positionSettings.width;
+        cumulativeX += settings.positionSettings.width * screenWidth;
 
         // draw the name section and accumulate the x pos
         NormalSection(
@@ -187,18 +212,26 @@ namespace Render {
             vec2(cumulativeX, topLeftPos.y),
             settings.nameSettings
         );
-        cumulativeX += settings.nameSettings.width;
+        cumulativeX += settings.nameSettings.width * screenWidth;
 
         // draw the gap section and accumulate the x pos
+        if (gap == 0) { settings.gapSettings.textColour = settings.neutralColour; }
+        else if (gap < 0) { settings.gapSettings.textColour = settings.positiveColour; }
+        else { settings.gapSettings.textColour = settings.negativeColour; }
+
         NormalSection(
             GapToString(gap),
             height,
             vec2(cumulativeX, topLeftPos.y),
             settings.gapSettings
         );
-        cumulativeX += settings.gapSettings.width;
+        cumulativeX += settings.gapSettings.width * screenWidth;
 
         // draw the gap rate section
+        if (gapRate == 0) { settings.rateSettings.textColour = settings.neutralColour; }
+        else if (gapRate < 0) { settings.rateSettings.textColour = settings.positiveColour; }
+        else { settings.rateSettings.textColour = settings.negativeColour; }
+
         NormalSection(
             GapToString(gapRate),
             height,
@@ -214,7 +247,6 @@ namespace Render {
         return b1.gap.GetGap() - a1.gap.GetGap();
     }
 
-    // TODO: add back colouring for text
     void Normal(
         NormalSettings@ settings
     ) {
@@ -234,10 +266,12 @@ namespace Render {
         Sort(ghostRefs, @CompareGhosts);
 
         const float sectionHeight = settings.sectionHeight;
-        const vec2 topLeft = vec2(50, 50);
+        const vec2 topLeft(
+            Display::GetWidth() * settings.position.x,
+            Display::GetHeight() * settings.position.y
+        );
 
         // sort the ghosts
-
         for (uint i = 0; i < ghostRefs.Length; i++) {
             GhostGapData@ data = cast<GhostGapData@>(ghostRefs[i]);
 
@@ -246,7 +280,7 @@ namespace Render {
                 data.ghostInfo.name,
                 data.gap.GetGap(),
                 data.gap.GapRate(),
-                vec2(topLeft.x, topLeft.y + (sectionHeight * i)),
+                vec2(topLeft.x, topLeft.y + (sectionHeight * Display::GetHeight() * i)),
                 settings
             );
         }
