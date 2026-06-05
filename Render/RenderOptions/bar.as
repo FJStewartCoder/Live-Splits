@@ -143,8 +143,120 @@ namespace Render {
         );
     }
 
+    enum BarSide {
+        RIGHT,
+        LEFT,
+        CENTRE
+    }
+
+    void DrawBarText(
+        const string&in text,
+        BarSettings@ settings,
+        UI::DrawList@ drawList,
+        float fontSize,
+        float width, float height,
+        vec2 centrePos,
+        BarSide side
+    ) {
+        // the final position of the text
+        vec2 textPos;
+        float textWidth = UI::MeasureString(text, null, fontSize).x;
+
+        switch (side) {
+            case BarSide::RIGHT:
+                textPos = vec2(centrePos.x + (width / 2) - textWidth, centrePos.y + (height / 2));
+                break;
+            case BarSide::LEFT:
+                textPos = vec2(centrePos.x - (width / 2), centrePos.y + (height / 2));
+                break;
+            case BarSide::CENTRE:
+                textPos = vec2(centrePos.x - (textWidth / 2), centrePos.y + (height / 2));
+                break;
+        }
+
+        // write the gap on the right side of the bar
+        drawList.AddText(
+            textPos,
+            RGBToRGBA(settings.textColour, settings.transparency),
+            text,
+            null,
+            fontSize
+        );
+    }
+
+    // draws the inner data of the bar
+    void DrawBarData(
+        UI::DrawList@ drawList,
+        float fontSize,
+        BarSettings@ settings,
+        array<int>@ data,
+        float width, float height,
+        vec2 centrePos
+    ) {
+        // calculate the min and max values
+        MinMax minMax = GetMinMax(data);
+
+        int minGap = minMax.min;
+        int maxGap = minMax.max;
+        
+        // DEBUG PRINT
+        // print(minGap + " " + maxGap);
+
+        float drawWidth;
+
+        // only draw min offset if actually negative
+        // this only draws the coloured section (it is more efficient to only do it once then draw the lines on top)
+        if (minGap < 0) {
+            // calculate the draw length
+            drawWidth = GetLineOffset(minGap, settings.maxPositiveGap, width);
+
+            // the min (positive (as in faster/improving/-1s) gap) is on the right side
+            // so, draw from the middle line, to the right, by draw width
+            drawList.AddRectFilled(
+                vec4(
+                    centrePos.x,
+                    centrePos.y - (height / 2),
+                    drawWidth,
+                    height
+                ), 
+                RGBToRGBA(settings.positiveColour, settings.transparency)
+            );
+        }
+
+        // only draw max offset if actually positive
+        if (maxGap > 0) {
+            // calculate the draw width
+            drawWidth = GetLineOffset(maxGap, settings.maxNegativeGap, width);
+
+            // the negative gap (you are slower) is on the left side
+            // so draw from the centre line subtract the draw width, to the right, by draw width
+            drawList.AddRectFilled(
+                vec4(
+                    centrePos.x - drawWidth,
+                    centrePos.y - (height / 2),
+                    drawWidth,
+                    height
+                ), 
+                RGBToRGBA(settings.negativeColour, settings.transparency)
+            );
+        }
+
+        // iterate miscArray to draw in each point that a car is gaining
+        for (int i = 0; i < data.Length; i++) {
+            int curGap = data[i];
+
+            DrawGapLine(
+                drawList,
+                curGap,
+                width, height,
+                centrePos,
+                settings
+            );
+        }
+    }
+
     void Bar(
-        Render::BarSettings settings
+        Render::BarSettings@ settings
     ) {
         if (!settings.IsValid()) {
             settings.SetDefault();
@@ -172,105 +284,68 @@ namespace Render {
             settings.cornerRounding
         );
 
-        int minGap = 0;
-        int maxGap = 0;
-
         auto ghosts = gapMgr.ghostGaps;
 
-        // iterate miscArray to draw the largest bars only
-        for (int i = 0; i < ghosts.Length; i++) {
-            int curGap = ghosts[i].gap.GetGap();
+        // create arrays for the data to be drawn
+        array<int> ghostGaps;
+        array<int> ghostRates;
 
-            if (i == 0) {
-                minGap = curGap;
-                maxGap = curGap;
+        // reserve space 
+        ghostGaps.Reserve(ghosts.Length);
+        ghostRates.Reserve(ghosts.Length);
 
-                continue;
-            }
-
-            if (curGap < minGap) {
-                minGap = curGap;
-            }
-            else if (curGap > maxGap) {
-                maxGap = curGap;
-            }
-        }
-        
-        // DEBUG PRINT
-        // print(minGap + " " + maxGap);
-
-        float drawWidth;
-
-        // only draw min offset if actually negative
-        // this only draws the coloured section (it is more efficient to only do it once then draw the lines on top)
-        if (minGap < 0) {
-            // calculate the draw length
-            drawWidth = GetLineOffset(minGap, settings.maxPositiveGap, width);
-
-            // the min (positive (as in faster/improving/-1s) gap) is on the right side
-            // so, draw from the middle line, to the right, by draw width
-            drawList.AddRectFilled(
-                vec4(
-                    centrePos.x,
-                    centrePos.y - (height / 2),
-                    drawWidth,
-                    height
-                ), 
-                RGBToRGBA(settings.positiveColour, settings.transparency)
-            );
-
-            string text = GapToString(minGap);
-            double textWidth = UI::MeasureString(text, null, fontSize).x;
-
-            // write the gap on the right side of the bar
-            drawList.AddText(
-                vec2(centrePos.x + (width / 2) - textWidth, centrePos.y + (height / 2)), 
-                RGBToRGBA(settings.textColour, settings.transparency),
-                text,
-                null,
-                fontSize
-            );
+        // populate the lists
+        for (uint i = 0; i < ghosts.Length; i++) {
+            ghostGaps.InsertLast(ghosts[i].gap.GetGap());
+            ghostRates.InsertLast(ghosts[i].gap.GapRate());
         }
 
-        // only draw max offset if actually positive
-        if (maxGap > 0) {
-            // calculate the draw width
-            drawWidth = GetLineOffset(maxGap, settings.maxNegativeGap, width);
+        // calculate a new height and centre for the gaps
+        float gapsHeight = height * 0.8;
+        // the y pos needs to be the centre of the bar
+        // so, we can take the centre and sub half of the height to get the top of the bar
+        // then we need to go down by half of the new bar width to get the centre
+        vec2 gapsCentre(centrePos.x, (centrePos.y - (height / 2)) + (gapsHeight / 2));
 
-            // the negative gap (you are slower) is on the left side
-            // so draw from the centre line subtract the draw width, to the right, by draw width
-            drawList.AddRectFilled(
-                vec4(
-                    centrePos.x - drawWidth,
-                    centrePos.y - (height / 2),
-                    drawWidth,
-                    height
-                ), 
-                RGBToRGBA(settings.negativeColour, settings.transparency)
-            );
+        DrawBarData(
+            drawList,
+            fontSize,
+            settings,
+            ghostGaps,
+            width, gapsHeight,
+            gapsCentre
+        );
 
-            string text = GapToString(maxGap);
+        // calculate a new height and centre for the rates
+        float rateHeight = height - gapsHeight;
+        // to get this y pos, we need the centre again but based on two heights this time
+        // take the centre pos of the previous bar and go down by half of its height to get the bottom of that bar
+        // then, go down another half of this bar's height to get this centre
+        vec2 rateCentre(centrePos.x, gapsCentre.y + (gapsHeight / 2) + (rateHeight / 2));
 
-            // write the gap on the left side of the bar
-            drawList.AddText(
-                vec2(centrePos.x - (width / 2), centrePos.y + (height / 2)),
-                RGBToRGBA(settings.textColour, settings.transparency),
-                text,
-                null,
-                fontSize
-            );
+        DrawBarData(
+            drawList,
+            fontSize,
+            settings,
+            ghostRates,
+            width, rateHeight,
+            rateCentre
+        );
+
+        MinMax gapsMinMax = GetMinMax(ghostGaps);
+
+        // draw the text for both the min and max gap
+
+        // only draw the min gap if it is less than 0
+        if (gapsMinMax.min < 0) {
+            string text = GapToString(gapsMinMax.min);
+            DrawBarText(text, settings, drawList, fontSize, width, height, centrePos, BarSide::RIGHT);
         }
 
-        // iterate miscArray to draw in each point that a car is gaining
-        for (int i = 0; i < ghosts.Length; i++) {
-            int curGap = ghosts[i].gap.GetGap();
-            DrawGapLine(
-                drawList,
-                curGap,
-                width, height,
-                centrePos,
-                settings
-            );
+        if (gapsMinMax.max > 0) {
+            // draw the text for the max gap
+            string text = GapToString(gapsMinMax.max);
+            DrawBarText(text, settings, drawList, fontSize, width, height, centrePos, BarSide::LEFT);
         }
 
         // draw the centre line
