@@ -56,7 +56,7 @@ string GapToString(int gap) {
 
 void Render() {
     // if the plugin is off don't do anything
-    if (!isEnabled) { return; }
+    if (!Settings::General::pluginEnabled) { return; }
 
     // if the UI is not shown, don't render
     // TODO: add settings to enable these even if the UI is off
@@ -68,14 +68,11 @@ void Render() {
     if (!IsInGame()) { return; }
 
     if (EnabledStatus(0)) {
-        Render::NormalSettings settings;
-        Render::Normal(settings);
+        Render::Normal(Settings::UI::normalSettings);
     }
     
     if (EnabledStatus(1)) {
-        // TODO: allow updating these settings
-        Render::BarSettings settings;
-        Render::Bar(settings);
+        Render::Bar(Settings::UI::barSettings);
     }
 
     if (EnabledStatus(2)) {
@@ -114,16 +111,17 @@ void RenderOptionsMenu() {
 void RenderMenu() {
     if (UI::BeginMenu("Live Splits")) {
         // toggle for on of off    
-        if (UI::MenuItem("Enabled", "", isEnabled)) {
-            isEnabled = !isEnabled;
+        if (UI::MenuItem("Enabled", "", Settings::General::pluginEnabled)) {
+            Settings::General::pluginEnabled = !Settings::General::pluginEnabled;
         }
 
         // render the menu to render options
         RenderOptionsMenu();
 
         // toggle for gap override
-        if (UI::MenuItem("Gap While Log", "", getGapOverride)) {
-            getGapOverride = !getGapOverride;
+        if (UI::MenuItem("Gap While Log", "", Settings::Gap::getGapOverride)) {
+            // toggle using xor
+            Settings::Gap::getGapOverride = !Settings::Gap::getGapOverride;
         }
 
         // deletes all ghost point saves from this map
