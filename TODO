@@ -12,6 +12,7 @@
 
 5 - Bug Fixes
     PRIORITY - Player Data has failed and now gaps don't work (could be related to the fact I was using ghosts at the same time)
+    (Probably related to when the player already has a PB so the PB ghost is named the same as the local player name so you get the ghost and not the player)
 
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
     5.2 - Don't cache the personal best ghost because it causes issues
@@ -26,9 +27,7 @@
     7.3 - Add settings to determine how much of the array to search (e.g only search the current checkpoint or not)
 
 8 - UI
-    8.1 - Add settings to Normal UI
-    8.2 - Add an option to only show the n cars closest to you (or similar)
-    8.3 - Show the current player in the Normal UI
+    8.1 - Consider changing the Normal UI to show the gap of the ghost to you rather that you to the ghost (just multiply by -1)
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed

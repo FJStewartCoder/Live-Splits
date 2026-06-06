@@ -42,6 +42,7 @@ namespace Render {
 
     class NormalSettings {
         bool summary;
+        uint numCarsInSummary;
 
         NormalSectionSettings positionSettings;
         bool positionEnabled;
@@ -56,6 +57,8 @@ namespace Render {
         bool rateEnabled;
 
         float sectionHeight;
+        // margin between the player record and the rest of the table
+        float playerSectionYMargin;
 
         vec2 position;
         
@@ -71,7 +74,8 @@ namespace Render {
         }
 
         void SetDefaults() {
-            summary = false;
+            summary = true;
+            numCarsInSummary = 4;
 
             positionSettings.width = 0.02;
             positionSettings.textAlignment = TextAlignment::CENTRE;
@@ -89,6 +93,7 @@ namespace Render {
             rateEnabled = true;
 
             sectionHeight = 0.025;
+            playerSectionYMargin = 0.01;
 
             // the below calculation allows the table to be the same width from the top as the left
             // 16 * x == 9 * y
@@ -298,10 +303,28 @@ namespace Render {
         );
 
         const int playerRacePosition = PlayerPosition(ghostRefs);
-        print("PLAYER POS: " + playerRacePosition);
+
+        NormalDrawEntry(
+            playerRacePosition + 1,
+            "You",
+            0,
+            0, 
+            vec2(topLeft.x, topLeft.y),
+            settings
+        );
+
+        const float playerRecordMargin = settings.playerSectionYMargin * Display::GetHeight();
+
+        // by default, it is all of the ghosts
+        uint numGhostsToRender = ghostRefs.Length;
+
+        // if summary, and more cars than the max in a summary, then set the number to render to the number in the summary
+        if (settings.summary && settings.numCarsInSummary < ghostRefs.Length) {
+            numGhostsToRender = settings.numCarsInSummary;
+        }
 
         // render the sorted ghosts
-        for (uint i = 0; i < ghostRefs.Length; i++) {
+        for (uint i = 0; i < numGhostsToRender; i++) {
             GhostGapData@ data = cast<GhostGapData@>(ghostRefs[i]);
 
             // race position is the index + 1 (for real position)
@@ -313,7 +336,11 @@ namespace Render {
                 data.ghostInfo.name,
                 data.gap.GetGap(),
                 data.gap.GapRate(),
-                vec2(topLeft.x, topLeft.y + (sectionHeight * Display::GetHeight() * i)),
+                // +1 to i here because we render one section for the player
+                vec2(
+                    topLeft.x, 
+                    topLeft.y + (sectionHeight * Display::GetHeight() * (i + 1)) + playerRecordMargin
+                ),
                 settings
             );
         }
