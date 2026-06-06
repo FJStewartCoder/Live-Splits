@@ -13,17 +13,57 @@ void SetEnabled(int bit, bool val) {
 
 // ----------------------------------------------------------------------
 
+const string TextAlignmentToString(Render::TextAlignment alignment) {
+    string res;
+
+    switch (alignment) {
+        case Render::TextAlignment::LEFT:
+            res = "Left";
+            break;
+        case Render::TextAlignment::CENTRE:
+            res = "Centre";
+            break;
+        case Render::TextAlignment::RIGHT:
+            res = "Right";
+            break;
+    }
+
+    return res;
+}
+
 void TableSectionSettings(const string&in sectionName, Render::NormalSectionSettings@ settings) {
     settings.width = RelativeWidth(sectionName + " Width", settings.width);
 
     const int fullWidth = settings.width * Display::GetWidth();
     settings.padding = IntInput(sectionName + " Padding", settings.padding, 0, int(fullWidth / 2));
 
-    // print("NormalSectionSettings.textAlignment: " + tostring(tmp.textAlignment));
+    // text alignment settings below
+    const string textAlignmentString = TextAlignmentToString(settings.textAlignment);
 
-    // print("NormalSectionSettings.backgroundColour: " + tostring(tmp.backgroundColour));
-    // print("NormalSectionSettings.textColour: " + tostring(tmp.textColour));
+    if (UI::BeginCombo(sectionName + " Text Alignment", textAlignmentString)) {
+        const Render::TextAlignment[] options = {
+            Render::TextAlignment::LEFT,
+            Render::TextAlignment::RIGHT,
+            Render::TextAlignment::CENTRE
+        };
 
+        for (uint i = 0; i < options.Length; i++) {
+            const Render::TextAlignment option = options[i];
+            const string optionString = TextAlignmentToString(option);
+
+            const bool isSelected = settings.textAlignment == option;
+
+            if (UI::Selectable(optionString, isSelected)) {
+                settings.textAlignment = option;
+            }
+        }
+
+        UI::EndCombo();
+    }
+
+    // colour related settings
+    settings.backgroundColour = UI::InputColor4("Background Colour", settings.backgroundColour);
+    settings.textColour = UI::InputColor4("Text Colour", settings.textColour);
 }
 
 void TableSettings() {
@@ -34,28 +74,14 @@ void TableSettings() {
 
     UI::Separator();  // -----------------------------------------------------------------
 
-    settings.positionEnabled = UI::Checkbox("Position Enabled", settings.positionEnabled);
-    TableSectionSettings("Position", settings.positionSettings);
-
-    UI::Separator();  // -----------------------------------------------------------------
-
-    settings.nameEnabled = UI::Checkbox("Name Enabled", settings.nameEnabled);
-    TableSectionSettings("Name", settings.nameSettings);
-
-    UI::Separator();  // -----------------------------------------------------------------
-
-    settings.gapEnabled = UI::Checkbox("Gap Enabled", settings.gapEnabled);
-    TableSectionSettings("Gap", settings.gapSettings);
-
-    UI::Separator();  // -----------------------------------------------------------------
-
-    settings.rateEnabled = UI::Checkbox("Gap Rate Enabled", settings.rateEnabled);
-    TableSectionSettings("Gap Rate", settings.rateSettings);
-
-    UI::Separator();  // -----------------------------------------------------------------
-
     settings.position.x = RelativeWidth("X Position", settings.position.x);
     settings.position.y = RelativeHeight("Y Position", settings.position.y);
+
+    UI::Separator();  // -----------------------------------------------------------------
+
+    settings.neutralColour = UI::InputColor4("Neutral Gap Colour", settings.neutralColour);
+    settings.positiveColour = UI::InputColor4("Positive Gap Colour", settings.positiveColour);
+    settings.negativeColour = UI::InputColor4("Negative Gap Colour", settings.negativeColour);
 
     UI::Separator();  // -----------------------------------------------------------------
 
@@ -73,37 +99,105 @@ void TableSettings() {
 
     UI::Separator();  // -----------------------------------------------------------------
 
-    settings.neutralColour = UI::InputColor4("Neutral Gap Colour", settings.neutralColour);
-    settings.positiveColour = UI::InputColor4("Positive Gap Colour", settings.positiveColour);
-    settings.negativeColour = UI::InputColor4("Negative Gap Colour", settings.negativeColour);
+    UI::PushID(0);
+    settings.positionEnabled = UI::Checkbox("Position Enabled", settings.positionEnabled);
+
+    // only render the section if it is enabled
+    if (settings.positionEnabled) {
+        TableSectionSettings("Position", settings.positionSettings);
+    }
+
+    UI::PopID();
+
+    UI::Separator();  // -----------------------------------------------------------------
+
+    UI::PushID(1);
+    settings.nameEnabled = UI::Checkbox("Name Enabled", settings.nameEnabled);
+
+    // only render the section if it is enabled
+    if (settings.nameEnabled) {
+        TableSectionSettings("Name", settings.nameSettings);
+    }
+
+    UI::PopID();
+
+    UI::Separator();  // -----------------------------------------------------------------
+
+    UI::PushID(2);
+    settings.gapEnabled = UI::Checkbox("Gap Enabled", settings.gapEnabled);
+
+    // only render the section if it is enabled
+    if (settings.gapEnabled) {
+        TableSectionSettings("Gap", settings.gapSettings);
+    }
+
+    UI::PopID();
+
+    UI::Separator();  // -----------------------------------------------------------------
+
+    UI::PushID(3);
+    settings.rateEnabled = UI::Checkbox("Gap Rate Enabled", settings.rateEnabled);
+
+    // only render the section if it is enabled
+    if (settings.rateEnabled) {
+        TableSectionSettings("Gap Rate", settings.rateSettings);
+    }
+
+    UI::PopID();
 }
 
-/*
 void BarSettings() {
+    Render::BarSettings@ settings = Settings::UI::barSettings;
+
     bool enabled = UI::Checkbox("Enabled", EnabledStatus(1));
     SetEnabled(1, enabled);
 
-    // set the bar transparency
-    // get from scale of 0 to 100 then scale down to 0 to 1
-    int trans = UI::SliderInt("Opacity", barTransparency * 100, 0, 100, "%d%%");
-    barTransparency = float(trans) / 100;
+    UI::Separator();  // -----------------------------------------------------------------
 
-    // quick validation
-    if (barTransparency < 0) { barTransparency = 0; }
-    else if (barTransparency > 1) { barTransparency = 1; }
+    settings.width = RelativeWidth("Width", settings.width);
+    settings.height = RelativeHeight("Height", settings.height);
 
-    // 0.2s to 240s
-    float temp = FloatInput("Gap Range", barGapRange / 1000, 0.2, 240, 0.1, 1, "%.2fs");
-    // convert from seconds to milliseconds
-    barGapRange = temp * 1000;
+    settings.xPos = RelativeWidth("X Position", settings.xPos);
+    settings.yPos = RelativeHeight("Y Position", settings.yPos);
 
-    UI::Separator();  // ------------------------------------------------------------------------------------
+    UI::Separator();  // -----------------------------------------------------------------
 
-    // the min and max don't really matter because the ensure function will sort it
-    xOffset = IntInput("X Offset", xOffset, -10000, 10000, 5);
-    yOffset = IntInput("Y Offset", yOffset, -10000, 10000, 5);
+    settings.backgroundColour = UI::InputColor3("Background Colour", settings.backgroundColour);
+    settings.outlineColour = UI::InputColor3("Outline Colour", settings.outlineColour);
+    settings.lineColour = UI::InputColor3("Line Colour", settings.lineColour);
+    settings.positiveColour = UI::InputColor3("Positive Colour", settings.positiveColour);
+    settings.negativeColour = UI::InputColor3("Negative Colour", settings.negativeColour);
+    settings.textColour = UI::InputColor3("Text Colour", settings.textColour);
+
+    // transparency needs to be first converted to be out of 100
+    double transparency = settings.transparency * 100;
+    transparency = UI::SliderDouble("Transparency", transparency, 0, 100, "%.1f%%");
+    settings.transparency = transparency / 100;
+
+    UI::Separator();  // -----------------------------------------------------------------
+
+    settings.cornerRounding = IntInput("Corner Rounding", settings.cornerRounding, 0, 10000);
+
+    settings.outlineThickness = FloatInput("Outline Thickness", settings.outlineThickness, 0, 1000, 1, 2, "%.0f");
+    settings.lineThickness = FloatInput("Line Thickness", settings.lineThickness, 0, 1000, 1, 2, "%.0f");
+
+    double fontSize = settings.fontWidth * 100;
+    fontSize = UI::SliderDouble("Font Size", fontSize, 0, 100, "%.1f%%");
+    settings.fontWidth = fontSize / 100;
+
+    UI::Separator();  // -----------------------------------------------------------------
+
+    double maxPositiveGap = double(settings.maxPositiveGap) / 1000;
+    double maxNegativeGap = double(settings.maxNegativeGap) / 1000;
+
+    // max gap is 10 hours because 60 * 60 == 1 hour * 10 = 10 hours
+    maxPositiveGap = FloatInput("Max Positive Gap", maxPositiveGap, 0.001, 36000.0, 0.25, 1, "%.3fs");
+    maxNegativeGap = FloatInput("Max Negative Gap", maxNegativeGap, 0.001, 36000.0, 0.25, 1, "%.3fs");
+
+    // update the values to be the correct format
+    settings.maxPositiveGap = maxPositiveGap * 1000;
+    settings.maxNegativeGap = maxNegativeGap * 1000;
 }
-*/
 
 void DebugSettings() {
     bool enabled = UI::Checkbox("Enabled", EnabledStatus(2));
@@ -123,7 +217,7 @@ void RenderSettings() {
     }
 
     if (UI::BeginTabItem("Bar")) {
-        // BarSettings();
+        BarSettings();
 
         UI::EndTabItem();
     }

@@ -29,6 +29,8 @@
 8 - UI
     8.1 - Consider changing the Normal UI to show the gap of the ghost to you rather that you to the ghost (just multiply by -1)
     8.2 - Update drawlist to background drawlist
+    8.3 - Update font size to be based on a percentage of the screen height (this will look nicer than being tied to the size of the bar)
+    8.4 - Add some sort of mask on the bar rendering for corner rounding
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed
