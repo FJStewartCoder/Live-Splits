@@ -11,6 +11,8 @@
 4 - Re-implement save
 
 5 - Bug Fixes
+    PRIORITY - Player Data has failed and now gaps don't work (could be related to the fact I was using ghosts at the same time)
+
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
     5.2 - Don't cache the personal best ghost because it causes issues
 
@@ -37,3 +39,4 @@
     11.1 - implement no respawn timer
     11.2 - Consider adding a function to SampleArray that allows for the insertion of a point based on the timestamp
     11.3 - Improve display for gap rate (e.g Toggleable, seperate bar)
+    11.4 - Cache interpolation (interpolate the cache so that there is less processing later)

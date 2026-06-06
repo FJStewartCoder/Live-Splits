@@ -43,7 +43,6 @@ namespace Render {
     class NormalSettings {
         bool summary;
 
-        // TODO: implement the toggles
         NormalSectionSettings positionSettings;
         bool positionEnabled;
 
@@ -196,48 +195,74 @@ namespace Render {
 
         float cumulativeX = topLeftPos.x;
 
-        // draw the position section and accumulate the x pos
-        NormalSection(
-            tostring(racePosition),
-            height,
-            vec2(cumulativeX, topLeftPos.y),
-            settings.positionSettings
-        );
-        cumulativeX += settings.positionSettings.width * screenWidth;
+        if (settings.positionEnabled) {
+            // draw the position section and accumulate the x pos
+            NormalSection(
+                tostring(racePosition),
+                height,
+                vec2(cumulativeX, topLeftPos.y),
+                settings.positionSettings
+            );
+            cumulativeX += settings.positionSettings.width * screenWidth;
+        }
 
-        // draw the name section and accumulate the x pos
-        NormalSection(
-            name,
-            height,
-            vec2(cumulativeX, topLeftPos.y),
-            settings.nameSettings
-        );
-        cumulativeX += settings.nameSettings.width * screenWidth;
+        if (settings.nameEnabled) {
+            // draw the name section and accumulate the x pos
+            NormalSection(
+                name,
+                height,
+                vec2(cumulativeX, topLeftPos.y),
+                settings.nameSettings
+            );
+            cumulativeX += settings.nameSettings.width * screenWidth;
+        }
 
-        // draw the gap section and accumulate the x pos
-        if (gap == 0) { settings.gapSettings.textColour = settings.neutralColour; }
-        else if (gap < 0) { settings.gapSettings.textColour = settings.positiveColour; }
-        else { settings.gapSettings.textColour = settings.negativeColour; }
+        if (settings.gapEnabled) {
+            // calculate the text colour based on the gap
+            if (gap == 0) { settings.gapSettings.textColour = settings.neutralColour; }
+            else if (gap < 0) { settings.gapSettings.textColour = settings.positiveColour; }
+            else { settings.gapSettings.textColour = settings.negativeColour; }
 
-        NormalSection(
-            GapToString(gap),
-            height,
-            vec2(cumulativeX, topLeftPos.y),
-            settings.gapSettings
-        );
-        cumulativeX += settings.gapSettings.width * screenWidth;
+            // draw the gap section and accumulate the x pos
+            NormalSection(
+                GapToString(gap),
+                height,
+                vec2(cumulativeX, topLeftPos.y),
+                settings.gapSettings
+            );
+            cumulativeX += settings.gapSettings.width * screenWidth;
+        }
 
-        // draw the gap rate section
-        if (gapRate == 0) { settings.rateSettings.textColour = settings.neutralColour; }
-        else if (gapRate < 0) { settings.rateSettings.textColour = settings.positiveColour; }
-        else { settings.rateSettings.textColour = settings.negativeColour; }
+        if (settings.rateEnabled) {
+            // calculate the text colour based on the gap rate
+            if (gapRate == 0) { settings.rateSettings.textColour = settings.neutralColour; }
+            else if (gapRate < 0) { settings.rateSettings.textColour = settings.positiveColour; }
+            else { settings.rateSettings.textColour = settings.negativeColour; }
 
-        NormalSection(
-            GapToString(gapRate),
-            height,
-            vec2(cumulativeX, topLeftPos.y),
-            settings.rateSettings
-        );
+            // draw the gap rate section
+            NormalSection(
+                GapToString(gapRate),
+                height,
+                vec2(cumulativeX, topLeftPos.y),
+                settings.rateSettings
+            );
+        }
+    }
+
+    // returns the value as an index not position
+    int PlayerPosition(ref@[]@ ghosts) {
+        // iterate the ghosts list until we find an entry greater than on equal to 0 time
+        for (uint i = 0; i < ghosts.Length; i++) {
+            GhostGapData@ data = cast<GhostGapData@>(ghosts[i]);
+
+            print(i + " " + data.ghostInfo.name + " " + data.gap.GetGap());
+
+            // the position will be determined by the first gap that the player is faster than (<= 0)
+            // so return that index
+            if (data.gap.GetGap() <= 0) { return i; }
+        }
+
+        return ghosts.Length;
     }
 
     int CompareGhosts(ref@ a, ref@ b) {
@@ -263,6 +288,7 @@ namespace Render {
             ghostRefs.InsertLast(ghost);
         }
 
+        // sort the ghosts in order of fastest to slowest at any given time
         Sort(ghostRefs, @CompareGhosts);
 
         const float sectionHeight = settings.sectionHeight;
@@ -271,12 +297,19 @@ namespace Render {
             Display::GetHeight() * settings.position.y
         );
 
-        // sort the ghosts
+        const int playerRacePosition = PlayerPosition(ghostRefs);
+        print("PLAYER POS: " + playerRacePosition);
+
+        // render the sorted ghosts
         for (uint i = 0; i < ghostRefs.Length; i++) {
             GhostGapData@ data = cast<GhostGapData@>(ghostRefs[i]);
 
+            // race position is the index + 1 (for real position)
+            // then +1 if the index is after where the player is
+            const int racePosition = i + 1 + ((i >= playerRacePosition)? 1 : 0);
+
             NormalDrawEntry(
-                i + 1,
+                racePosition,
                 data.ghostInfo.name,
                 data.gap.GetGap(),
                 data.gap.GapRate(),
