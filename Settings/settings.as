@@ -40,7 +40,7 @@ namespace Settings {
         // the max size of the cache per cache list
         uint maxSize = 10000;
 
-        // used to increase the likelihood of cache hits with a smaller cache size my guessing the gap
+        // used to increase the likelihood of cache hits with a smaller cache size by guessing the gap
         bool useApproximation = false;
     }
 
@@ -55,5 +55,7 @@ namespace Settings {
     namespace Performance {
         uint framesBetweenLogValue = 1;
         uint framesBetweenGapValue = 1;
+
+        uint expectedFrameRate = 60;
     }
 }

@@ -46,3 +46,5 @@
     11.2 - Consider adding a function to SampleArray that allows for the insertion of a point based on the timestamp
     11.3 - Improve display for gap rate (e.g Toggleable, seperate bar)
     11.4 - Cache interpolation (interpolate the cache so that there is less processing later)
+    11.5 - Update frames between log/gap to an amount of time
+    11.6 - Re-implement settings' performance options

@@ -6,43 +6,51 @@ array<string> algorithmChoices = {
 
 // -----------------------------------------------------------------------------------------------
 
-void AllSettings() {
+void GeneralSettings() {
     // --------------------------------------------------------------------
     // numCars
 
     // get number of cars using custom wrapper thing
-    numCars = IntInput("Number of Cars", numCars, 1, 20);
+    Settings::Gap::numCars =
+        IntInput("Number of Cars", Settings::Gap::numCars, 1, 255);
 
     // --------------------------------------------------------------------
     // arrayMaxSize
 
     // get array max size using custom wrapper thing
-    arrayMaxSize = IntInput("Array Max Size", arrayMaxSize, 500, 10000000, 100);  // 500 - 10_000_000
+    Settings::Logger::arrayMaxSize =
+        IntInput("Array Max Size", Settings::Logger::arrayMaxSize, 500, 10000000, 100);  // 500 - 10_000_000
 
     // --------------------------------------------------------------------
     // framesBetweenLog
 
-    int value = IntInput("Frames Between Logging Point", framesBetweenLog.GetCount(), 1, 500, 1);
-    // set both the stored value and the actual value to the same number to preserve sync
-    SetLogValue(value);
+    Settings::Performance::framesBetweenLogValue =
+        IntInput(
+            "Frames Between Logging Point",
+            Settings::Performance::framesBetweenLogValue,
+            1, 500, 1
+        );
 
     // --------------------------------------------------------------------
     // framesBetweenGap
 
-    // reuses value
-    value = IntInput("Frames Between Getting Gap", framesBetweenGap.GetCount(), 1, 500, 1);
-    // set both the stored value and the actual value to the same number to preserve sync
-    SetGapValue(value);
+    Settings::Performance::framesBetweenGapValue =
+        IntInput(
+            "Frames Between Getting Gap",
+            Settings::Performance::framesBetweenGapValue,
+            1, 500, 1
+        );
 }
 
 void GapSettings() {
     // --------------------------------------------------------------------
     // gapAlg
 
-    if (algorithmChoice >= algorithmChoices.Length) { algorithmChoice = 0; } 
+    int algorithmChoice = int(Settings::Gap::algorithm);
 
     // toggle for use linear gap
-    useLinearGap = UI::Checkbox("Use Linear", useLinearGap);
+    Settings::Gap::useLinearGap =
+        UI::Checkbox("Use Linear", Settings::Gap::useLinearGap);
 
     // create the combo box for the gap algorithm
     if (UI::BeginCombo("Gap Algorithm", algorithmChoices[algorithmChoice])) {
@@ -55,10 +63,7 @@ void GapSettings() {
             if (UI::Selectable(algorithmChoices[i], isSelected)) {
                 // sets the new gap alg to the one defined by index
                 // need to use this function to prevent unusual desync
-                SetGapAlg(intToEnum(i));
-
-                // if selected, set setting to custom
-                performanceChoice = performanceOptions.Length - 1;
+                Settings::Gap::algorithm = intToEnum(i);
             }
         }
 
@@ -69,26 +74,31 @@ void GapSettings() {
     // searchRangeSeconds
 
     // only allow for changing this if using estimation algorithm
-    if (gapAlg == GapAlgorithm::Estimation) {
+    if (Settings::Gap::algorithm == GapAlgorithm::Estimation) {
         // get array max size using custom wrapper thing
-        searchRangeSeconds = IntInput("Search Radius (Seconds)", searchRangeSeconds, 1, 60, 1);
+        Settings::Gap::searchRangeSeconds =
+            IntInput("Search Radius (Seconds)", Settings::Gap::searchRangeSeconds, 1, 60, 1);
     }
     // only allow for changing this if using mod lin
-    else if (gapAlg == GapAlgorithm::Full) {
+    else if (Settings::Gap::algorithm == GapAlgorithm::Full) {
         // get array max size using custom wrapper thing
-        modLinResolution = IntInput("Search Resolution", modLinResolution, 2, 30, 1);
+        Settings::Gap::modLinResolution =
+            IntInput("Search Resolution", Settings::Gap::modLinResolution, 2, 30, 1);
     }
 }
 
 void CacheSettings() {
-    useCache = UI::Checkbox("Enable Cache", useCache);
+    Settings::Cache::enabled =
+        UI::Checkbox("Enable Cache", Settings::Cache::enabled);
 
-    if (useCache) {
+    if (Settings::Cache::enabled) {
         // cache max size
-        maxCacheSize = IntInput("Max Cache Size", maxCacheSize, 100, 25000 );
+        Settings::Cache::maxSize =
+            IntInput("Max Cache Size", Settings::Cache::maxSize, 100, 25000 );
     }
 
-    useCacheApproximation = UI::Checkbox("Enable Cache Approximation", useCacheApproximation);
+    Settings::Cache::useApproximation =
+        UI::Checkbox("Enable Cache Approximation", Settings::Cache::useApproximation);
 }
 
 void FileSettings() {
@@ -104,8 +114,8 @@ void FileSettings() {
 void AdvancedSettings() {
     UI::BeginTabBar("AdvancedTabBar");
 
-    if (UI::BeginTabItem("All")) {
-        AllSettings();
+    if (UI::BeginTabItem("General")) {
+        GeneralSettings();
 
         UI::EndTabItem();
     }

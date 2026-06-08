@@ -80,7 +80,8 @@ uint GetMinDistIndex(
 // used to specify in main which algorithm to use
 enum GapAlgorithm {
     Full,
-    Estimation
+    Estimation,
+    None
 };
 
 // function to convert numerical value to enum GapAlgorithm
@@ -95,6 +96,7 @@ GapAlgorithm intToEnum(int value) {
             enumValue = GapAlgorithm::Estimation;
             break;
         default:
+            enumValue = GapAlgorithm::None;
             break;
     }
 
