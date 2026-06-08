@@ -6,7 +6,11 @@
     2.2 - Test all gap algorithms (estimation when idx is out of range)
     2.3 - Fix the GapInfo to provide the distance
 
-3 - Improve gap display
+3 - Gap Related
+    3.1 - Update the gap manager such that it is more functional (passing in more values to the functions)
+    3.2 - as above + implement settings and stuff
+    3.3 - Add a GetCP and GetLap function to the GhostInfo class instead of having loads of different functions in the gap manager
+    (this will be helpful to allow multiplayer support such as COTD)
 
 4 - Re-implement save
 

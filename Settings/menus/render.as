@@ -69,81 +69,93 @@ void TableSectionSettings(const string&in sectionName, Render::NormalSectionSett
 void TableSettings() {
     Render::NormalSettings@ settings = Settings::UI::normalSettings;
 
-    bool enabled = UI::Checkbox("Enabled", EnabledStatus(0));
-    SetEnabled(0, enabled);
+    UI::BeginTabBar("TableSettingsBar");
 
-    UI::Separator();  // -----------------------------------------------------------------
+    // tab section for the basic general settings
+    if (UI::BeginTabItem("General")) {
+        bool enabled = UI::Checkbox("Enabled", EnabledStatus(0));
+        SetEnabled(0, enabled);
 
-    settings.position.x = RelativeWidth("X Position", settings.position.x);
-    settings.position.y = RelativeHeight("Y Position", settings.position.y);
+        UI::Separator();  // -----------------------------------------------------------------
 
-    UI::Separator();  // -----------------------------------------------------------------
+        settings.position.x = RelativeWidth("X Position", settings.position.x);
+        settings.position.y = RelativeHeight("Y Position", settings.position.y);
 
-    settings.neutralColour = UI::InputColor4("Neutral Gap Colour", settings.neutralColour);
-    settings.positiveColour = UI::InputColor4("Positive Gap Colour", settings.positiveColour);
-    settings.negativeColour = UI::InputColor4("Negative Gap Colour", settings.negativeColour);
+        UI::Separator();  // -----------------------------------------------------------------
 
-    UI::Separator();  // -----------------------------------------------------------------
+        settings.summary = UI::Checkbox("Enable Summary", settings.summary);
 
-    settings.summary = UI::Checkbox("Enable Summary", settings.summary);
+        // only render this if we want a summary
+        if (settings.summary) {
+            settings.numCarsInSummary = IntInput("Max Cars In Summary", settings.numCarsInSummary, 0, 1000);
+        }
 
-    // only render this if we want a summary
-    if (settings.summary) {
-        settings.numCarsInSummary = IntInput("Max Cars In Summary", settings.numCarsInSummary, 0, 1000);
+        UI::Separator();  // -----------------------------------------------------------------
+
+        settings.neutralColour = UI::InputColor4("Neutral Gap Colour", settings.neutralColour);
+        settings.positiveColour = UI::InputColor4("Positive Gap Colour", settings.positiveColour);
+        settings.negativeColour = UI::InputColor4("Negative Gap Colour", settings.negativeColour);
+
+        UI::EndTabItem();
     }
 
-    UI::Separator();  // -----------------------------------------------------------------
+    // tab item for the sections
+    if (UI::BeginTabItem("Sections")) {
+        settings.sectionHeight = RelativeHeight("Section Height", settings.sectionHeight);
+        settings.playerSectionYMargin = RelativeHeight("Player Y Margin", settings.playerSectionYMargin);
 
-    settings.sectionHeight = RelativeHeight("Section Height", settings.sectionHeight);
-    settings.playerSectionYMargin = RelativeHeight("Player Y Margin", settings.playerSectionYMargin);
+        UI::Separator();  // -----------------------------------------------------------------
 
-    UI::Separator();  // -----------------------------------------------------------------
+        UI::PushID(0);
+        settings.positionEnabled = UI::Checkbox("Position Enabled", settings.positionEnabled);
 
-    UI::PushID(0);
-    settings.positionEnabled = UI::Checkbox("Position Enabled", settings.positionEnabled);
+        // only render the section if it is enabled
+        if (settings.positionEnabled) {
+            TableSectionSettings("Position", settings.positionSettings);
+        }
 
-    // only render the section if it is enabled
-    if (settings.positionEnabled) {
-        TableSectionSettings("Position", settings.positionSettings);
+        UI::PopID();
+
+        UI::Separator();  // -----------------------------------------------------------------
+
+        UI::PushID(1);
+        settings.nameEnabled = UI::Checkbox("Name Enabled", settings.nameEnabled);
+
+        // only render the section if it is enabled
+        if (settings.nameEnabled) {
+            TableSectionSettings("Name", settings.nameSettings);
+        }
+
+        UI::PopID();
+
+        UI::Separator();  // -----------------------------------------------------------------
+
+        UI::PushID(2);
+        settings.gapEnabled = UI::Checkbox("Gap Enabled", settings.gapEnabled);
+
+        // only render the section if it is enabled
+        if (settings.gapEnabled) {
+            TableSectionSettings("Gap", settings.gapSettings);
+        }
+
+        UI::PopID();
+
+        UI::Separator();  // -----------------------------------------------------------------
+
+        UI::PushID(3);
+        settings.rateEnabled = UI::Checkbox("Gap Rate Enabled", settings.rateEnabled);
+
+        // only render the section if it is enabled
+        if (settings.rateEnabled) {
+            TableSectionSettings("Gap Rate", settings.rateSettings);
+        }
+
+        UI::PopID();
+
+        UI::EndTabItem();
     }
 
-    UI::PopID();
-
-    UI::Separator();  // -----------------------------------------------------------------
-
-    UI::PushID(1);
-    settings.nameEnabled = UI::Checkbox("Name Enabled", settings.nameEnabled);
-
-    // only render the section if it is enabled
-    if (settings.nameEnabled) {
-        TableSectionSettings("Name", settings.nameSettings);
-    }
-
-    UI::PopID();
-
-    UI::Separator();  // -----------------------------------------------------------------
-
-    UI::PushID(2);
-    settings.gapEnabled = UI::Checkbox("Gap Enabled", settings.gapEnabled);
-
-    // only render the section if it is enabled
-    if (settings.gapEnabled) {
-        TableSectionSettings("Gap", settings.gapSettings);
-    }
-
-    UI::PopID();
-
-    UI::Separator();  // -----------------------------------------------------------------
-
-    UI::PushID(3);
-    settings.rateEnabled = UI::Checkbox("Gap Rate Enabled", settings.rateEnabled);
-
-    // only render the section if it is enabled
-    if (settings.rateEnabled) {
-        TableSectionSettings("Gap Rate", settings.rateSettings);
-    }
-
-    UI::PopID();
+    UI::EndTabBar();
 }
 
 void BarSettings() {
