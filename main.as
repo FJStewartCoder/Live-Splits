@@ -46,15 +46,8 @@ void OnChangeTrack() {
 // know that the ghost has finished (only applies if you are slower than a ghost)
 
 void Main() {
-    // TODO:
-    // add load settings here once it is created
-
-    // upon loading sets the current config
-    // SetConfig();
-
-    // load values that need syncing
-    // LoadAlg();
-    // LoadCounters();
+    // load all of the settings
+    LoadSettings::All();
 
     // create the dist cache array
     MakeDistCacheArray();
@@ -162,3 +155,12 @@ void Update(float dt) {
     // FOR DEBUG
     // V3::FileTest();
 }
+
+// save all settings on destruction
+void Destroy() {
+    SaveSettings::All();
+}
+
+// when ending, destroy safely
+void OnDestroyed() { Destroy(); }
+void OnDisabled() { Destroy(); }

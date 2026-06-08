@@ -30,6 +30,8 @@
     7.2 - Add cache related settings
     7.3 - Add settings to determine how much of the array to search (e.g only search the current checkpoint or not)
 
+    7.4 - Make settings functional
+
 8 - UI
     8.1 - Consider changing the Normal UI to show the gap of the ghost to you rather that you to the ghost (just multiply by -1)
     8.2 - Update drawlist to background drawlist
