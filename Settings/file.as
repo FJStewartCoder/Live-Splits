@@ -61,12 +61,12 @@ namespace SaveSettings {
             {"xPos", settings.xPos},
             {"yPos", settings.yPos},
             {"transparency", settings.transparency},
-            {"backgroundColour", Serialise(settings.backgroundColour)},
-            {"outlineColour", Serialise(settings.outlineColour)},
-            {"lineColour", Serialise(settings.lineColour)},
-            {"positiveColour", Serialise(settings.positiveColour)},
-            {"negativeColour", Serialise(settings.negativeColour)},
-            {"textColour", Serialise(settings.textColour)},
+            {"backgroundColour", Cerealise(settings.backgroundColour)},
+            {"outlineColour", Cerealise(settings.outlineColour)},
+            {"lineColour", Cerealise(settings.lineColour)},
+            {"positiveColour", Cerealise(settings.positiveColour)},
+            {"negativeColour", Cerealise(settings.negativeColour)},
+            {"textColour", Cerealise(settings.textColour)},
             {"cornerRounding", settings.cornerRounding},
             {"outlineThickness", settings.outlineThickness},
             {"lineThickness", settings.lineThickness},
@@ -81,10 +81,46 @@ namespace SaveSettings {
         Json::ToFile(SaveLocations::UI::barFile.Path(), settingsJson);
     }
 
+    void TableSettings() {
+        Render::NormalSettings@ settings = Settings::UI::normalSettings;
+
+        dictionary settingsDict = {
+            {"summary", settings.summary},
+            {"numCarsInSummary", settings.numCarsInSummary},
+            {"positionSettings", Cerealise(settings.positionSettings)},
+            {"positionEnabled", settings.positionEnabled},
+            {"nameSettings", Cerealise(settings.nameSettings)},
+            {"nameEnabled", settings.nameEnabled},
+            {"gapSettings", Cerealise(settings.gapSettings)},
+            {"gapEnabled", settings.gapEnabled},
+            {"rateSettings", Cerealise(settings.rateSettings)},
+            {"rateEnabled", settings.rateEnabled},
+            {"sectionHeight", settings.sectionHeight},
+            {"playerSectionYMargin", settings.playerSectionYMargin},
+            {"position", Cerealise(settings.position)},
+            {"neutralColour", Cerealise(settings.neutralColour)},
+            {"positiveColour", Cerealise(settings.positiveColour)},
+            {"negativeColour", Cerealise(settings.negativeColour)}
+        };
+
+        Json::Value settingsJson(settingsDict);
+
+        // write the output to the normalFile
+        Json::ToFile(SaveLocations::UI::normalFile.Path(), settingsJson);
+    }
+
     void UI() {
         HandleFS();
 
         BarSettings();
+        TableSettings();
+
+        // save the base settings
+        dictionary settingsDict = {
+            {"enabledRenderingOptions", Settings::UI::enabledRenderingOptions}
+        };
+
+        Json::ToFile(SaveLocations::UI::baseFile.Path(), settingsDict);
     }
 
     void Performance() {
@@ -111,29 +147,71 @@ namespace LoadSettings {
         // get the json from the bar file
         Json::Value jsonSettings = Json::FromFile(SaveLocations::UI::barFile.Path());
 
-        // TODO: continue loading from here
-        auto tmp = settings;
-        print("BarSettings.width: " + tostring(tmp.width)); /* position and size */
-        print("BarSettings.height: " + tostring(tmp.height));
-        print("BarSettings.xPos: " + tostring(tmp.xPos));
-        print("BarSettings.yPos: " + tostring(tmp.yPos));
-        print("BarSettings.transparency: " + tostring(tmp.transparency)); /* colour and transparency */
-        print("BarSettings.backgroundColour: " + tostring(tmp.backgroundColour));
-        print("BarSettings.outlineColour: " + tostring(tmp.outlineColour));
-        print("BarSettings.lineColour: " + tostring(tmp.lineColour));
-        print("BarSettings.positiveColour: " + tostring(tmp.positiveColour));
-        print("BarSettings.negativeColour: " + tostring(tmp.negativeColour));
-        print("BarSettings.textColour: " + tostring(tmp.textColour));
-        print("BarSettings.cornerRounding: " + tostring(tmp.cornerRounding)); /* other style options */
-        print("BarSettings.outlineThickness: " + tostring(tmp.outlineThickness));
-        print("BarSettings.lineThickness: " + tostring(tmp.lineThickness));
-        print("BarSettings.fontWidth: " + tostring(tmp.fontWidth)); /* the width of the font relative to half of the width of the bar */
-        print("BarSettings.maxPositiveGap: " + tostring(tmp.maxPositiveGap)); /* both are in milliseconds (1.252s == 1252) */
-        print("BarSettings.maxNegativeGap: " + tostring(tmp.maxNegativeGap)); /* in reference to -1.2s */
+        // TODO: add protection against null values
+        settings.width = jsonSettings.Get("width");
+        settings.height = jsonSettings.Get("height");
+        settings.xPos = jsonSettings.Get("xPos");
+        settings.yPos = jsonSettings.Get("yPos");
+        settings.transparency = jsonSettings.Get("transparency");
+        settings.backgroundColour = UncerealiseVec3(jsonSettings.Get("backgroundColour"));
+        settings.outlineColour = UncerealiseVec3(jsonSettings.Get("outlineColour"));
+        settings.lineColour = UncerealiseVec3(jsonSettings.Get("lineColour"));
+        settings.positiveColour = UncerealiseVec3(jsonSettings.Get("positiveColour"));
+        settings.negativeColour = UncerealiseVec3(jsonSettings.Get("negativeColour"));
+        settings.textColour = UncerealiseVec3(jsonSettings.Get("textColour"));
+        settings.cornerRounding = jsonSettings.Get("cornerRounding");
+        settings.outlineThickness = jsonSettings.Get("outlineThickness");
+        settings.lineThickness = jsonSettings.Get("lineThickness");
+        settings.fontWidth = jsonSettings.Get("fontWidth");
+        settings.maxPositiveGap = jsonSettings.Get("maxPositiveGap");
+        settings.maxNegativeGap = jsonSettings.Get("maxNegativeGap");
+    }
+
+    void TableSettings() {
+        Render::NormalSettings@ settings = Settings::UI::normalSettings;
+
+        Json::Value jsonSettings = Json::FromFile(SaveLocations::UI::normalFile.Path());
+
+        settings.summary = jsonSettings.Get("summary");
+        settings.numCarsInSummary = jsonSettings.Get("numCarsInSummary");
+
+        settings.positionSettings = 
+            UncerealiseNormalSectionSettings(jsonSettings.Get("positionSettings"));
+        settings.positionEnabled = jsonSettings.Get("positionEnabled");
+
+        settings.nameSettings =
+            UncerealiseNormalSectionSettings(jsonSettings.Get("nameSettings"));
+        settings.nameEnabled = jsonSettings.Get("nameEnabled");
+
+        settings.gapSettings =
+            UncerealiseNormalSectionSettings(jsonSettings.Get("gapSettings"));
+        settings.gapEnabled = jsonSettings.Get("gapEnabled");
+
+        settings.rateSettings =
+            UncerealiseNormalSectionSettings(jsonSettings.Get("rateSettings"));
+        settings.rateEnabled = jsonSettings.Get("rateEnabled");
+
+        settings.sectionHeight = jsonSettings.Get("sectionHeight");
+        settings.playerSectionYMargin = jsonSettings.Get("playerSectionYMargin");
+
+        settings.position = UncerealiseVec2(jsonSettings.Get("position"));
+
+        settings.neutralColour = UncerealiseVec4(jsonSettings.Get("neutralColour"));
+        settings.positiveColour = UncerealiseVec4(jsonSettings.Get("positiveColour"));
+        settings.negativeColour = UncerealiseVec4(jsonSettings.Get("negativeColour"));
     }
 
     void UI() {
         HandleFS();
+
+        BarSettings();
+        TableSettings();
+
+        // load the settings from the base file
+        Json::Value jsonSettings = Json::FromFile(SaveLocations::UI::baseFile.Path());
+
+        // load the settings from the json 
+        Settings::UI::enabledRenderingOptions = jsonSettings.Get("enabledRenderingOptions");
     }
 
     void Performance() {
@@ -146,4 +224,9 @@ namespace LoadSettings {
         UI();
         Performance();
     }
+}
+
+// allows importing specific settings files
+namespace ImportSettings {
+
 }

@@ -32,6 +32,9 @@
 
     7.4 - Make settings functional
 
+    7.5 - Add protection against null values when loading (consider implementing a GetOr function for JSON)
+    7.6 - Add reset (just delete the current config) and importing functionalities (just copy the file into the place and rename)
+
 8 - UI
     8.1 - Consider changing the Normal UI to show the gap of the ghost to you rather that you to the ghost (just multiply by -1)
     8.2 - Update drawlist to background drawlist
