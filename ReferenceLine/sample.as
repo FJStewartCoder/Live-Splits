@@ -255,8 +255,7 @@ class SampleArray {
         CalculateStartIndices();
 
         uint defIdx = -1;
-
-        // iterate all definitions to find one that matches the request
+       
         // basic linear search
         for (uint i = 0; i < definitions.Length; i++) {
             SubSampleDefinition@ subSamples = definitions[i];
@@ -270,9 +269,52 @@ class SampleArray {
         // if no sample definition was found, return the default
         if (defIdx == uint(-1)) { return range; }
 
-        // TODO: find the range
+        // get the minimum and maximum lap we are searching for
+        int minLap = int(lap) - lapRange.x;
+        int maxLap = int(lap) + lapRange.y;
 
-        // TODO: figure out if length is one index too great
+        // the indicies of the ends of the range
+        uint minDefIdx = 0;
+        uint maxDefIdx = definitions.Length - 1;
+
+        // search the left side of the definitions to look for the min
+        for (int i = defIdx; i >= 0; i--) {
+            SubSampleDefinition @def = definitions[i];
+
+            // we are searching for the checkpoint that has the same cp but on the lap indicated by min lap
+            if (def.checkpoint == cp && def.lap == minLap) {
+                minDefIdx = i;
+                break;
+            }
+        }
+
+        // search the right side of the definitions to look for the max
+        for (int i = defIdx; i < definitions.Length; i++) {
+            SubSampleDefinition @def = definitions[i];
+
+            // we are searching for the checkpoint that has the same cp but on the lap indicated by max lap
+            if (def.checkpoint == cp && def.lap == maxLap) {
+                maxDefIdx = i;
+                break;
+            }
+        }
+        
+        // use the CPs to calculate the final bit
+        // subtract lCPs from the min and add rCPs to the max and validate it is in a reasonable range
+
+        // subtract minDefIndex (will be 0) if cpRange min is too big, otherwise subtract cpRange min
+        minDefIdx -= (cpRange.x > minDefIdx) ? minDefIdx : cpRange.x;
+
+        // add the right range to the max def idx
+        maxDefIdx += cpRange.y;
+        // set max def to itself if it is not greater than length else set to length - 1
+        maxDefIdx = (maxDefIdx < definitions.Length) ? maxDefIdx : definitions.Length - 1;
+
+        // finally calculate the min and max indices from the definitions
+        range.min = definitions[minDefIdx].startIdx;
+        range.max = definitions[maxDefIdx].CalculateEndIndex();
+
+        // return the range
         return range;
     }
 

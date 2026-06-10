@@ -15,6 +15,10 @@ class GapMgr {
     // estimation is the best
     GapAlgorithm algorithm = GapAlgorithm::Estimation;
 
+    // more gap related settings
+    bool useLinear = false;
+    uint searchRange = 50;
+
 
     RotatingCounter framesBetweenGap(3);
 
@@ -33,18 +37,40 @@ class GapMgr {
         ArrayRange range(0, reference.sampleArray.samples.Length);
 
         if (useCheckpointEstimation) {
-            PointLocation loc(checkpoint, lap);
-            range = reference.sampleArray.GetSampleRange(loc, loc);
+            // get the sample range 1cp each side of the current cp
+            range = reference.sampleArray.GetSampleRange(
+                checkpoint, lap,
+                int2(1, 1) // check 1cp either side
+            );
+
+            print(range.ToString());
         }
 
         // print(range.ToString());
 
         GapInfo gapInfo;
 
-        // gapInfo = GetGap::Estimation(p, reference.sampleArray, lastIdx, 50, range.min, range.max, false);
-        gapInfo = GetGap::Full(p, reference.sampleArray, range.min, range.max, false);
-        // gapInfo = GetGap::Full(p, reference.sampleArray, -1, -1, true);
+        switch (algorithm) {
+            case GapAlgorithm::Full:
+                gapInfo = GetGap::Full(
+                    p, reference.sampleArray, 
+                    range.min, range.max,
+                    useLinear
+                );
+                break;
 
+            case GapAlgorithm::Estimation:
+                gapInfo = GetGap::Estimation(
+                    p, reference.sampleArray,
+                    lastIdx, searchRange,
+                    range.min, range.max,
+                    useLinear
+                );
+                break;
+        }
+
+        // timestamp is the timestamp when the reference ghost reached the point the current car is
+        // the gap must therefore be the time difference between when this car and the reference car got to the same point
         gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
 
         return gapInfo;
@@ -182,7 +208,7 @@ class GapMgr {
         // get the hash
         uint ghostHash = GhostManager::GetGhostHash();
 
-        print(ghostHash + " " + lastGhostHash);
+        // print(ghostHash + " " + lastGhostHash);
 
         // check for hash equality
         const bool isHashEqual = ghostHash == lastGhostHash;

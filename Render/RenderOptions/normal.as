@@ -116,7 +116,7 @@ namespace Render {
         const vec2 topLeftPos,
         NormalSectionSettings@ settings
     ) {
-        UI::DrawList@ drawList = UI::GetForegroundDrawList();
+        UI::DrawList@ drawList = UI::GetBackgroundDrawList();
 
         const float width = settings.width * Display::GetWidth();
 

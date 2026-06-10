@@ -1,6 +1,3 @@
-1 - Ghost Management
-    No current issues
-
 2 - Gap Algorithms
     2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)
     2.2 - Test all gap algorithms (estimation when idx is out of range)
@@ -36,9 +33,8 @@
 
 8 - UI
     8.1 - Consider changing the Normal UI to show the gap of the ghost to you rather that you to the ghost (just multiply by -1)
-    8.2 - Update drawlist to background drawlist
-    8.3 - Update font size to be based on a percentage of the screen height (this will look nicer than being tied to the size of the bar)
-    8.4 - Add some sort of mask on the bar rendering for corner rounding
+    8.2 - Make all UI sizes relative (font, rounding, thickness)
+    8.3 - Fix corner rounding
 
 9 - Efficiency
     9.1 - Fix general efficiency and speed

@@ -137,7 +137,7 @@ class LogMgr : SubReferenceMgr {
         // prevents issues where player has respawned
         currentPoint.timeStamp -= player.TimeLostToRespawns;
         
-        print(currentPoint.Get());
+        // print(currentPoint.Get());
 
         // insert the new sample
         // TODO: set this accurately

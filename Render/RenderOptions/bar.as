@@ -274,7 +274,7 @@ namespace Render {
         vec2 centrePos = CalculateCentreBarPosition(settings);
         vec2 topLeft = CalculateBarTopLeft(width, height, centrePos);
 
-        UI::DrawList @drawList = UI::GetForegroundDrawList();
+        UI::DrawList @drawList = UI::GetBackgroundDrawList();
 
         // top left pos, then the size
         // draw the outer bar
