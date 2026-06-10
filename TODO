@@ -27,11 +27,13 @@
     6.2 - Only cache ghosts if they are known to be ghosts based on the type (also requires the types to be implemented)
 
 7 - Settings
-    7.1 - Fix settings (gap between log and stuff)
-    7.2 - Add cache related settings
-    7.3 - Add settings to determine how much of the array to search (e.g only search the current checkpoint or not)
+    7.1 - Add settings for anything that needs a settings and does not have it
+        - cacheSearchThreshold
+        - everything gap related
 
     7.4 - Make settings functional
+        - maxCacheEntries where ever they are created
+        - cacheSearchThreshold needs to be taken into account
 
     7.5 - Add protection against null values when loading (consider implementing a GetOr function for JSON)
     7.6 - Add reset (just delete the current config) and importing functionalities (just copy the file into the place and rename)

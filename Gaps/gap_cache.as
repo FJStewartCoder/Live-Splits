@@ -1,4 +1,3 @@
-// TODO: re-implement the max cache size
 // TODO: re-implement the approximation thing
 
 
@@ -31,6 +30,7 @@ class CacheEntry {
 
 class GapCache {
     array<CacheEntry> cacheEntries;
+    uint maxCacheEntries = uint(-1);
 
     uint cacheHits = 0;
     uint cacheAttempts = 0;
@@ -106,6 +106,11 @@ class GapCache {
     }
 
     void AddCache(int gap, uint timeStamp, uint idx) {
+        // don't add cache if there are no more entries to be added
+        if (cacheEntries.Length >= maxCacheEntries) {
+            return;
+        }
+
         // create a new entry
         CacheEntry entry(gap, timeStamp, idx);
 
