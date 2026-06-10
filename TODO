@@ -22,10 +22,6 @@
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
     5.2 - Don't cache the personal best ghost because it causes issues
 
-6 - Cache
-    6.1 - Delete the cache of your local ghosts when setting a new PB (or just don't cache them)
-    6.2 - Only cache ghosts if they are known to be ghosts based on the type (also requires the types to be implemented)
-
 7 - Settings
     7.1 - Add settings for anything that needs a settings and does not have it
         - cacheSearchThreshold
@@ -56,3 +52,7 @@
     11.4 - Cache interpolation (interpolate the cache so that there is less processing later)
     11.5 - Update frames between log/gap to an amount of time
     11.6 - Re-implement settings' performance options
+    11.7 - Migrate Logger to use GhostData rather than whatever it does now
+    11.8 - Multiplayer support (modify ghost manager to allow for collection of player data too)
+    11.9 - Allow personal best to be cached but delete when PB
+    11.10 - Consider re-implementing other Range checks of SampleArray such as getLap etc.

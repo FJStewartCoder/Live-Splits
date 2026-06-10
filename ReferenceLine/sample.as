@@ -237,32 +237,40 @@ class SampleArray {
         samples.Reserve(defaultSize);
     }
 
-    ArrayRange GetSampleRange(PointLocation start, PointLocation end) {
+    // by default return the whole array range if invalid
+    // mid is the mid point
+    // cpRange is the number of checkpoints to the left then right as the range
+    // lapRange is same as cpRange but for laps
+    // cp and lap range are additive not seperate e.g right 1 lap and 2 cp is possible
+    ArrayRange GetSampleRange(
+        uint cp,
+        uint lap,
+        int2 cpRange = int2(0, 0),
+        int2 lapRange = int2(0, 0)
+    ) {
+        // the return result
+        ArrayRange range(0, samples.Length);
+
+        // ensure that the start indices are calculated
         CalculateStartIndices();
 
-        ArrayRange range;
-        bool startSet = false;
+        uint defIdx = -1;
 
+        // iterate all definitions to find one that matches the request
+        // basic linear search
         for (uint i = 0; i < definitions.Length; i++) {
             SubSampleDefinition@ subSamples = definitions[i];
 
-            if (!MeetsCheckLocationCriteria(subSamples, start, end)) {
-                // if not met criteria and not start set, we are before start so continue
-                if (!startSet) { continue; }
-                
-                // if not, we are beyond the end. so, break
+            if (subSamples.checkpoint == cp && subSamples.lap == lap) {
+                defIdx = i;
                 break;
             }
-
-            // if the start is not set, set the min to the max because it stores the start idx
-            if (!startSet) {
-                range.min = subSamples.startIdx;
-                startSet = true;
-            }
-
-            // set the max index to the start + the length
-            range.max = subSamples.CalculateEndIndex();
         }
+
+        // if no sample definition was found, return the default
+        if (defIdx == uint(-1)) { return range; }
+
+        // TODO: find the range
 
         // TODO: figure out if length is one index too great
         return range;

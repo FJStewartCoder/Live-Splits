@@ -4,10 +4,16 @@ class GapMgr {
 
     // the hash to quickly decide when to refresh the ghosts
     uint lastGhostHash = 0;
-
+    
+    // optionally toggle the cache
+    bool cacheEnabled = true;
 
     // stores the player name then a cache array
     dictionary cacheDict;
+
+    // the chosen gap algorithm
+    // estimation is the best
+    GapAlgorithm algorithm = GapAlgorithm::Estimation;
 
 
     RotatingCounter framesBetweenGap(3);
@@ -46,56 +52,30 @@ class GapMgr {
 
     void EvaluateGap(GhostGapData@ data) {
         GhostData@ ghostInfo = data.ghostInfo;
-        GapInfo gap;
 
-        // if there is no extra data, just get the gap as usual
-        if (ghostInfo.ghostData is null) {
-            gap = EvaluateGapFromState(
-                ghostInfo.entityVis.AsyncState,
-                data.lastPointIdx,
-                false
-            );
-        }
-        // if there is extra data to work with, use it
-        else {
-            GhostExtraInfo extraData = GetExtraGhostInfo(data.ghostInfo.ghostData);
+        // get the cp and lap
+        uint cp = ghostInfo.GetCP();
+        uint lap = ghostInfo.GetLap();
 
-            // print(data.ghostName);
+        const bool useCpEstimation = (cp != uint(-1)) && (lap != uint(-1));
 
-            gap = EvaluateGapFromState(
-                ghostInfo.entityVis.AsyncState,
-                data.lastPointIdx,
-                true,
-                extraData.checkpoint,
-                extraData.lap
-            );
-        }
+        // get the gap
+        GapInfo gap = EvaluateGapFromState(
+            ghostInfo.entityVis.AsyncState,
+            data.lastPointIdx,
+            useCpEstimation,
+            cp,
+            lap
+        );
 
         // TODO: implement distance threshold
 
         data.ApplyRelGapInfo(gap);
     }
 
-    void InfolessGhostGap(GhostGapData@ data) {
-        // TODO: determine a method of analysing whether a ghost has finsihed
-        const bool isFinished = false;
-
-        if (!isFinished) { EvaluateGap(data); }
-        data.ApplyGapInfo(playerData);
-    }
-
-    void WithInfoGhostGap(GhostGapData@ data) {
-        // get the extra info
+    void CacheProcess(GhostGapData@ data) {
+        // get the info
         GhostData@ info = data.ghostInfo;
-
-        // calculate the extra ghost info
-        GhostExtraInfo extraInfo = GetExtraGhostInfo(info.ghostData);
-
-        // only evaluate the gap to the reference if the ghost has not finished
-        if (extraInfo.isFinished) {
-            data.ApplyGapInfo(playerData);
-            return;
-        }
 
         // if there is no cache entry for this ghost, create one
         if (!cacheDict.Exists(info.name)) {
@@ -131,13 +111,24 @@ class GapMgr {
     void HandleUpdateGhostGap(GhostGapData@ data) {
         GhostData@ info = data.ghostInfo;
 
-        // if there is no ghost data to work with, use a more primitive process
-        if (info.ghostData is null) {
-            InfolessGhostGap(data);
+        // if the ghost or player is finished, return
+        if (info.IsFinished()) {
             return;
         }
 
-        WithInfoGhostGap(data);
+        // only use cache if the ghost is cacheable and the cache is enabled
+        const bool useCache = cacheEnabled && info.IsCacheable();
+
+        if (useCache) {
+            CacheProcess(data);
+            return;
+        }
+
+        // evaluate the gap to the reference line 
+        EvaluateGap(data);
+
+        // calculate the gap for this ghost relative to the player
+        data.ApplyGapInfo(playerData);
     }
 
     void UpdateGaps() {

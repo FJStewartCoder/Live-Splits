@@ -2,9 +2,17 @@ namespace Render {
     void DebugRenderGhost(GhostGapData@ ghost) {
         UI::SeparatorText("");
 
-        UI::InputText("NAME", ghost.ghostInfo.name);
-        UI::InputInt("GHOST ID", ghost.ghostInfo.ghostId);
-        UI::InputInt("ENTITY ID", ghost.ghostInfo.entityId);
+        GhostData @info = ghost.ghostInfo;
+
+        UI::InputText("NAME", info.name);
+
+        if (info.ghostData !is null) {
+            UI::InputInt("GHOST ID", info.ghostData.IdUint);
+        }
+
+        if (info.entityVis !is null) {
+            UI::InputInt("ENTITY ID", GetEntityId(info.entityVis));
+        }
 
         UI::InputInt("GAPS LENGTH", ghost.gap.gaps.Length);
         UI::InputInt("GAP", ghost.gap.GetGap());
@@ -12,6 +20,8 @@ namespace Render {
         UI::InputInt("LAST REL GAP", ghost.rel.GetGap(1));
         UI::InputInt("GAP RATE", ghost.gap.GapRate());
         UI::InputInt("LAST IDX", ghost.lastPointIdx);
+
+        UI::InputText("TYPE", GhostTypeToString(ghost.ghostInfo.type));
     }
 
     void DebugCheckpoint() {

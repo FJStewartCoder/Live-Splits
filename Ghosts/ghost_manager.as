@@ -6,6 +6,10 @@ enum GhostType {
     // another player. e.g player in ranked
     // is live, can not be cached
     PLAYER,
+    
+    // is a ghost but is the personal best
+    // should not be cached as it may change
+    PERSONAL_BEST,
 
     // a ghost that has been recorded
     // is not live, can be cached
@@ -18,22 +22,152 @@ enum GhostType {
     NONE
 }
 
+const string GhostTypeToString(GhostType t) {
+    string res = "How did you do this?";
+
+    switch (t) {
+        case (GhostType::LOCAL_PLAYER):
+            res = "Local Player";
+            break;
+        case (GhostType::PLAYER):
+            res = "Player";
+            break;
+        case (GhostType::PERSONAL_BEST):
+            res = "Personal Best";
+            break;
+        case (GhostType::GHOST):
+            res = "Ghost";
+            break;
+        case (GhostType::UNKNOWN):
+            res = "Unknown";
+            break;
+        case (GhostType::NONE):
+            res = "None";
+            break;
+    }
+
+    return res;
+}
+
 class GhostData {
     // the name of the ghost
     string name;
 
-    // the entity id for the vehiclevis
-    uint entityId;
     // ptr to the entity vis
     CSceneVehicleVis@ entityVis = null;
 
-    // the ghost's id from MLFeed
-    uint ghostId;
     // the actual ghost data
     MLFeed::GhostInfo_V2@ ghostData = null;
 
+    // this is the data related to a player
+    MLFeed::PlayerCpInfo_V2@ playerData = null;
+
+
     // the type of ghost
     GhostType type = GhostType::NONE;
+
+    void CalcType() {
+        /*
+        RESEARCH:
+
+        LOCAL_PLAYER
+            - Entity ID designation is 0x02000000
+            - Can be found in MLFeed Race Feed
+
+        PLAYER
+            - Entity ID designation is unknown but presumed to be 0x03000000
+            - Can be found in MLFeed Race Feed
+
+        PERSONAL_BEST
+            - Entity ID designation is same as ghost 
+            - MLFeed has a variable for isPB which is true
+
+        GHOST
+            - Entity ID designation is 0x04000000
+            - It is found in MLFeed and nothing else applies
+
+        UNKNOWN
+            - Nothing above applies
+        NONE
+            - Has been assigned nothing
+
+        */
+
+        // if there ghost data, it must be a ghost
+        if (ghostData !is null) {
+            // if it is personal best, it is personal best
+            // if the name is the same as the player's name it is also the player
+            if (ghostData.IsPersonalBest || ghostData.Nickname == GetApp().LocalPlayerInfo.Name) {
+                type = GhostType::PERSONAL_BEST;
+            }
+            // otherwise it is just a ghost
+            else {
+                type = GhostType::GHOST;
+            }
+
+            return;
+        }
+
+        // if there is player data, it must be a player
+        if (playerData !is null) {
+            // if local player, then it is a local player
+            if (playerData.IsLocalPlayer) {
+                type = GhostType::LOCAL_PLAYER;
+            }
+            // otherwise it is just a normal player
+            else {
+                type = GhostType::PLAYER;
+            }
+
+            return;
+        }
+
+        // if there is entity vis data, we can probably calculate the type
+        if (entityVis !is null) {
+            uint entityId = GetEntityId(entityVis);
+
+            // if greater than 0x04, then it is a ghost
+            if (entityId >= 0x04000000) {
+                type = GhostType::GHOST;
+            }
+            // presumably greater than or equal to 0x03 is just a player
+            else if (entityId >= 0x03000000) {
+                type = GhostType::PLAYER;
+            }
+            // if greater than 0x02 but less than above, must be local player
+            else if (entityId >= 0x02000000) {
+                type = GhostType::LOCAL_PLAYER;
+            }
+
+            return;
+        }
+
+        // if all data points are null, there is no way of determining the type
+        type = GhostType::UNKNOWN;
+    }
+
+    uint GetCP() {
+        return -1;
+    }
+
+    uint GetLap() {
+        return -1;
+    }
+
+    bool IsFinished() {
+        return false;
+    }
+
+    // will not cache if name is not availiable and 
+    bool IsCacheable() {
+        const bool validType = (type == GhostType::GHOST);
+
+        const bool dataAvailable = (
+            (ghostData !is null) || (playerData !is null) 
+        );
+
+        return validType && dataAvailable;
+    }
 }
 
 class GapEntry {
@@ -247,39 +381,6 @@ namespace GhostManager {
         }
     }
 
-    GhostData[] GetVehicleVisAsGhosts() {
-        // ghost array to retun
-        GhostData[] ghosts;
-
-        // check that the scene is available
-        auto app = GetApp();
-        if (app is null) { return ghosts; }
-
-        auto scene = app.GameScene;
-        if (scene is null) { return ghosts; }
-
-        CSceneVehicleVis@[] visStates = VehicleState::GetAllVis(scene);
-
-        // skip the first entry since that is always the local player
-        for (uint i = 1; i < visStates.Length; i++) {
-            CSceneVehicleVis@ vis = visStates[i];
-            GhostData ghostData;
-
-            ghostData.entityId = GetEntityId(vis);
-            @ghostData.entityVis = vis;
-
-            ghostData.ghostId = 0;
-            @ghostData.ghostData = null;
-
-            ghostData.name = "Unknown";
-            ghostData.type = GhostType::UNKNOWN;
-
-            ghosts.InsertLast(ghostData);
-        }
-
-        return ghosts;
-    }
-
     GhostData[] GetAllGhosts() {
         // ghost array to retun
         GhostData[] ghosts;
@@ -302,9 +403,10 @@ namespace GhostManager {
         SortGhostInfo(mlGhosts);
 
         // if there are not the same number of ghosts as states as mlghosts, just use unnamed ghosts
-        if (visStates.Length - 1 != mlGhosts.Length) {
-            warn("Number of ML Ghosts does not match number of Vehicle States");
-            return GetVehicleVisAsGhosts();
+        const bool useMLFeedData = visStates.Length - 1 == mlGhosts.Length;
+
+        if (!useMLFeedData) {
+            warn("Reduced ghost data availiable");
         }
 
         // iterate the vehicle visibilities and relate them to the ghost 
@@ -314,21 +416,26 @@ namespace GhostManager {
             GhostData data;
 
             @data.entityVis = vis;
-            data.entityId = GetEntityId(vis);
 
-            @data.ghostData = mlGhosts[i - 1];
-            data.ghostId = data.ghostData.IdUint;
-            data.name = data.ghostData.Nickname;
+            // if we are using ML feed data, get it
+            if (useMLFeedData) {
+                @data.ghostData = mlGhosts[i - 1];
+                data.name = data.ghostData.Nickname;
+            }
 
-            // TODO: implement the corrent insertion method
+            data.CalcType();
+
             ghosts.InsertLast(data);
-
-            // TODO: implement enum type for ghosts
         }
 
         trace("Got all ghosts");
 
         return ghosts;
+    }
+    
+    // TODO: implement this
+    GhostData GetPlayer() {
+        return GhostData();
     }
 
     // TODO: improve the hash function
