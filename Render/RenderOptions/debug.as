@@ -21,6 +21,10 @@ namespace Render {
         UI::InputInt("GAP RATE", ghost.gap.GapRate());
         UI::InputInt("LAST IDX", ghost.lastPointIdx);
 
+        if (info !is null) {
+            UI::Checkbox("FINISHED", info.IsFinished());
+        }
+
         UI::InputText("TYPE", GhostTypeToString(ghost.ghostInfo.type));
     }
 

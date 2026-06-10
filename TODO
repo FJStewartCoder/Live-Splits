@@ -17,7 +17,6 @@
     (Probably related to when the player already has a PB so the PB ghost is named the same as the local player name so you get the ghost and not the player)
 
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
-    5.2 - Don't cache the personal best ghost because it causes issues
 
 7 - Settings
     7.1 - Add settings for anything that needs a settings and does not have it
@@ -52,3 +51,7 @@
     11.8 - Multiplayer support (modify ghost manager to allow for collection of player data too)
     11.9 - Allow personal best to be cached but delete when PB
     11.10 - Consider re-implementing other Range checks of SampleArray such as getLap etc.
+
+12 - Revelations
+    There is a discontinuityCount in VehicleState that shows if a ghost respawns
+    allows for use of a ghost to be logged

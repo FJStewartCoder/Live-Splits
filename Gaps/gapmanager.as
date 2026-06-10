@@ -43,10 +43,8 @@ class GapMgr {
                 int2(1, 1) // check 1cp either side
             );
 
-            print(range.ToString());
+            // print(range.ToString());
         }
-
-        // print(range.ToString());
 
         GapInfo gapInfo;
 
@@ -80,8 +78,12 @@ class GapMgr {
         GhostData@ ghostInfo = data.ghostInfo;
 
         // get the cp and lap
-        uint cp = ghostInfo.GetCP();
-        uint lap = ghostInfo.GetLap();
+        LapAndCp lapCp = ghostInfo.GetLapAndCP();
+
+        uint cp = lapCp.checkpoint;
+        uint lap = lapCp.lap;
+
+        // print("CP: " + cp + ", LAP: " + lap);
 
         const bool useCpEstimation = (cp != uint(-1)) && (lap != uint(-1));
 
@@ -139,6 +141,8 @@ class GapMgr {
 
         // if the ghost or player is finished, return
         if (info.IsFinished()) {
+            // update the gap to but don't recalculate the gap of the ghost, once finished
+            data.ApplyGapInfo(playerData);
             return;
         }
 

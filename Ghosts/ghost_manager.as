@@ -49,6 +49,11 @@ const string GhostTypeToString(GhostType t) {
     return res;
 }
 
+class LapAndCp {
+    uint lap;
+    uint checkpoint;
+}
+
 class GhostData {
     // the name of the ghost
     string name;
@@ -62,9 +67,16 @@ class GhostData {
     // this is the data related to a player
     MLFeed::PlayerCpInfo_V2@ playerData = null;
 
-
     // the type of ghost
     GhostType type = GhostType::NONE;
+
+    // used to determine whether or not the ghost has finished    
+    private uint timeAtLastCheck = 0;
+    private float lastWorldVel = 99999.9;
+    private vec3 lastPos = vec3(123, 456, 789);
+    private float lastFrontSpeed = 12345.67;
+    private bool lastFinishDecision = false;
+
 
     void CalcType() {
         /*
@@ -146,15 +158,111 @@ class GhostData {
         type = GhostType::UNKNOWN;
     }
 
-    uint GetCP() {
-        return -1;
-    }
+    LapAndCp GetLapAndCP() {
+        // reulst
+        LapAndCp res;
+        res.checkpoint = -1;
+        res.lap = -1;
 
-    uint GetLap() {
-        return -1;
+        const MLFeed::HookRaceStatsEventsBase_V4@ raceData = MLFeed::GetRaceData_V4();
+
+        // if there is no race data, the cp is undeterminable
+        if (raceData is null) { return res; }
+
+        // get the total cp count
+        uint cpCount = raceData.CpCount + 1;
+        int completedCPs = -1;
+
+        // if it is a type of ghost calculate the cps and laps one way
+        // also requires ghost data to be not null
+        if (
+            (type == GhostType::GHOST || type == GhostType::PERSONAL_BEST) &&
+            ghostData !is null
+        ) {
+            // get the current race time to calculate the number of checkpoints completed
+            uint currentTime = timer.GetTime();
+            auto ghostCPs = ghostData.get_Checkpoints();
+
+            // iterate each checkpoint time
+            // check if each cp time is greater than the current time
+            // this is therefore the checkpoint that the ghost is on
+            for (uint i = 0; i < ghostCPs.Length; i++) {
+                auto cpTime = ghostCPs[i];
+
+                if (cpTime > currentTime) {
+                    completedCPs = i;
+                    break;
+                }
+            }
+        }
+        // if it is a player, just grab the data
+        else if (playerData !is null) {
+            completedCPs = playerData.CpCount;
+        }
+
+        uint cp = completedCPs % cpCount;
+        uint lap = completedCPs / cpCount;
+
+        // calculate the final result
+        res.checkpoint = cp;
+        res.lap = lap;
+
+        return res;
     }
 
     bool IsFinished() {
+        // if we have player data, return the is finished value
+        if (playerData !is null) {
+            return playerData.IsFinished;
+        }
+
+        // if we have ghost data we can use it
+        // if the current time is after the finish time, it must be finished
+        if (ghostData !is null) {
+            return timer.GetTime() >= ghostData.Result_Time;
+        }
+
+        if (entityVis !is null && entityVis.AsyncState !is null) {
+            const uint currentTime = timer.GetTime();
+
+            const uint timeSinceLastCheck = currentTime - timeAtLastCheck;
+
+            // less than 0.03s
+            if (timeSinceLastCheck < 30) {
+                // return the same as last time
+                return lastFinishDecision;
+            }
+
+            const float curWorldVel = 
+                entityVis.AsyncState.WorldVel.Length();
+
+            const float frontSpeed = 
+                entityVis.AsyncState.FrontSpeed;
+            
+            const vec3 pos =
+                entityVis.AsyncState.Position;
+
+            const bool isFinished = (
+                (curWorldVel == lastWorldVel) &&
+                (frontSpeed == lastFrontSpeed) &&
+                (pos.x == lastPos.x && pos.y == lastPos.y && pos.z == lastPos.z)
+            );
+
+            // set lasts to currents after checking if they are different
+            lastWorldVel = curWorldVel;
+            lastFrontSpeed = frontSpeed;
+            lastPos = pos;
+
+            // set the time at last check
+            timeAtLastCheck = currentTime;
+
+            // set the last finish decision
+            lastFinishDecision = isFinished;
+
+            return isFinished;
+        }
+
+        // there is no hope
         return false;
     }
 
