@@ -187,6 +187,8 @@ namespace GetGap {
         @returnItem.point = samples[minIdx];
         // save the min index
         returnItem.index = minIdx;
+        // calculate the distance
+        returnItem.distance = GetDist(currentPoint, samples[minIdx]);
 
         return returnItem;
     }
@@ -198,7 +200,6 @@ namespace GetGap {
         uint estimatedIdx,
         uint searchRange = 75,
 
-        // TODO: integrate these later
         uint startIdx = -1,
         uint endIdx = -1,
         bool useLinear = false
@@ -249,6 +250,8 @@ namespace GetGap {
         @returnItem.point = samples[minIdx];
         // save the min index
         returnItem.index = minIdx;
+        // calculate the distance
+        returnItem.distance = GetDist(currentPoint, samples[minIdx]);
 
         return returnItem;
     }

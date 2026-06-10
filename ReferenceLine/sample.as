@@ -51,9 +51,6 @@ class ArrayRange {
     ArrayRange() {}
 }
 
-// TODO: update sample array to store seperate samples per checkpoint and lap
-// should fix issue with respawns and stuff
-
 class SubSampleDefinition {
     uint lap = 0;
     uint checkpoint = 0;

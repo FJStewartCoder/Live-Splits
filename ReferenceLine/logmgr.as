@@ -15,7 +15,6 @@ append current point to the current sample list
 
 /*
 TODO:
-- implement the frames between log in the logmgr class
 - implement log per s seconds rather than per frames
 */
 
@@ -42,9 +41,6 @@ class LogMgr : SubReferenceMgr {
 
         // get the rules
         CSmArenaRulesMode@ rules = cast<CSmArenaRulesMode@>(GetApp().PlaygroundScript);
-
-        // TODO: this could be useful
-        // rules.Ghost_GetPosition();
 
         Point@ firstPoint = sampleArray.samples[0];
 

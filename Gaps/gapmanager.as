@@ -19,6 +19,9 @@ class GapMgr {
     bool useLinear = false;
     uint searchRange = 50;
 
+    // if more than 500 dist from closest point, set rel gap to 0
+    float gapDistanceThreshold = 50;
+
 
     RotatingCounter framesBetweenGap(3);
 
@@ -40,7 +43,7 @@ class GapMgr {
             // get the sample range 1cp each side of the current cp
             range = reference.sampleArray.GetSampleRange(
                 checkpoint, lap,
-                int2(1, 1) // check 1cp either side
+                int2(0, 0) // check 0cp either side
             );
 
             // print(range.ToString());
@@ -67,9 +70,15 @@ class GapMgr {
                 break;
         }
 
-        // timestamp is the timestamp when the reference ghost reached the point the current car is
-        // the gap must therefore be the time difference between when this car and the reference car got to the same point
-        gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
+        // set the gap to 0 by default
+        gapInfo.gap = 0;
+
+        // if does not exceed the distance threshold, calculate the gap
+        if (gapInfo.distance <= gapDistanceThreshold) {
+            // timestamp is the timestamp when the reference ghost reached the point the current car is
+            // the gap must therefore be the time difference between when this car and the reference car got to the same point
+            gapInfo.gap = timer.GetTime() - gapInfo.point.timeStamp;
+        }
 
         return gapInfo;
     }
@@ -95,8 +104,6 @@ class GapMgr {
             cp,
             lap
         );
-
-        // TODO: implement distance threshold
 
         data.ApplyRelGapInfo(gap);
     }
