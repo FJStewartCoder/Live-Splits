@@ -47,8 +47,69 @@ void HandleFS() {
 }
 
 namespace SaveSettings {
+    dictionary Cache() {
+        dictionary settingsDict = {
+            {"enabled", Settings::Cache::enabled},
+            {"maxSize", Settings::Cache::maxSize},
+            {"useApproximation", Settings::Cache::useApproximation}
+        };
+
+        return settingsDict;
+    }
+
+    dictionary Gap() {
+        dictionary settingsDict = {
+            {"numCars", Settings::Gap::numCars},
+            {"getGapOverride", Settings::Gap::getGapOverride},
+            {"searchRangeSeconds", Settings::Gap::searchRangeSeconds},
+            {"useLinearGap", Settings::Gap::useLinearGap},
+            {"modLinResolution", Settings::Gap::modLinResolution},
+            {"algorithm", Settings::Gap::algorithm}
+        };
+
+        return settingsDict;
+    }
+
+    dictionary General() {
+        dictionary settingsDict = {
+            {"pluginEnabled", Settings::General::pluginEnabled}
+        };
+
+        return settingsDict;
+    }
+
+    dictionary Logger() {
+        dictionary settingsDict = {
+            {"arrayMaxSize", Settings::Logger::arrayMaxSize}
+        };
+
+        return settingsDict;
+    }
+
+    dictionary Save() {
+        dictionary settingsDict = {
+            {"enabled", Settings::Save::enabled}
+        };
+
+        return settingsDict;
+    }
+
     void Base() {
         HandleFS();
+
+        dictionary settingsDict = {
+            {"cache", Cache()},
+            {"gap", Gap()},
+            {"general", General()},
+            {"logger", Logger()},
+            {"save", Save()}
+        };
+
+        Json::Value jsonSettings(settingsDict);
+
+        print(Json::Write(jsonSettings, true));
+
+        Json::ToFile(SaveLocations::Base::file.Path(), jsonSettings);
     }
 
     void BarSettings() {
@@ -125,6 +186,16 @@ namespace SaveSettings {
 
     void Performance() {
         HandleFS();
+
+        dictionary settingsDict = {
+            {"framesBetweenLogValue", Settings::Performance::framesBetweenLogValue},
+            {"framesBetweenGapValue", Settings::Performance::framesBetweenGapValue},
+            {"expectedFrameRate", Settings::Performance::expectedFrameRate}
+        };
+
+        Json::Value jsonSettings(settingsDict);
+
+        Json::ToFile(SaveLocations::Performance::file.Path(), jsonSettings);
     }
 
     // just calls every thing else
@@ -136,8 +207,43 @@ namespace SaveSettings {
 }
 
 namespace LoadSettings {
+    void Cache(Json::Value@ settings) {
+        Settings::Cache::enabled = settings.Get("enabled");
+        Settings::Cache::maxSize = settings.Get("maxSize");
+        Settings::Cache::useApproximation = settings.Get("useApproximation");
+    }
+
+    void Gap(Json::Value@ settings) {
+        Settings::Gap::numCars = settings.Get("numCars");
+        Settings::Gap::getGapOverride = settings.Get("getGapOverride");
+        Settings::Gap::searchRangeSeconds = settings.Get("searchRangeSeconds");
+        Settings::Gap::useLinearGap = settings.Get("useLinearGap");
+        Settings::Gap::modLinResolution = settings.Get("modLinResolution");
+        Settings::Gap::algorithm = intToEnum(settings.Get("algorithm"));
+    }
+
+    void General(Json::Value@ settings) {
+        Settings::General::pluginEnabled = settings.Get("pluginEnabled");
+    }
+
+    void Logger(Json::Value@ settings) {
+        Settings::Logger::arrayMaxSize = settings.Get("arrayMaxSize");
+    }
+
+    void Save(Json::Value@ settings) {
+        Settings::Save::enabled = settings.Get("enabled");
+    }
+
     void Base() {
         HandleFS();
+
+        Json::Value jsonSettings = Json::FromFile(SaveLocations::Base::file.Path());
+
+        Cache(jsonSettings.Get("cache"));
+        Gap(jsonSettings.Get("gap"));
+        General(jsonSettings.Get("general"));
+        Logger(jsonSettings.Get("logger"));
+        Save(jsonSettings.Get("save"));
     }
 
     void BarSettings() {
@@ -216,6 +322,12 @@ namespace LoadSettings {
 
     void Performance() {
         HandleFS();
+
+        Json::Value jsonSettings = Json::FromFile(SaveLocations::Performance::file.Path());
+
+        Settings::Performance::framesBetweenLogValue = jsonSettings.Get("framesBetweenLogValue");
+        Settings::Performance::framesBetweenGapValue = jsonSettings.Get("framesBetweenGapValue");
+        Settings::Performance::expectedFrameRate = jsonSettings.Get("expectedFrameRate");
     }
 
     // calls the other functions

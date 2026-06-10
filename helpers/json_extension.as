@@ -102,6 +102,7 @@ Render::TextAlignment UncerealiseTextAlignment(const Json::Value@ value) {
 
     return res;
 }
+
 Render::NormalSectionSettings UncerealiseNormalSectionSettings(const Json::Value@ value) {
     Render::NormalSectionSettings settings;
 
