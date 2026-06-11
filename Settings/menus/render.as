@@ -32,10 +32,10 @@ const string TextAlignmentToString(Render::TextAlignment alignment) {
 }
 
 void TableSectionSettings(const string&in sectionName, Render::NormalSectionSettings@ settings) {
-    settings.width = RelativeWidth(sectionName + " Width", settings.width);
+    settings.width = UIX::RelativeWidth(sectionName + " Width", settings.width);
 
     const int fullWidth = settings.width * Display::GetWidth();
-    settings.padding = IntInput(sectionName + " Padding", settings.padding, 0, int(fullWidth / 2));
+    settings.padding = UIX::InputInt(sectionName + " Padding", settings.padding, 0, int(fullWidth / 2));
 
     // text alignment settings below
     const string textAlignmentString = TextAlignmentToString(settings.textAlignment);
@@ -62,8 +62,8 @@ void TableSectionSettings(const string&in sectionName, Render::NormalSectionSett
     }
 
     // colour related settings
-    settings.backgroundColour = UI::InputColor4("Background Colour", settings.backgroundColour);
-    settings.textColour = UI::InputColor4("Text Colour", settings.textColour);
+    settings.backgroundColour = UIX::InputColor4("Background Colour", settings.backgroundColour);
+    settings.textColour = UIX::InputColor4("Text Colour", settings.textColour);
 }
 
 void TableSettings() {
@@ -73,41 +73,41 @@ void TableSettings() {
 
     // tab section for the basic general settings
     if (UI::BeginTabItem("General")) {
-        bool enabled = UI::Checkbox("Enabled", EnabledStatus(0));
+        bool enabled = UIX::Checkbox("Enabled", EnabledStatus(0));
         SetEnabled(0, enabled);
 
         UI::Separator();  // -----------------------------------------------------------------
 
-        settings.position.x = RelativeWidth("X Position", settings.position.x);
-        settings.position.y = RelativeHeight("Y Position", settings.position.y);
+        settings.position.x = UIX::RelativeWidth("X Position", settings.position.x);
+        settings.position.y = UIX::RelativeHeight("Y Position", settings.position.y);
 
         UI::Separator();  // -----------------------------------------------------------------
 
-        settings.summary = UI::Checkbox("Enable Summary", settings.summary);
+        settings.summary = UIX::Checkbox("Enable Summary", settings.summary);
 
         // only render this if we want a summary
         if (settings.summary) {
-            settings.numCarsInSummary = IntInput("Max Cars In Summary", settings.numCarsInSummary, 0, 1000);
+            settings.numCarsInSummary = UIX::InputInt("Max Cars In Summary", settings.numCarsInSummary, 0, 1000);
         }
 
         UI::Separator();  // -----------------------------------------------------------------
 
-        settings.neutralColour = UI::InputColor4("Neutral Gap Colour", settings.neutralColour);
-        settings.positiveColour = UI::InputColor4("Positive Gap Colour", settings.positiveColour);
-        settings.negativeColour = UI::InputColor4("Negative Gap Colour", settings.negativeColour);
+        settings.neutralColour = UIX::InputColor4("Neutral Gap Colour", settings.neutralColour);
+        settings.positiveColour = UIX::InputColor4("Positive Gap Colour", settings.positiveColour);
+        settings.negativeColour = UIX::InputColor4("Negative Gap Colour", settings.negativeColour);
 
         UI::EndTabItem();
     }
 
     // tab item for the sections
     if (UI::BeginTabItem("Sections")) {
-        settings.sectionHeight = RelativeHeight("Section Height", settings.sectionHeight);
-        settings.playerSectionYMargin = RelativeHeight("Player Y Margin", settings.playerSectionYMargin);
+        settings.sectionHeight = UIX::RelativeHeight("Section Height", settings.sectionHeight);
+        settings.playerSectionYMargin = UIX::RelativeHeight("Player Y Margin", settings.playerSectionYMargin);
 
         UI::Separator();  // -----------------------------------------------------------------
 
         UI::PushID(0);
-        settings.positionEnabled = UI::Checkbox("Position Enabled", settings.positionEnabled);
+        settings.positionEnabled = UIX::Checkbox("Position Enabled", settings.positionEnabled);
 
         // only render the section if it is enabled
         if (settings.positionEnabled) {
@@ -119,7 +119,7 @@ void TableSettings() {
         UI::Separator();  // -----------------------------------------------------------------
 
         UI::PushID(1);
-        settings.nameEnabled = UI::Checkbox("Name Enabled", settings.nameEnabled);
+        settings.nameEnabled = UIX::Checkbox("Name Enabled", settings.nameEnabled);
 
         // only render the section if it is enabled
         if (settings.nameEnabled) {
@@ -131,7 +131,7 @@ void TableSettings() {
         UI::Separator();  // -----------------------------------------------------------------
 
         UI::PushID(2);
-        settings.gapEnabled = UI::Checkbox("Gap Enabled", settings.gapEnabled);
+        settings.gapEnabled = UIX::Checkbox("Gap Enabled", settings.gapEnabled);
 
         // only render the section if it is enabled
         if (settings.gapEnabled) {
@@ -143,7 +143,7 @@ void TableSettings() {
         UI::Separator();  // -----------------------------------------------------------------
 
         UI::PushID(3);
-        settings.rateEnabled = UI::Checkbox("Gap Rate Enabled", settings.rateEnabled);
+        settings.rateEnabled = UIX::Checkbox("Gap Rate Enabled", settings.rateEnabled);
 
         // only render the section if it is enabled
         if (settings.rateEnabled) {
@@ -161,25 +161,25 @@ void TableSettings() {
 void BarSettings() {
     Render::BarSettings@ settings = Settings::UI::barSettings;
 
-    bool enabled = UI::Checkbox("Enabled", EnabledStatus(1));
+    bool enabled = UIX::Checkbox("Enabled", EnabledStatus(1));
     SetEnabled(1, enabled);
 
     UI::Separator();  // -----------------------------------------------------------------
 
-    settings.width = RelativeWidth("Width", settings.width);
-    settings.height = RelativeHeight("Height", settings.height);
+    settings.width = UIX::RelativeWidth("Width", settings.width);
+    settings.height = UIX::RelativeHeight("Height", settings.height);
 
-    settings.xPos = RelativeWidth("X Position", settings.xPos);
-    settings.yPos = RelativeHeight("Y Position", settings.yPos);
+    settings.xPos = UIX::RelativeWidth("X Position", settings.xPos);
+    settings.yPos = UIX::RelativeHeight("Y Position", settings.yPos);
 
     UI::Separator();  // -----------------------------------------------------------------
 
-    settings.backgroundColour = UI::InputColor3("Background Colour", settings.backgroundColour);
-    settings.outlineColour = UI::InputColor3("Outline Colour", settings.outlineColour);
-    settings.lineColour = UI::InputColor3("Line Colour", settings.lineColour);
-    settings.positiveColour = UI::InputColor3("Positive Colour", settings.positiveColour);
-    settings.negativeColour = UI::InputColor3("Negative Colour", settings.negativeColour);
-    settings.textColour = UI::InputColor3("Text Colour", settings.textColour);
+    settings.backgroundColour = UIX::InputColor3("Background Colour", settings.backgroundColour);
+    settings.outlineColour = UIX::InputColor3("Outline Colour", settings.outlineColour);
+    settings.lineColour = UIX::InputColor3("Line Colour", settings.lineColour);
+    settings.positiveColour = UIX::InputColor3("Positive Colour", settings.positiveColour);
+    settings.negativeColour = UIX::InputColor3("Negative Colour", settings.negativeColour);
+    settings.textColour = UIX::InputColor3("Text Colour", settings.textColour);
 
     // transparency needs to be first converted to be out of 100
     double transparency = settings.transparency * 100;
@@ -188,10 +188,10 @@ void BarSettings() {
 
     UI::Separator();  // -----------------------------------------------------------------
 
-    settings.cornerRounding = IntInput("Corner Rounding", settings.cornerRounding, 0, 10000);
+    settings.cornerRounding = UIX::InputInt("Corner Rounding", settings.cornerRounding, 0, 10000);
 
-    settings.outlineThickness = FloatInput("Outline Thickness", settings.outlineThickness, 0, 1000, 1, 2, "%.0f");
-    settings.lineThickness = FloatInput("Line Thickness", settings.lineThickness, 0, 1000, 1, 2, "%.0f");
+    settings.outlineThickness = UIX::InputFloat("Outline Thickness", settings.outlineThickness, 0, 1000, 1, 2, "%.0f");
+    settings.lineThickness = UIX::InputFloat("Line Thickness", settings.lineThickness, 0, 1000, 1, 2, "%.0f");
 
     double fontSize = settings.fontWidth * 100;
     fontSize = UI::SliderDouble("Font Size", fontSize, 0, 100, "%.1f%%");
@@ -203,8 +203,8 @@ void BarSettings() {
     double maxNegativeGap = double(settings.maxNegativeGap) / 1000;
 
     // max gap is 10 hours because 60 * 60 == 1 hour * 10 = 10 hours
-    maxPositiveGap = FloatInput("Max Positive Gap", maxPositiveGap, 0.001, 36000.0, 0.25, 1, "%.3fs");
-    maxNegativeGap = FloatInput("Max Negative Gap", maxNegativeGap, 0.001, 36000.0, 0.25, 1, "%.3fs");
+    maxPositiveGap = UIX::InputFloat("Max Positive Gap", maxPositiveGap, 0.001, 36000.0, 0.25, 1, "%.3fs");
+    maxNegativeGap = UIX::InputFloat("Max Negative Gap", maxNegativeGap, 0.001, 36000.0, 0.25, 1, "%.3fs");
 
     // update the values to be the correct format
     settings.maxPositiveGap = maxPositiveGap * 1000;
@@ -212,7 +212,7 @@ void BarSettings() {
 }
 
 void DebugSettings() {
-    bool enabled = UI::Checkbox("Enabled", EnabledStatus(2));
+    bool enabled = UIX::Checkbox("Enabled", EnabledStatus(2));
     SetEnabled(2, enabled);
 }
 

@@ -12,20 +12,20 @@ void GeneralSettings() {
 
     // get number of cars using custom wrapper thing
     Settings::Gap::numCars =
-        IntInput("Number of Cars", Settings::Gap::numCars, 1, 255);
+        UIX::InputInt("Number of Cars", Settings::Gap::numCars, 1, 255);
 
     // --------------------------------------------------------------------
     // arrayMaxSize
 
     // get array max size using custom wrapper thing
     Settings::Logger::arrayMaxSize =
-        IntInput("Array Max Size", Settings::Logger::arrayMaxSize, 500, 10000000, 100);  // 500 - 10_000_000
+        UIX::InputInt("Array Max Size", Settings::Logger::arrayMaxSize, 500, 10000000, 100);  // 500 - 10_000_000
 
     // --------------------------------------------------------------------
     // framesBetweenLog
 
     Settings::Performance::framesBetweenLogValue =
-        IntInput(
+        UIX::InputInt(
             "Frames Between Logging Point",
             Settings::Performance::framesBetweenLogValue,
             1, 500, 1
@@ -35,7 +35,7 @@ void GeneralSettings() {
     // framesBetweenGap
 
     Settings::Performance::framesBetweenGapValue =
-        IntInput(
+        UIX::InputInt(
             "Frames Between Getting Gap",
             Settings::Performance::framesBetweenGapValue,
             1, 500, 1
@@ -50,7 +50,7 @@ void GapSettings() {
 
     // toggle for use linear gap
     Settings::Gap::useLinearGap =
-        UI::Checkbox("Use Linear", Settings::Gap::useLinearGap);
+        UIX::Checkbox("Use Linear", Settings::Gap::useLinearGap);
 
     // create the combo box for the gap algorithm
     if (UI::BeginCombo("Gap Algorithm", algorithmChoices[algorithmChoice])) {
@@ -77,28 +77,28 @@ void GapSettings() {
     if (Settings::Gap::algorithm == GapAlgorithm::Estimation) {
         // get array max size using custom wrapper thing
         Settings::Gap::searchRangeSeconds =
-            IntInput("Search Radius (Seconds)", Settings::Gap::searchRangeSeconds, 1, 60, 1);
+            UIX::InputInt("Search Radius (Seconds)", Settings::Gap::searchRangeSeconds, 1, 60, 1);
     }
     // only allow for changing this if using mod lin
     else if (Settings::Gap::algorithm == GapAlgorithm::Full) {
         // get array max size using custom wrapper thing
         Settings::Gap::modLinResolution =
-            IntInput("Search Resolution", Settings::Gap::modLinResolution, 2, 30, 1);
+            UIX::InputInt("Search Resolution", Settings::Gap::modLinResolution, 2, 30, 1);
     }
 }
 
 void CacheSettings() {
     Settings::Cache::enabled =
-        UI::Checkbox("Enable Cache", Settings::Cache::enabled);
+        UIX::Checkbox("Enable Cache", Settings::Cache::enabled);
 
     if (Settings::Cache::enabled) {
         // cache max size
         Settings::Cache::maxSize =
-            IntInput("Max Cache Size", Settings::Cache::maxSize, 100, 25000 );
+            UIX::InputInt("Max Cache Size", Settings::Cache::maxSize, 100, 25000 );
     }
 
     Settings::Cache::useApproximation =
-        UI::Checkbox("Enable Cache Approximation", Settings::Cache::useApproximation);
+        UIX::Checkbox("Enable Cache Approximation", Settings::Cache::useApproximation);
 }
 
 void FileSettings() {

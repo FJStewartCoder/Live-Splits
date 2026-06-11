@@ -49,6 +49,7 @@
     11.8 - Multiplayer support (modify ghost manager to allow for collection of player data too)
     11.9 - Allow personal best to be cached but delete when PB
     11.10 - Consider re-implementing other Range checks of SampleArray such as getLap etc.
+    11.11 - Dragable UI elements
 
 12 - Revelations
     There is a discontinuityCount in VehicleState that shows if a ghost respawns
