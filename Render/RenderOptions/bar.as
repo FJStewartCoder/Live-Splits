@@ -18,7 +18,7 @@ float GetLineOffset(
 }
 
 vec2 CalculateCentreBarPosition(Render::BarSettings@ settings) {
-    return vec2(Display::GetWidth() * settings.xPos, Display::GetHeight() * settings.yPos);
+    return vec2(FromRelativeWidth(settings.xPos), FromRelativeHeight(settings.yPos));
 }
 
 vec2 CalculateBarTopLeft(double width, double height, vec2 centrePos) {
@@ -42,6 +42,22 @@ double CalculateFontSizeForWidth(const string &in text, double desiredWidth, UI:
     return baseFontSize * scaleFactor;
 }
 
+double CalculateCornerRounding(
+    float relativeCornerRounding,
+    float width, float height
+) {
+    // take the min and use that as the relative
+    return relativeCornerRounding * Math::Min(width, height);
+}
+
+double FromRelativeWidth(float value) {
+    return value * Display::GetWidth();
+}
+
+double FromRelativeHeight(float value) {
+    return value * Display::GetHeight();
+}
+
 namespace Render {
     // 99 hours, 59 minutes, 59 seconds, 999 millis
     const string TEST_TEXT = "+99:59:59.999";
@@ -62,8 +78,10 @@ namespace Render {
         vec3 negativeColour;
         vec3 textColour;
 
-        // other style options
+        // corner rounding is relative to the the smallest half height
         double cornerRounding;
+
+        // both below are relative to the width
         double outlineThickness;
         double lineThickness;
 
@@ -91,9 +109,9 @@ namespace Render {
             negativeColour = vec3(1, 0, 0);
             textColour = vec3(1, 1, 1);
 
-            cornerRounding = 5;
-            outlineThickness = 2;
-            lineThickness = 1;
+            cornerRounding = 0.1;
+            outlineThickness = 0.005;
+            lineThickness = 0.0025;
 
             fontWidth = 0.4;
 
@@ -139,7 +157,7 @@ namespace Render {
             vec2(centre.x - drawX, centre.y + (barHeight / 2)),
             vec2(centre.x - drawX, centre.y - (barHeight / 2)),
             RGBToRGBA(settings.lineColour, settings.transparency),
-            settings.lineThickness
+            FromRelativeWidth(settings.lineThickness)
         );
     }
 
@@ -263,9 +281,9 @@ namespace Render {
         }
 
         // quarter screen width
-        float width = Display::GetWidth() * settings.width;
+        float width = FromRelativeWidth(settings.width);
         // 16th screen height
-        float height = Display::GetHeight() * settings.height;
+        float height = FromRelativeHeight(settings.height);
 
         // calculate the desired text width and font size using the test text 
         double desiredTextWidth = (width / 2) * settings.fontWidth;
@@ -274,6 +292,9 @@ namespace Render {
         vec2 centrePos = CalculateCentreBarPosition(settings);
         vec2 topLeft = CalculateBarTopLeft(width, height, centrePos);
 
+        const float cornerRounding = CalculateCornerRounding(
+            settings.cornerRounding, width, height);
+
         UI::DrawList @drawList = UI::GetBackgroundDrawList();
 
         // top left pos, then the size
@@ -281,7 +302,7 @@ namespace Render {
         drawList.AddRectFilled(
             vec4(topLeft.x, topLeft.y, width, height),
             RGBToRGBA(settings.backgroundColour, settings.transparency),
-            settings.cornerRounding
+            cornerRounding
         );
 
         auto ghosts = gapMgr.ghostGaps;
@@ -348,20 +369,23 @@ namespace Render {
             DrawBarText(text, settings, drawList, fontSize, width, height, centrePos, BarSide::LEFT);
         }
 
+        // calculate the outline thickness from the relative
+        const double outlineThickness = FromRelativeWidth(settings.outlineThickness);
+
         // draw the centre line
         drawList.AddLine(
             vec2(centrePos.x, centrePos.y + (height / 2)),
             vec2(centrePos.x, centrePos.y - (height / 2)),
             RGBToRGBA(settings.outlineColour, settings.transparency),
-            settings.outlineThickness
+            outlineThickness
         );
 
         // draw outer border
         drawList.AddRect(
             vec4(topLeft.x, topLeft.y, width, height),
             RGBToRGBA(settings.outlineColour, settings.transparency),
-            settings.cornerRounding,
-            settings.outlineThickness
+            cornerRounding,
+            outlineThickness
         );
     }
 }

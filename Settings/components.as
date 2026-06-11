@@ -91,6 +91,24 @@ namespace UIX {
         return newValue;
     }
 
+    double PercentageSlider(
+        const string&in label,
+        const double value,
+        Callback@ onUpdate = UIX::OnSettingsUpdate
+    ) {
+        double asHumanReadable = value * 100;
+
+        double newHumanReadable = UI::SliderDouble(
+            label, asHumanReadable, 0, 100, "%.1f%%"
+        );
+
+        double newValue = newHumanReadable / 100;
+
+        if ((value != newValue) && (onUpdate !is null)) { onUpdate(); }
+
+        return newValue;
+    }
+
     bool Checkbox(
         const string&in label,
         const bool value,

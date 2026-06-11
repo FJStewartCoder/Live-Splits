@@ -188,10 +188,12 @@ void BarSettings() {
 
     UI::Separator();  // -----------------------------------------------------------------
 
-    settings.cornerRounding = UIX::InputInt("Corner Rounding", settings.cornerRounding, 0, 10000);
+    settings.cornerRounding = UIX::PercentageSlider(
+        "Corner Rounding", settings.cornerRounding);
 
-    settings.outlineThickness = UIX::InputFloat("Outline Thickness", settings.outlineThickness, 0, 1000, 1, 2, "%.0f");
-    settings.lineThickness = UIX::InputFloat("Line Thickness", settings.lineThickness, 0, 1000, 1, 2, "%.0f");
+    // these are relative to the width of the screen
+    settings.outlineThickness = UIX::RelativeWidth("Outline Thickness", settings.outlineThickness);
+    settings.lineThickness = UIX::RelativeWidth("Line Thickness", settings.lineThickness);
 
     double fontSize = settings.fontWidth * 100;
     fontSize = UI::SliderDouble("Font Size", fontSize, 0, 100, "%.1f%%");
