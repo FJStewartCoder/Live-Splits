@@ -1,65 +1,98 @@
-int IntInput(const string&in name, int value, int min, int max, int step = 1) {
-    // arbitrary value
-    int newValue;
+namespace UIX {
+    int InputInt(
+        const string&in name,
+        int value, 
+        int min, int max,
+        int step = 1,
+        bool callUpdate = true
+    ) {
+        // used to check for a change
+        int newValue = UI::InputInt(name, value, step);
 
-    // make the input int
-    newValue = UI::InputInt(name, value, step);
+        // if the setting has been updated, call an update
+        if ((value != newValue) && callUpdate) { UIX::OnSettingsUpdate(); }
 
-    // if changed, set performance choice to custom
-    // TODO: re-implement similar
-    // if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
+        // set numCars to the value
+        value = newValue;
 
-    // set numCars to the value
-    value = newValue;
+        // basic validation (1, 20)
+        if (value < min) { value = min; }
+        else if (value > max) { value = max; }
 
-    // basic validation (1, 20)
-    if (value < min) { value = min; }
-    else if (value > max) { value = max; }
+        return value;
+    }
 
-    return value;
-}
+    float InputFloat(
+        const string&in name,
+        float value,
+        float min, float max, 
+        float step = 1, float step_fast = 2, 
+        string fmt = "%.3f",
+        bool callUpdate = true
+    ) {
+        // arbitrary value
+        float newValue = UI::InputFloat(name, value, step, step_fast, fmt);
 
-float FloatInput(const string&in name, float value, float min, float max, float step = 1, float step_fast = 2, string fmt = "%.3f") {
-    // arbitrary value
-    float newValue;
+        if ((value != newValue) && callUpdate) { UIX::OnSettingsUpdate(); }
 
-    // make the input int
-    newValue = UI::InputFloat(name, value, step, step_fast, fmt);
+        // set numCars to the value
+        value = newValue;
 
-    // if changed, set performance choice to custom
-    // TODO: re-implement similar
-    // if (value != newValue) { performanceChoice = performanceOptions.Length - 1; }
+        // basic validation (1, 20)
+        if (value < min) { value = min; }
+        else if (value > max) { value = max; }
 
-    // set numCars to the value
-    value = newValue;
+        return value;
+    }
 
-    // basic validation (1, 20)
-    if (value < min) { value = min; }
-    else if (value > max) { value = max; }
+    float RelativeHeight(
+        const string&in label,
+        float value,
+        bool callUpdate = true
+    ) {
+        const float screenHeight = Display::GetHeight();
 
-    return value;
-}
+        float newValue = UI::SliderInt(
+            label, 
+            currentValue * screenHeight, 
+            0, screenHeight
+        );
 
-float RelativeHeight(const string&in label, float currentValue) {
-    const float screenHeight = Display::GetHeight();
+        // set the new value to the normalised data
+        newValue /= screenHeight;
 
-    int value = UI::SliderInt(
-        label, 
-        currentValue * screenHeight, 
-        0, screenHeight
-    );
+        // if the data changes, send an update
+        if ((value != newValue) && callUpdate) { UIX::OnSettingsUpdate(); }
 
-    return float(value) / screenHeight;
-}
+        return newValue;
+    }
 
-float RelativeWidth(const string&in label, float currentValue) {
-    const float screenWidth = Display::GetHeight();
+    float RelativeWidth(
+        const string&in label,
+        float value,
+        bool callUpdate = true
+    ) {
+        const float screenWidth = Display::GetHeight();
 
-    int value = UI::SliderInt(
-        label, 
-        currentValue * screenWidth, 
-        0, screenWidth
-    );
+        float newValue = UI::SliderInt(
+            label, 
+            currentValue * screenWidth, 
+            0, screenWidth
+        );
 
-    return float(value) / screenWidth;
+        // normalise the data
+        newValue /= screenWidth; 
+
+        // check for updates
+        if ((value != newValue) && callUpdate) { UIX::OnSettingsUpdate(); }
+
+        return newValue;
+    }
+
+    // CALLBACKS -----------------------------------------------------------------------------------
+
+    void OnSettingsUpdate() {
+        print("A setting has been updated");
+        AssignSettings();
+    }
 }

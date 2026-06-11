@@ -48,6 +48,9 @@ void OnChangeTrack() {
 void Main() {
     // load all of the settings
     LoadSettings::All();
+    
+    // load the loaded settings into the relevant locations
+    AssignSettings();
 
     // create the dist cache array
     MakeDistCacheArray();
