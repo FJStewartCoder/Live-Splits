@@ -10,6 +10,7 @@ namespace Render {
     class NormalSectionSettings {
         float width;
 
+        // padding is relative to the height
         float padding;
 
         TextAlignment textAlignment;
@@ -27,7 +28,7 @@ namespace Render {
             // width as a percentage of the screen width
             width = 0.075;
 
-            padding = 2;
+            padding = 0.002;
 
             textAlignment = TextAlignment::LEFT;
 
@@ -121,7 +122,7 @@ namespace Render {
         const float width = settings.width * Display::GetWidth();
 
         // re-assignment since it is quicker to type
-        const float padding = settings.padding;
+        const float padding = FromRelativeHeight(settings.padding);
 
         const float widthForText = width - (padding * 2);
         // this is equivalent to the font size (font size is character height)

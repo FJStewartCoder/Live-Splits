@@ -131,7 +131,7 @@ namespace SaveSettings {
             {"cornerRounding", settings.cornerRounding},
             {"outlineThickness", settings.outlineThickness},
             {"lineThickness", settings.lineThickness},
-            {"fontWidth", settings.fontWidth},
+            {"fontSize", settings.fontSize},
             {"maxPositiveGap", settings.maxPositiveGap},
             {"maxNegativeGap", settings.maxNegativeGap}
         };
@@ -268,7 +268,7 @@ namespace LoadSettings {
         settings.cornerRounding = jsonSettings.Get("cornerRounding");
         settings.outlineThickness = jsonSettings.Get("outlineThickness");
         settings.lineThickness = jsonSettings.Get("lineThickness");
-        settings.fontWidth = jsonSettings.Get("fontWidth");
+        settings.fontSize = jsonSettings.Get("fontSize");
         settings.maxPositiveGap = jsonSettings.Get("maxPositiveGap");
         settings.maxNegativeGap = jsonSettings.Get("maxNegativeGap");
     }

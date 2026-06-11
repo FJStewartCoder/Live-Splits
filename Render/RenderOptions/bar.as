@@ -85,8 +85,8 @@ namespace Render {
         double outlineThickness;
         double lineThickness;
 
-        // the width of the font relative to half of the width of the bar
-        double fontWidth;
+        // the font size as a relative value compared to the screen height
+        double fontSize;
 
         // the maximum gap that can be drawn on the bar before overflowing
         // both are in milliseconds (1.252s == 1252)
@@ -113,7 +113,7 @@ namespace Render {
             outlineThickness = 0.005;
             lineThickness = 0.0025;
 
-            fontWidth = 0.4;
+            fontSize = 0.04;
 
             maxPositiveGap = 2000;
             maxNegativeGap = 2000;
@@ -205,7 +205,6 @@ namespace Render {
     // draws the inner data of the bar
     void DrawBarData(
         UI::DrawList@ drawList,
-        float fontSize,
         BarSettings@ settings,
         array<int>@ data,
         float width, float height,
@@ -286,8 +285,12 @@ namespace Render {
         float height = FromRelativeHeight(settings.height);
 
         // calculate the desired text width and font size using the test text 
-        double desiredTextWidth = (width / 2) * settings.fontWidth;
-        double fontSize = CalculateFontSizeForWidth(TEST_TEXT, desiredTextWidth);
+        double fontSize = FromRelativeHeight(settings.fontSize);
+        // max font size is the font size required to fit in half of the width of the bar
+        double maxFontSize = CalculateFontSizeForWidth(TEST_TEXT, width / 2);
+
+        // if font size is greater than max, font size is capped
+        fontSize = (fontSize > maxFontSize) ? maxFontSize : fontSize;
 
         vec2 centrePos = CalculateCentreBarPosition(settings);
         vec2 topLeft = CalculateBarTopLeft(width, height, centrePos);
@@ -330,7 +333,6 @@ namespace Render {
 
         DrawBarData(
             drawList,
-            fontSize,
             settings,
             ghostGaps,
             width, gapsHeight,
@@ -346,7 +348,6 @@ namespace Render {
 
         DrawBarData(
             drawList,
-            fontSize,
             settings,
             ghostRates,
             width, rateHeight,

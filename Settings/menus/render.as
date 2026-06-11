@@ -34,8 +34,7 @@ const string TextAlignmentToString(Render::TextAlignment alignment) {
 void TableSectionSettings(const string&in sectionName, Render::NormalSectionSettings@ settings) {
     settings.width = UIX::RelativeWidth(sectionName + " Width", settings.width);
 
-    const int fullWidth = settings.width * Display::GetWidth();
-    settings.padding = UIX::InputInt(sectionName + " Padding", settings.padding, 0, int(fullWidth / 2));
+    settings.padding = UIX::RelativeHeight(sectionName + " Padding", settings.padding);
 
     // text alignment settings below
     const string textAlignmentString = TextAlignmentToString(settings.textAlignment);
@@ -195,9 +194,8 @@ void BarSettings() {
     settings.outlineThickness = UIX::RelativeWidth("Outline Thickness", settings.outlineThickness);
     settings.lineThickness = UIX::RelativeWidth("Line Thickness", settings.lineThickness);
 
-    double fontSize = settings.fontWidth * 100;
-    fontSize = UI::SliderDouble("Font Size", fontSize, 0, 100, "%.1f%%");
-    settings.fontWidth = fontSize / 100;
+    // font size is relative to the height
+    settings.fontSize = UIX::RelativeHeight("Font Size", settings.fontSize);
 
     UI::Separator();  // -----------------------------------------------------------------
 
