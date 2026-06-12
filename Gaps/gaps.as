@@ -1,5 +1,3 @@
-// TODO: improve gap algorithm
-
 class GapInfo {
     // the point closest to the desired point
     Point@ point = null;
@@ -128,12 +126,6 @@ namespace GetGap {
         
         // sets the checkIntervals
         checkIntervals = {gapBetweenChecks, optimalSecondGap, 1};
-        // ------------------------------------------------------------------------------------------
-
-        // set search radius for estimation to some number of seconds
-        // currently searchs 2 seconds either side
-        // TODO: reimplement
-        // searchRadius = logsPerSecond * searchRangeSeconds;
     }
 
     // current position and array of points

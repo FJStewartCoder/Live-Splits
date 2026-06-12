@@ -8,7 +8,6 @@ namespace Settings {
     }
 
     namespace Logger {
-        // hard limit on the array size
         uint arrayMaxSize = 1000000;  // 1,000,000
     }
 

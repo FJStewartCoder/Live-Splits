@@ -339,9 +339,12 @@ class GapData {
         return gaps[gaps.Length - (offset + 1)].gap;
     }
 
-
     void Reset() {
         gaps.Resize(0);
+
+        // reserve + 1 because of the insertion process for new gaps
+        // it is just a safe guard
+        gaps.Reserve(maxGaps + 1);
     }
 
     GapData() {

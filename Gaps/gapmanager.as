@@ -22,6 +22,11 @@ class GapMgr {
     // if more than 500 dist from closest point, set rel gap to 0
     float gapDistanceThreshold = 50;
 
+    // checkpoint estimation related settings
+    bool useCheckpointEstimation = true;    
+    // how many checkpoints to check either side of the current one
+    int2 cpCheckRange = int2(0, 0);
+
 
     RotatingCounter framesBetweenGap(3);
 
@@ -43,7 +48,7 @@ class GapMgr {
             // get the sample range 1cp each side of the current cp
             range = reference.sampleArray.GetSampleRange(
                 checkpoint, lap,
-                int2(0, 0) // check 0cp either side
+                cpCheckRange
             );
 
             // print(range.ToString());
@@ -94,13 +99,13 @@ class GapMgr {
 
         // print("CP: " + cp + ", LAP: " + lap);
 
-        const bool useCpEstimation = (cp != uint(-1)) && (lap != uint(-1));
+        const bool playerWantsCPEstimation = useCheckpointEstimation && (cp != uint(-1)) && (lap != uint(-1));
 
         // get the gap
         GapInfo gap = EvaluateGapFromState(
             ghostInfo.entityVis.AsyncState,
             data.lastPointIdx,
-            useCpEstimation,
+            playerWantsCPEstimation,
             cp,
             lap
         );
@@ -177,7 +182,7 @@ class GapMgr {
 
         auto a = VehicleState::ViewingPlayerState();
 
-        GapInfo playerGapInfo = EvaluateGapFromState(a, playerData.lastPointIdx, true, PlayerData::cp, PlayerData::lap);
+        GapInfo playerGapInfo = EvaluateGapFromState(a, playerData.lastPointIdx, useCheckpointEstimation, PlayerData::cp, PlayerData::lap);
         playerData.ApplyRelGapInfo(playerGapInfo);
 
         // get the ghost list and make the variable name more local
@@ -253,6 +258,12 @@ class GapMgr {
 
         // clear the cache dictionary
         cacheDict.DeleteAll();
+
+        // optimise the modified linear array for searches
+        GetGap::Optimise(
+            Settings::Performance::expectedFrameRate,
+            Settings::Gap::modLinResolution
+        );
     }
 }
 

@@ -79,6 +79,9 @@ class SampleArray {
     array<Point> samples;
     // defines how the samples is layed out relative to the laps and checkpoints
     array<SubSampleDefinition> definitions;
+    
+    // the hard limit on the array size
+    uint maxSize = 10 * 1000 * 1000;
 
     // the size of the samples
     bool isComplete = false;
@@ -164,6 +167,12 @@ class SampleArray {
         uint lap = -1,
         uint cp = -1
     ) {
+        // if there is no more space, set complete and return
+        if (samples.Length >= maxSize) {
+            SetComplete(true);
+            return;
+        }
+
         SubSampleDefinition@ relevantSubSamples;
 
         auto foundDefs = FindDefinitions(lap, cp);

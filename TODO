@@ -1,12 +1,11 @@
+1 - Ghost Manager
+    1.1 - Update the ghost manager on every frame and just get relevant data
+    ( allows for better calculation of ghost respawns etc )
+
 2 - Gap Algorithms
     2.1 - Fix weird inaccuracy with new approach (related to when the personal best ghost teleports back to the checkpoint on respawn but the gap looks in the wrong checkpoint due to the time)
     2.2 - Test all gap algorithms (estimation when idx is out of range)
     2.3 - Fix the GapInfo to provide the distance
-
-3 - Gap Related
-    3.1 - Update the gap manager such that it is more functional (passing in more values to the functions)
-    3.2 - as above + implement settings and stuff
-    3.3 - Improve system for distance threshold
 
 4 - Re-implement save
 
@@ -17,9 +16,21 @@
     5.1 - Respawns are still very broken (ghost may pass a checkpoint and be -4 to a ghost that has standing respawned but you are +1 because ghost has not respawned yet and you are behind. This causes giant respawn gaps)
 
 7 - Settings
-    7.1 - Add settings for anything that needs a settings and does not have it
+    7.1 - Add an option in settings to change these values
         - cacheSearchThreshold
-        - everything gap related
+        - searchRange
+        - gapDistanceThreshold
+        - useCheckpointEstimation 
+        - cpCheckRange 
+        - GapData maxGaps
+
+    7.2 - Add functionality for existing settings
+        - Save::enabled
+        - Gap::numCars
+        - Gap::getGapOverride
+        - Gap::searchRangeSeconds
+        - Cache::maxSize
+        - Cache::useAppoximation
 
     7.4 - Make settings functional
         - maxCacheEntries where ever they are created

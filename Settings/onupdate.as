@@ -14,7 +14,6 @@ void AssignGapSettings() {
     print("Gap.numCars: " + tostring(tmp.numCars));
     print("Gap.getGapOverride: " + tostring(tmp.getGapOverride));
     print("Gap.searchRangeSeconds: " + tostring(tmp.searchRangeSeconds));
-    print("Gap.modLinResolution: " + tostring(tmp.modLinResolution));
     */
 
     gapMgr.algorithm = Settings::Gap::algorithm;
@@ -22,14 +21,10 @@ void AssignGapSettings() {
 }
 
 void AssignLoggerSettings() {
-    // TODO: make this updateable
-    // print("Logger.arrayMaxSize: " + tostring(tmp.arrayMaxSize));
+    reference.sampleArray.maxSize = Settings::Logger::arrayMaxSize;
 }
 
 void AssignPerformanceSettings() {
-    // TODO: make this useful again
-    // print("Performance.expectedFrameRate: " + tostring(tmp.expectedFrameRate));
-
     reference.logMgr.framesBetweenLog.SetCount(
         Settings::Performance::framesBetweenLogValue);
     

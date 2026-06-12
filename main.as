@@ -31,19 +31,11 @@ void OnChangeTrack() {
     reference.OnChangeTrack();
     gapMgr.OnChangeTrack();
 
-    // optimise for the current track
-    // TODO: re-implement
-    // SetGaps::Optimise(expectedFrameRate, modLinResolution);
-
     // on longer saved
     isSaved = false;
 }
 
 // TODO: fix multilap (it will go completely wrong)
-
-// TODO:
-// fix ghost replays not finishing in the gap manager leading to the ghost not properly showing gap at finish because it does not
-// know that the ghost has finished (only applies if you are slower than a ghost)
 
 void Main() {
     // load all of the settings
